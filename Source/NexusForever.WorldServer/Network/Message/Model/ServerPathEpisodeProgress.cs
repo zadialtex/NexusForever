@@ -2,6 +2,7 @@
 using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.PathQuests.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
@@ -13,14 +14,14 @@ namespace NexusForever.WorldServer.Network.Message.Model
             public uint MissionId { get; set; }
             public bool Completed { get; set; }
             public uint Userdata { get; set; }
-            public uint Statedata { get; set; }
+            public MissionState Statedata { get; set; }
 
             public void Write(GamePacketWriter writer)
             {
                 writer.Write(MissionId, 15);
                 writer.Write(Completed);
                 writer.Write(Userdata);
-                writer.Write(Statedata);
+                writer.Write(Statedata, 32u);
             }
         }
 

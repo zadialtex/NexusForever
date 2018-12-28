@@ -32,6 +32,8 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual DbSet<CharacterMail> CharacterMail { get; set; }
         public virtual DbSet<CharacterMailAttachment> CharacterMailAttachment { get; set; }
         public virtual DbSet<CharacterPath> CharacterPath { get; set; }
+        public virtual DbSet<CharacterPathEpisode> CharacterPathEpisode { get; set; }
+        public virtual DbSet<CharacterPathMission> CharacterPathMission { get; set; }
         public virtual DbSet<CharacterPetCustomisation> CharacterPetCustomisation { get; set; }
         public virtual DbSet<CharacterPetFlair> CharacterPetFlair { get; set; }
         public virtual DbSet<CharacterQuest> CharacterQuest { get; set; }
@@ -388,7 +390,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasName("PRIMARY");
 
                 entity.ToTable("character_datacube");
-
+                
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasDefaultValueSql("'0'");
@@ -627,6 +629,67 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .WithMany(p => p.CharacterPath)
                     .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__character_path_id__character_id");
+            });
+
+            modelBuilder.Entity<CharacterPathEpisode>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.EpisodeId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_path_episode");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EpisodeId)
+                    .HasColumnName("episodeId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RewardReceived)
+                    .HasColumnName("rewardReceived")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.IdNavigation)
+                    .WithMany(p => p.CharacterPathEpisode)
+                    .HasForeignKey(d => d.Id)
+                    .HasConstraintName("FK_character_episode_id__character_id");
+            });
+
+            modelBuilder.Entity<CharacterPathMission>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.MissionId, e.EpisodeId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_path_mission");
+
+                entity.HasIndex(e => new { e.Id, e.EpisodeId })
+                    .HasName("FK_character_mission_id__character_id");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MissionId)
+                    .HasColumnName("missionId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EpisodeId)
+                    .HasColumnName("episodeId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Progress)
+                    .HasColumnName("progress")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.State)
+                    .HasColumnName("state")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.CharacterPathEpisode)
+                    .WithMany(p => p.CharacterPathMission)
+                    .HasForeignKey(d => new { d.Id, d.EpisodeId })
+                    .HasConstraintName("FK_character_mission_id__character_id");
             });
 
             modelBuilder.Entity<CharacterPetCustomisation>(entity =>
@@ -981,9 +1044,6 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasName("PRIMARY");
 
                 entity.ToTable("residence_decor");
-
-                entity.HasIndex(e => e.DecorId)
-                    .HasName("FK_residence_decor_item");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

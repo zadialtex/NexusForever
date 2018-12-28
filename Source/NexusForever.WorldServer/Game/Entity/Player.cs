@@ -107,6 +107,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public Inventory Inventory { get; }
         public CurrencyManager CurrencyManager { get; }
         public PathManager PathManager { get; }
+        public PathMissionManager PathMissionManager { get; }
         public TitleManager TitleManager { get; }
         public SpellManager SpellManager { get; }
         public CostumeManager CostumeManager { get; }
@@ -152,6 +153,7 @@ namespace NexusForever.WorldServer.Game.Entity
             Inventory               = new Inventory(this, model);
             CurrencyManager         = new CurrencyManager(this, model);
             PathManager             = new PathManager(this, model);
+            PathMissionManager      = new PathMissionManager(this, model);
             TitleManager            = new TitleManager(this, model);
             SpellManager            = new SpellManager(this, model);
             PetCustomisationManager = new PetCustomisationManager(this, model);
@@ -322,6 +324,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 }
 
                 QuestManager.ObjectiveUpdate(QuestObjectiveType.EnterZone, Zone.Id, 1);
+                PathMissionManager.SetCurrentZoneEpisode();
             }
 
             ZoneMapManager.OnZoneUpdate();
@@ -403,6 +406,7 @@ namespace NexusForever.WorldServer.Game.Entity
             ZoneMapManager.SendInitialPackets();
             Session.AccountCurrencyManager.SendInitialPackets();
             QuestManager.SendInitialPackets();
+            PathMissionManager.SetEpisodeProgress();
         }
 
         public ItemProficiency GetItemProficiences()
@@ -688,6 +692,7 @@ namespace NexusForever.WorldServer.Game.Entity
             Inventory.Save(context);
             CurrencyManager.Save(context);
             PathManager.Save(context);
+            PathMissionManager.Save(context);
             TitleManager.Save(context);
             CostumeManager.Save(context);
             PetCustomisationManager.Save(context);

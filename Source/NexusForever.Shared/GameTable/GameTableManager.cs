@@ -351,7 +351,10 @@ namespace NexusForever.Shared.GameTable
         public static GameTable<ModelSequenceByWeaponEntry> ModelSequenceByWeapon { get; private set; }
         public static GameTable<ModelSequenceTransitionEntry> ModelSequenceTransition { get; private set; }
         public static GameTable<ModelSkinFXEntry> ModelSkinFX { get; private set; }
+
+        [GameData]
         public static GameTable<PathEpisodeEntry> PathEpisode { get; private set; }
+
         public static GameTable<PathExplorerActivateEntry> PathExplorerActivate { get; private set; }
         public static GameTable<PathExplorerAreaEntry> PathExplorerArea { get; private set; }
         public static GameTable<PathExplorerDoorEntry> PathExplorerDoor { get; private set; }
@@ -364,6 +367,7 @@ namespace NexusForever.Shared.GameTable
         [GameData]
         public static GameTable<PathLevelEntry> PathLevel { get; private set; }
 
+        [GameData]
         public static GameTable<PathMissionEntry> PathMission { get; private set; }
 
         [GameData]

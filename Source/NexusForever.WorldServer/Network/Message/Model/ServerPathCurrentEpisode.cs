@@ -8,12 +8,12 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerPathCurrentEpisode)]
     public class ServerPathCurrentEpisode : IWritable
     {
-        public ushort Unknown0 { get; set; }
+        public ushort ZoneId { get; set; }
         public ushort EpisodeId { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(Unknown0, 15);
+            writer.Write(ZoneId, 15);
             writer.Write(EpisodeId, 14);
         }
     }
