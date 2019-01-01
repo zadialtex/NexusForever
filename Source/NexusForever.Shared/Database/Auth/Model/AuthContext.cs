@@ -82,6 +82,11 @@ namespace NexusForever.Shared.Database.Auth.Model
                     .HasColumnName("v")
                     .HasColumnType("varchar(512)")
                     .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
+                    .HasColumnType("tinyint")
+                    .HasDefaultValueSql("1");
             });
 
             modelBuilder.Entity<AccountCostumeUnlock>(entity =>

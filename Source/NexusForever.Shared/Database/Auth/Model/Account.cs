@@ -21,6 +21,7 @@ namespace NexusForever.Shared.Database.Auth.Model
         public string GameToken { get; set; }
         public string SessionKey { get; set; }
         public DateTime CreateTime { get; set; }
+        public byte Status { get; set; }
 
         public virtual ICollection<AccountCostumeUnlock> AccountCostumeUnlock { get; set; }
         public virtual ICollection<AccountCurrency> AccountCurrency { get; set; }
