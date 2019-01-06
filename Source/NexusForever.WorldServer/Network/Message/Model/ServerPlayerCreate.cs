@@ -59,7 +59,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
 
             public void Write(GamePacketWriter writer)
             {
-                writer.Write(Unknown0);
+                writer.Write(Unknown0, 14);
                 writer.Write(Unknown4);
             }
         }
@@ -86,7 +86,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
         public float GearScore { get; set; }
         public bool IsPvpServer { get; set; }
         public uint Unknown4DC { get; set; }
-        public List<UnknownStructure> Unknown4E4 { get; } = new List<UnknownStructure>();
+        public List<UnknownStructure> Unknown4E4 { get; set; } = new List<UnknownStructure>();
 
         public void Write(GamePacketWriter writer)
         {

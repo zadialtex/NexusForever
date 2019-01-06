@@ -219,16 +219,37 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     playerCreate.Inventory.Add(new InventoryItem
                     {
-                        Item   = item.BuildNetworkItem(),
+                        Item = item.BuildNetworkItem(),
                         Reason = 49
                     });
                 }
             }
 
             playerCreate.ItemProficiencies = GetItemProficiences();
+            playerCreate.Unknown4E4 = new List<ServerPlayerCreate.UnknownStructure>
+            {
+                new ServerPlayerCreate.UnknownStructure
+                {
+                    Unknown0 = 1,
+                    Unknown4 = 1
+                },
+                new ServerPlayerCreate.UnknownStructure
+                {
+                    Unknown0 = 2,
+                    Unknown4 = 2
+                }
+            };
 
             Session.EnqueueMessageEncrypted(playerCreate);
 
+            Session.EnqueueMessageEncrypted(new Server025A
+            {
+                Unknown0 = new List<uint>
+                {
+                    81344,
+                    883
+                }
+            });
             TitleManager.SendTitles();
         }
 

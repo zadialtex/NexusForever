@@ -46,6 +46,12 @@ namespace NexusForever.Shared.Network.Message
         ClientPing                      = 0x0241,
         ClientEncrypted                 = 0x0244,
         ServerCombatLog                 = 0x0247,
+        ClientCostumeSave               = 0x0255,
+        ClientCostumeEquip              = 0x0256,
+        ServerCostumeSaveResult         = 0x0257,
+        Server0258                      = 0x0258, // Server Costume Update? Unlocks, Forgets costumes, among other things.
+        Server0259                      = 0x0259, // itemid? (18), displayId? (32)
+        Server025A                      = 0x025A, // Possibly used to load existing costume data into client on player enter world
         ClientCharacterCreate           = 0x025B,
         ClientPacked                    = 0x025C, // the same as ClientEncrypted except the contents isn't encrypted?
         ServerPlayerCreate              = 0x025E,
@@ -96,6 +102,7 @@ namespace NexusForever.Shared.Network.Message
         Server08B3                      = 0x08B3,
         ServerSetUnitPathType           = 0x08B8,
         ServerVendor                    = 0x090B,
+        ClientCostumeItemUnlock         = 0x090F,
         ServerPlayerCurrencyChanged     = 0x0919,
         ServerItemVisualUpdate          = 0x0933,
         Server0934                      = 0x0934,

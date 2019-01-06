@@ -18,11 +18,14 @@ using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 using NexusForever.WorldServer.Network.Message.Static;
+using NLog;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
     public static class CharacterHandler
     {
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
+
         [MessageHandler(GameMessageOpcode.ClientRealmList)]
         public static void HandleRealmList(WorldSession session, ClientRealmList realmList)
         {
@@ -70,6 +73,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         {
                             Entitlement = Entitlement.AurinEngineerUnlock,
                             Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.CostumeSlots,
+                            Count       = 3
                         }
                     }
                 });
@@ -294,6 +302,12 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleTitleSet(WorldSession session, ClientTitleSet request)
         {
             session.Player.TitleManager.ActiveTitleId = request.TitleId;
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientCostumeItemUnlock)]
+        public static void HandleCostumeItemUnlock(WorldSession session, ClientCostumeUnlockItem request)
+        {
+            log.Debug($"ClientCostumeItemUnlock: {request.Unknown0}, {request.Unknown1}");
         }
     }
 }
