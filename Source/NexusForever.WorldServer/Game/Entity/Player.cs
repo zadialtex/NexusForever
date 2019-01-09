@@ -172,6 +172,11 @@ namespace NexusForever.WorldServer.Game.Entity
                 Position = new Position(vector)
             });
 
+            Session.EnqueueMessageEncrypted(new Server00FE
+            {
+                Unknown0 = 2048
+            });
+
             base.OnAddToMap(map, guid, vector);
 
             SendPacketsAfterAddToMap();
@@ -226,19 +231,6 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             playerCreate.ItemProficiencies = GetItemProficiences();
-            playerCreate.Unknown4E4 = new List<ServerPlayerCreate.UnknownStructure>
-            {
-                new ServerPlayerCreate.UnknownStructure
-                {
-                    Unknown0 = 1,
-                    Unknown4 = 1
-                },
-                new ServerPlayerCreate.UnknownStructure
-                {
-                    Unknown0 = 2,
-                    Unknown4 = 2
-                }
-            };
 
             Session.EnqueueMessageEncrypted(playerCreate);
 

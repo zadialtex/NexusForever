@@ -15,7 +15,9 @@ namespace NexusForever.Shared.Network.Message
         ClientLogout                    = 0x00C0,
         ServerCharacterCreate           = 0x00DC,
         ServerChannelUpdateLoot         = 0x00DD,
+        Server00D9                      = 0x00D9,
         Server00F1                      = 0x00F1,
+        Server00FE                      = 0x00FE,
         Server0104                      = 0x0104, // Galactic Archive
         ServerCharacter                 = 0x010F, // single character
         ServerItemAdd                   = 0x0111,
@@ -26,6 +28,7 @@ namespace NexusForever.Shared.Network.Message
         ServerCharacterSelectFail       = 0x0162,
         Server0169                      = 0x0169, // ability book related
         ClientItemSplit                 = 0x017D,
+        Server0179                      = 0x0179,
         ServerItemStackCountUpdate      = 0x017F,
         ClientItemMove                  = 0x0182,
         ClientEntitySelect              = 0x0185,
@@ -110,6 +113,14 @@ namespace NexusForever.Shared.Network.Message
         ClientWhoRequest                = 0x0959,
         ServerWhoResponse               = 0x095A,
         ServerGrantAccountCurrency      = 0x0967,
-        ServerAccountEntitlements       = 0x0968
+        ServerAccountEntitlements       = 0x0968,
+        Server096D                      = 0x096D,
+        Server0970                      = 0x0970, // C.R.E.D.D. Exchange
+        Server0973                      = 0x0973,
+        Server097F                      = 0x097F,
+        Server0981                      = 0x0981,
+        Server0987                      = 0x0987,
+        Server098B                      = 0x098B,
+        Server098C                      = 0x098C
     }
 }

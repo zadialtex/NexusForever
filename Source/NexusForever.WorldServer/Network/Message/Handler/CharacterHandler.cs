@@ -61,8 +61,48 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     {
                         new ServerAccountEntitlements.AccountEntitlementInfo
                         {
+                            Entitlement = Entitlement.BaseCharacterProgressionCaps,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
                             Entitlement = Entitlement.BaseCharacterSlots,
-                            Count       = 12
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.EconomyParticipation,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.GuildsAccess,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.FullSocialParticipation,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.CREDDUsage,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.InGameCSAccess,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = (Entitlement)20,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.Signature,
+                            Count       = 1
                         },
                         new ServerAccountEntitlements.AccountEntitlementInfo
                         {
@@ -76,15 +116,15 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         },
                         new ServerAccountEntitlements.AccountEntitlementInfo
                         {
-                            Entitlement = Entitlement.CostumeSlots,
-                            Count       = 3
+                            Entitlement = Entitlement.CanPurchasePromotionToken,
+                            Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.SharedRealmBankUnlock,
+                            Count       = 1
                         }
                     }
-                });
-
-                session.EnqueueMessageEncrypted(new ServerMaxCharacterLevelAchieved
-                {
-                    Level = 50
                 });
 
                 var serverCharacterList = new ServerCharacterList();
@@ -133,6 +173,10 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 }
 
                 session.EnqueueMessageEncrypted(serverCharacterList);
+                session.EnqueueMessageEncrypted(new ServerMaxCharacterLevelAchieved
+                {
+                    Level = 50
+                });
             }));
         }
 
