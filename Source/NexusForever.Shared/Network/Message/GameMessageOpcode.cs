@@ -120,6 +120,7 @@ namespace NexusForever.Shared.Network.Message
         Server097F                      = 0x097F,
         Server0981                      = 0x0981,
         Server0987                      = 0x0987,
+        ServerStoreCategories           = 0x0988,
         ServerStoreCatalog              = 0x098B,
         Server098C                      = 0x098C
     }
