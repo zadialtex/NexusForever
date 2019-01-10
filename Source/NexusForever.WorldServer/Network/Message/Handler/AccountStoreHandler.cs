@@ -48,38 +48,60 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     {
                         new byte[4]
                         {
-                            78, 1, 0, 0
+                            78, 0, 0, 0
                         }
                     }
             });
 
             // 0x098B - Store catalogue items
-            session.EnqueueMessageEncrypted(new Server098B
+            session.EnqueueMessageEncrypted(new ServerStoreCatalog
             {
-                StoreCategories = new List<Server098B.StoreCategory>
+                StoreCategories = new List<ServerStoreCatalog.StoreCategory>
                     {
-                        new Server098B.StoreCategory
+                        new ServerStoreCatalog.StoreCategory
                         {
                             Unknown0 = 1550,
+                            Unknown1 = 0,
                             SubCategoryName = "Costume Slot Unlock",
                             SubCategoryDescription = "Unlocks an additional costume slot.",
-                            AccountItemList = new List<Server098B.StoreCategory.StoreItem>
+                            Unknown2 = 0,
+                            AccountItemList = new List<ServerStoreCatalog.StoreCategory.StoreItem>
                         {
-                            new Server098B.StoreCategory.StoreItem
+                            new ServerStoreCatalog.StoreCategory.StoreItem
                             {
                                 Unknown3 = 1550,
                                 ItemName = "Costume Slot Unlock",
                                 ItemDescription = "Unlocks an additional costume slot.",
-                                Unknown8 = new List<Server098B.StoreCategory.StoreItem.UnknownStructure0>
+                                Unknown4 = new byte[]{
+                                    0, 0, 22, 67, 0, 0, 150, 66
+                                },
+                                Unknown5 = 0,
+                                Unknown6 = -1016071787,
+                                Unknown7 = 0,
+                                Unknown8 = new List<ServerStoreCatalog.StoreCategory.StoreItem.UnknownStructure0>
                                 {
-                                    new Server098B.StoreCategory.StoreItem.UnknownStructure0
+                                    new ServerStoreCatalog.StoreCategory.StoreItem.UnknownStructure0
                                     {
-                                     Unknown10 = 6
+                                        Unknown10 = 6,
+                                        Unknown11 = 1117126656,
+                                        Unknown12 = 0,
+                                        Unknown13 = 0,
+                                        Unknown14 = 433572722,
+                                        Unknown15 = 1995404795
+                                    },
+                                    new ServerStoreCatalog.StoreCategory.StoreItem.UnknownStructure0
+                                    {
+                                        Unknown10 = 11,
+                                        Unknown11 = 1125515264,
+                                        Unknown12 = 0,
+                                        Unknown13 = 0,
+                                        Unknown14 = -235145984,
+                                        Unknown15 = 1995405795
                                     }
                                 },
-                                Unknown9 = new List<Server098B.StoreCategory.StoreItem.AccountItemData>
+                                Unknown9 = new List<ServerStoreCatalog.StoreCategory.StoreItem.AccountItemData>
                                 {
-                                    new Server098B.StoreCategory.StoreItem.AccountItemData
+                                    new ServerStoreCatalog.StoreCategory.StoreItem.AccountItemData
                                     {
                                         Type = 0,
                                         AccountItemId = 78,
@@ -101,8 +123,8 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 }
             });
 
-            //// 0x0987 - Store catalogue finalised message
-            /ession.EnqueueMessageEncrypted(new Server0987());
+            // 0x0987 - Store catalogue finalised message
+            session.EnqueueMessageEncrypted(new Server0987());
         }
     }
 }

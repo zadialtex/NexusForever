@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.Server098B, MessageDirection.Server)]
-    public class Server098B : IWritable
+    [Message(GameMessageOpcode.ServerStoreCatalog, MessageDirection.Server)]
+    public class ServerStoreCatalog : IWritable
     {
         public class StoreCategory: IWritable
         {
@@ -17,8 +17,8 @@ namespace NexusForever.WorldServer.Network.Message.Model
                     public uint Unknown11 { get; set; }
                     public byte Unknown12 { get; set; } // 2
                     public uint Unknown13 { get; set; }
-                    public ulong Unknown14 { get; set; } // Should be signed long 
-                    public ulong Unknown15 { get; set; }
+                    public long Unknown14 { get; set; }
+                    public long Unknown15 { get; set; }
 
                     public void Write(GamePacketWriter writer)
                     {
@@ -51,9 +51,9 @@ namespace NexusForever.WorldServer.Network.Message.Model
                 public uint Unknown3 { get; set; }
                 public string ItemName { get; set; }
                 public string ItemDescription { get; set; }
-                public ulong Unknown4 { get; set; }
+                public byte[] Unknown4 { get; set; }
                 public uint Unknown5 { get; set; }
-                public ulong Unknown6 { get; set; } // Should be singed long
+                public long Unknown6 { get; set; }
                 public byte Unknown7 { get; set; }
                 public List<UnknownStructure0> Unknown8 { get; set; }
                 public List<AccountItemData> Unknown9 { get; set; }
@@ -63,8 +63,10 @@ namespace NexusForever.WorldServer.Network.Message.Model
                     writer.Write(Unknown3);
                     writer.WriteStringWide(ItemName);
                     writer.WriteStringWide(ItemDescription);
-                    writer.Write(Unknown4);
-                    writer.Write(Unknown5);
+
+                    for (uint i = 0u; i < Unknown4.Length; i++)
+                        writer.Write(Unknown4[i]);
+
                     writer.Write(Unknown6);
                     writer.Write(Unknown7);
 
