@@ -11,9 +11,8 @@ namespace NexusForever.WorldServer.Network.Message.Model
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(AccountItemList.Length, 32);
-            for (uint i = 0u; i < AccountItemList.Length; i++)
-                writer.Write(AccountItemList[i], 8);
+            writer.Write(AccountItemList.Length / 4);
+            writer.WriteBytes(AccountItemList);
         }
     }
 }

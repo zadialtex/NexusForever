@@ -11,19 +11,19 @@ namespace NexusForever.WorldServer.Network.Message.Model
         {
             public string CategoryName { get; set; }
             public string CategoryDesc { get; set; }
-            public uint Unknown0 { get; set; }
-            public uint Unknown1 { get; set; }
-            public uint Unknown2 { get; set; }
-            public bool Unknown3 { get; set; }
+            public uint CategoryId { get; set; } // Id of this category
+            public uint ParentCategoryId { get; set; } // 26 is "Top Level"
+            public uint Index { get; set; } // Seems to be indexed from 1
+            public bool Visible { get; set; }
 
             public void Write(GamePacketWriter writer)
             {
                 writer.WriteStringWide(CategoryName);
                 writer.WriteStringWide(CategoryDesc);
-                writer.Write(Unknown0);
-                writer.Write(Unknown1);
-                writer.Write(Unknown2);
-                writer.Write(Unknown3);
+                writer.Write(CategoryId);
+                writer.Write(ParentCategoryId);
+                writer.Write(Index);
+                writer.Write(Visible);
             }
         }
 

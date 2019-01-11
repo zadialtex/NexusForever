@@ -7,22 +7,22 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerStoreCatalog, MessageDirection.Server)]
     public class ServerStoreCatalog : IWritable
     {
-        public class StoreCategory: IWritable
+        public class OfferGroup: IWritable
         {
-            public class StoreItem : IWritable
+            public class Offer : IWritable
             {
-                public class UnknownStructure0 : IWritable
+                public class UnknownStructure0 : IWritable // 99% sure that this is "currency & costs"
                 {
-                    public byte Unknown10 { get; set; } // 5
+                    public byte CurrencyId { get; set; } // 5
                     public uint Unknown11 { get; set; }
                     public byte Unknown12 { get; set; } // 2
                     public uint Unknown13 { get; set; }
-                    public long Unknown14 { get; set; }
-                    public long Unknown15 { get; set; }
+                    public double Unknown14 { get; set; }
+                    public double Unknown15 { get; set; }
 
                     public void Write(GamePacketWriter writer)
                     {
-                        writer.Write(Unknown10, 5);
+                        writer.Write(CurrencyId, 5);
                         writer.Write(Unknown11);
                         writer.Write(Unknown12, 2);
                         writer.Write(Unknown13);
@@ -48,25 +48,25 @@ namespace NexusForever.WorldServer.Network.Message.Model
                     }
                 }
 
-                public uint Unknown3 { get; set; }
-                public string ItemName { get; set; }
-                public string ItemDescription { get; set; }
-                public byte[] Unknown4 { get; set; }
-                public uint Unknown5 { get; set; }
-                public long Unknown6 { get; set; }
-                public byte Unknown7 { get; set; }
-                public List<UnknownStructure0> Unknown8 { get; set; }
-                public List<AccountItemData> Unknown9 { get; set; }
+                public uint Unknown3 { get; set; } // nId
+                public string OfferName { get; set; } // strVariantName
+                public string OfferDescription { get; set; } // strVariantDescription
+                public byte[] PriceArray { get; set; } = new byte[8]; 
+                public uint Unknown5 { get; set; } // nRequiredTIer?
+                public long Unknown6 { get; set; } // tPremium?
+                public byte Unknown7 { get; set; } // tAlternative?
+                public List<UnknownStructure0> Unknown8 { get; set; } = new List<UnknownStructure0>(); // tPrices
+                public List<AccountItemData> Unknown9 { get; set; } = new List<AccountItemData>(); // Item
 
                 public void Write(GamePacketWriter writer)
                 {
                     writer.Write(Unknown3);
-                    writer.WriteStringWide(ItemName);
-                    writer.WriteStringWide(ItemDescription);
+                    writer.WriteStringWide(OfferName);
+                    writer.WriteStringWide(OfferDescription);
 
-                    for (uint i = 0u; i < Unknown4.Length; i++)
-                        writer.Write(Unknown4[i]);
+                    writer.WriteBytes(PriceArray);
 
+                    writer.Write(Unknown5);
                     writer.Write(Unknown6);
                     writer.Write(Unknown7);
 
@@ -78,27 +78,27 @@ namespace NexusForever.WorldServer.Network.Message.Model
                 }
             }
 
-            public uint Unknown0 { get; set; }
+            public uint Unknown0 { get; set; } // nId
             public uint Unknown1 { get; set; }
-            public string SubCategoryName { get; set; }
-            public string SubCategoryDescription { get; set; }
-            public ushort Unknown2 { get; set; } // 14
-            public List<StoreItem> AccountItemList { get; set; }
+            public string OfferGroupName { get; set; } // strName
+            public string OfferGroupDescription { get; set; } // strDescription
+            public ushort Unknown2 { get; set; } // 14 nNumVariants?
+            public List<Offer> Offers { get; set; } = new List<Offer>(); // Or is Offers count = nNumVariants
             public uint ArraySize { get; set; }
-            public byte[] Unknown16 { get; set; } // Array1
-            public byte[] Unknown17 { get; set; } // Array2
+            public byte[] Unknown16 { get; set; } // Array1 // nDisplayInfoOverride
+            public byte[] Unknown17 { get; set; } // Array2 // nFlags
 
 
             public void Write(GamePacketWriter writer)
             {
                 writer.Write(Unknown0);
                 writer.Write(Unknown1);
-                writer.WriteStringWide(SubCategoryName);
-                writer.WriteStringWide(SubCategoryDescription);
+                writer.WriteStringWide(OfferGroupName);
+                writer.WriteStringWide(OfferGroupDescription);
                 writer.Write(Unknown2, 14);
 
-                writer.Write(AccountItemList.Count);
-                AccountItemList.ForEach(e => e.Write(writer));
+                writer.Write(Offers.Count);
+                Offers.ForEach(e => e.Write(writer));
 
                 writer.Write(ArraySize);
                 for (uint i = 0u; i < Unknown16.Length; i++)
@@ -108,12 +108,12 @@ namespace NexusForever.WorldServer.Network.Message.Model
             }
         }
 
-        public List<StoreCategory> StoreCategories { get; set; }
+        public List<OfferGroup> OfferGroups { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(StoreCategories.Count);
-            StoreCategories.ForEach(e => e.Write(writer));
+            writer.Write(OfferGroups.Count);
+            OfferGroups.ForEach(e => e.Write(writer));
         }
     }
 }
