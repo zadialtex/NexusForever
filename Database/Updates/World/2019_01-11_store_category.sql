@@ -1,30 +1,16 @@
--- --------------------------------------------------------
--- Host:                         127.0.0.1
--- Server version:               8.0.13 - MySQL Community Server - GPL
--- Server OS:                    Win64
--- HeidiSQL Version:             9.5.0.5196
--- --------------------------------------------------------
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES utf8 */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-
 -- Dumping structure for table nexus_forever_world.store_category
 CREATE TABLE IF NOT EXISTS `store_category` (
-  `id` int(10) unsigned NOT NULL DEFAULT '0",
-  `parentId` int(10) unsigned NOT NULL DEFAULT '26",
-  `name` varchar(50) NOT NULL DEFAULT '",
-  `description` varchar(150) NOT NULL DEFAULT '",
-  `index` int(10) unsigned NOT NULL DEFAULT '1",
-  `visible` tinyint(1) unsigned NOT NULL DEFAULT '0",
+  `id` int(10) unsigned NOT NULL DEFAULT '0',
+  `parentId` int(10) unsigned NOT NULL DEFAULT '26',
+  `name` varchar(50) NOT NULL DEFAULT '',
+  `description` varchar(150) NOT NULL DEFAULT '',
+  `index` int(10) unsigned NOT NULL DEFAULT '1',
+  `visible` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `parentId` (`parentId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table nexus_forever_world.store_category: ~0 rows (approximately)
-/*!40000 ALTER TABLE `store_category` DISABLE KEYS */;
+-- Dumping data for table nexus_forever_world.store_category: ~34 rows (approximately)
 INSERT INTO `store_category` (`id`, `parentId`, `name`, `description`, `index`, `visible`) VALUES
 	(26, 0, "TOP LEVEL", "DO NOT DELETE", 0, 0),
 	(27, 26, "Holo-Wardrobe", "Costumes, weapons, and dyes keep you safe and looking sharp.", 7, 1),
@@ -61,4 +47,3 @@ INSERT INTO `store_category` (`id`, `parentId`, `name`, `description`, `index`, 
 	(215, 27, "Costume Pieces", "", 2, 1),
 	(216, 26, "Protobucks Conversion", "", 17, 0),
 	(242, 26, "Black Friday", "Celebrate Black Friday with these deals (and steals)!", 3, 0);
-/*!40000 ALTER TABLE `store_category` ENABLE KEYS */;
