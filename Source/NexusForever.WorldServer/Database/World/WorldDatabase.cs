@@ -42,5 +42,50 @@ namespace NexusForever.WorldServer.Database.World
                 context.SaveChanges();
             }
         }
+
+        public static ImmutableList<EntityVendor> GetEntityVendors()
+        {
+            using (var context = new WorldContext())
+                return context.EntityVendor
+                    .AsNoTracking()
+                    .ToImmutableList();
+        }
+
+        public static ImmutableList<EntityVendorCategory> GetEntityVendorCategories()
+        {
+            using (var context = new WorldContext())
+                return context.EntityVendorCategory
+                    .AsNoTracking()
+                    .ToImmutableList();
+        }
+
+        public static ImmutableList<EntityVendorItem> GetEntityVendorItems()
+        {
+            using (var context = new WorldContext())
+                return context.EntityVendorItem
+                    .AsNoTracking()
+                    .ToImmutableList();
+        }
+
+        public static ImmutableList<StoreCategory> GetStoreCategories()
+        {
+            using (var context = new WorldContext())
+                return context.StoreCategory
+                    .AsNoTracking()
+                    .ToImmutableList();
+        }
+
+        public static ImmutableList<StoreOfferGroup> GetStoreOfferGroups()
+        {
+            using (var context = new WorldContext())
+                return context.StoreOfferGroup
+                    .Include(e => e.StoreOfferGroupCategory)
+                    .Include(e => e.StoreOfferItem)
+                        .ThenInclude(e => e.StoreOfferItemData)
+                    .Include(e => e.StoreOfferItem)
+                        .ThenInclude(e => e.StoreOfferItemPrice)
+                    .AsNoTracking()
+                    .ToImmutableList();
+        }
     }
 }
