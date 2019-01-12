@@ -33,5 +33,11 @@
         "GridUnloadTimer": 3600
     },
     "RealmId": 1,
-    "LengthOfInGameDay": 12600
+    "LengthOfInGameDay": 12600,
+    "Store": {
+        "ForcedProtobucksPrice": 0,
+        "ForcedOmnibitsPrice": 0,
+        "CurrencyProtobucksEnabled": true,
+        "CurrencyOmnibitsEnabled": true
+    }
 }
