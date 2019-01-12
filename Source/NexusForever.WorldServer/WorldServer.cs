@@ -73,6 +73,7 @@ namespace NexusForever.WorldServer
             GlobalStorefrontManager.Initialise();
 
             GuildManager.Initialise();
+            StorefrontManager.Initialise();
 
             // make sure the assigned realm id in the configuration file exists in the database
             RealmId = ConfigurationManager<WorldServerConfiguration>.Config.RealmId;

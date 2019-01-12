@@ -762,6 +762,39 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__store_offer_item_price_id__store_offer_item_id");
             });
+
+            modelBuilder.Entity<StoreCategory>(entity =>
+            {
+                entity.HasKey(e => new { e.Id });
+
+                entity.ToTable("store_category");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ParentCategoryId)
+                    .HasColumnName("parentId")
+                    .HasDefaultValueSql("'26'");
+
+                entity.Property(e => e.Name)
+                    .HasColumnName("name")
+                    .HasColumnType("varchar(50)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasColumnType("varchar(150)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Visible)
+                    .HasColumnName("visible")
+                    .HasDefaultValueSql("'0'");
+            });
         }
     }
 }
