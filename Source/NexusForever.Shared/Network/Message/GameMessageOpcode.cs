@@ -213,5 +213,7 @@ namespace NexusForever.Shared.Network.Message
         ServerGenericUnlockList         = 0x0981,
         ServerGenericUnlock             = 0x0982,
         ServerGenericUnlockResult       = 0x0985
+        ServerStoreFinalise             = 0x0987,
+        ServerStoreCategories           = 0x0988,
     }
 }

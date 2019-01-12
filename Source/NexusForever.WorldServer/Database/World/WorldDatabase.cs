@@ -62,5 +62,13 @@ namespace NexusForever.WorldServer.Database.World
                     .AsNoTracking()
                     .ToImmutableList();
         }
+
+        public static ImmutableList<StoreCategory> GetStoreCategories()
+        {
+            using (var context = new WorldContext())
+                return context.StoreCategory
+                    .AsNoTracking()
+                    .ToImmutableList();
+        }
     }
 }

@@ -22,6 +22,7 @@ namespace NexusForever.WorldServer.Database.World.Model
         public virtual DbSet<EntityVendor> EntityVendor { get; set; }
         public virtual DbSet<EntityVendorCategory> EntityVendorCategory { get; set; }
         public virtual DbSet<EntityVendorItem> EntityVendorItem { get; set; }
+        public virtual DbSet<StoreCategory> StoreCategory { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -168,6 +169,39 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .WithMany(p => p.EntityVendorItem)
                     .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__entity_vendor_item_id__entity_id");
+            });
+
+            modelBuilder.Entity<StoreCategory>(entity =>
+            {
+                entity.HasKey(e => new { e.Id });
+
+                entity.ToTable("store_category");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ParentCategoryId)
+                    .HasColumnName("parentId")
+                    .HasDefaultValueSql("'26'");
+
+                entity.Property(e => e.Name)
+                    .HasColumnName("name")
+                    .HasColumnType("varchar(50)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasColumnType("varchar(150)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Visible)
+                    .HasColumnName("visible")
+                    .HasDefaultValueSql("'0'");
             });
         }
     }

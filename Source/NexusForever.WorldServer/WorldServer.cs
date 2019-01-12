@@ -19,6 +19,7 @@ using NexusForever.WorldServer.Game.Housing;
 using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Game.Social;
 using NexusForever.WorldServer.Game.Spell;
+using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network;
 
 namespace NexusForever.WorldServer
@@ -56,6 +57,7 @@ namespace NexusForever.WorldServer
             ServerManager.Initialise();
 
             ResidenceManager.Initialise();
+            StorefrontManager.Initialise();
 
             // make sure the assigned realm id in the configuration file exists in the database
             RealmId = ConfigurationManager<WorldServerConfiguration>.Config.RealmId;
