@@ -3,35 +3,47 @@ using System.Collections.Immutable;
 using System.Linq;
 using NexusForever.WorldServer.Database.World;
 using NexusForever.WorldServer.Database.World.Model;
+using NexusForever.WorldServer.Game.Storefront.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
+using NLog;
 
 namespace NexusForever.WorldServer.Game.Storefront
 {
     public static class StorefrontManager
     {
-        private static ImmutableList<StoreCategory> StoreCategoryList { get; set; }
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
+
+        private static ImmutableList<ServerStoreCategories.StoreCategory> StoreCategoryList { get; set; }
+        private static ImmutableList<ServerStoreOffers.OfferGroup> StoreOfferGroupList { get; set; }
+
+        private static ImmutableList<StoreOfferGroupCategory> StoreOfferGroupCategoryList { get; set; }
+        private static ImmutableList<StoreOfferItem> StoreOfferItemList { get; set; }
+        private static ImmutableList<StoreOfferItemData> StoreOfferItemDataList { get; set; }
+        private static ImmutableList<StoreOfferItemPrice> StoreOfferItemPriceList { get; set; }
+        private static ImmutableList<StoreOfferItemCurrency> StoreOfferItemCurrencyList { get; set; }
 
         public static void Initialise()
         {
-            InitialiseStoreInfo();
+            // Need to initialise in reverse to ensure filtering works
+            InitialiseStoreOfferItemCurrencies();
+            InitialiseStoreOfferItemData();
+            InitialiseStoreOfferItemPrices();
+            InitialiseStoreOfferItems();
+            InitialiseStoreOfferGroupCategories();
+            InitialiseStoreOfferGroups();
+            InitialiseStoreCategories();
         }
 
-        public static void InitialiseStoreInfo()
+        private static void InitialiseStoreCategories()
         {
-            //ImmutableDictionary<uint, ImmutableList<StoreCategory>> storeCategories = WorldDatabase.GetStoreCategories()
-            //    .GroupBy(i => i.Id)
-            //    .ToImmutableDictionary(g => g.Key, g => g.ToImmutableList());
-
-            StoreCategoryList = WorldDatabase.GetStoreCategories()
+            List<StoreCategory> StoreCategories = WorldDatabase.GetStoreCategories()
                 .OrderBy(i => i.Id)
-                .ToImmutableList();
-            StoreCategoryList.Remove(StoreCategoryList.FirstOrDefault(x => x.Id == 26));
-        }
+                .Where(a => StoreOfferGroupList.Any(x => x.CategoryArray.Contains((byte)a.Id)))
+                .ToList();
+            StoreCategories.Remove(StoreCategories.Find(x => x.Id == 26));
 
-        public static void SendStoreCategories(WorldSession session)
-        {
-            var ServerStoreCategoriesList = StoreCategoryList
+            StoreCategoryList = StoreCategories
               .Select(x => new ServerStoreCategories.StoreCategory()
               {
                   CategoryId = x.Id,
@@ -41,13 +53,215 @@ namespace NexusForever.WorldServer.Game.Storefront
                   Index = x.Index,
                   Visible = x.Visible
               })
-              .ToList();
+              .ToImmutableList();
+        }
 
+        private static void InitialiseStoreOfferGroups()
+        {
+            List<StoreOfferGroup> StoreOfferGroups = WorldDatabase.GetStoreOfferGroups()
+                .OrderBy(i => i.Id)
+                .Where(a => StoreOfferItemList.Any(x => x.GroupId == a.Id))
+                .ToList();
+            foreach (var offerGroup in StoreOfferGroups.FindAll(x => x.Visible == false))
+                StoreOfferGroups.Remove(offerGroup);
+
+
+            StoreOfferGroupList = StoreOfferGroups
+                .Select(x => new ServerStoreOffers.OfferGroup()
+                {
+                    Id = x.Id,
+                    DisplayFlags = (DisplayFlag)x.DisplayFlags,
+                    OfferGroupName = x.Name,
+                    OfferGroupDescription = x.Description,
+                    Unknown2 = x.Field2,
+                    Offers = GetOffersForGroup(x.Id),
+                    ArraySize = (uint)(CalculateCategoryArray(StoreOfferGroupCategoryList.Where(i => i.Id == x.Id).ToList()).Length / 4),
+                    CategoryArray = CalculateCategoryArray(StoreOfferGroupCategoryList.Where(i => i.Id == x.Id).ToList()),
+                    CategoryIndexArray = CalculateCategoryArray(StoreOfferGroupCategoryList.Where(i => i.Id == x.Id).ToList(), true)
+                })
+                .ToImmutableList();            
+        }
+
+        private static void InitialiseStoreOfferGroupCategories()
+        {
+            List<StoreOfferGroupCategory> StoreOfferGroupCategories = WorldDatabase.GetStoreOfferGroupCategories()
+                .OrderBy(i => i.Id)
+                .ToList();
+                
+            foreach (var groupCategory in StoreOfferGroupCategories.FindAll(x => x.Visible == false))
+                StoreOfferGroupCategories.Remove(groupCategory);
+
+            StoreOfferGroupCategoryList = StoreOfferGroupCategories.ToImmutableList();
+        }
+
+        private static byte[] CalculateCategoryArray(List<StoreOfferGroupCategory> offerGroupCategories, bool indexCheck = false)
+        {
+            List<byte> CategoryArray = new List<byte>();
+
+            foreach (StoreOfferGroupCategory category in offerGroupCategories)
+            {
+                if(category.Visible)
+                {
+                    CategoryArray.Add(!indexCheck ? (byte)category.CategoryId : category.Index);
+                    CategoryArray.Add(0);
+                    CategoryArray.Add(0);
+                    CategoryArray.Add(0);
+                }
+            }
+
+            return CategoryArray.ToArray();
+        }
+
+        private static void InitialiseStoreOfferItems()
+        {
+            List<StoreOfferItem> StoreOfferItems = WorldDatabase.GetStoreOfferItems()
+                .OrderBy(i => i.Id)
+                .Where(a => StoreOfferItemDataList.Any(x => x.OfferId == a.Id) && StoreOfferItemPriceList.Any(x => x.OfferId == a.Id))
+                .ToList();
+            foreach (var offerGroup in StoreOfferItems.FindAll(x => x.Visible == false))
+                StoreOfferItems.Remove(offerGroup);
+
+            StoreOfferItemList = StoreOfferItems.ToImmutableList();
+        }
+
+        private static List<ServerStoreOffers.OfferGroup.Offer> GetOffersForGroup(uint groupId)
+        {
+            List<ServerStoreOffers.OfferGroup.Offer> StoreItemsToSend = StoreOfferItemList
+                .Where(x => x.GroupId == groupId)
+                .Select(x => new ServerStoreOffers.OfferGroup.Offer()
+                {
+                    Id = x.Id,
+                    OfferName = x.Name,
+                    OfferDescription = x.Description,
+                    PriceArray = GetPricesForOffer(x.Id),
+                    DisplayFlags = (DisplayFlag)x.DisplayFlags,
+                    Unknown6 = x.Field6,
+                    Unknown7 = x.Field7,
+                    CurrencyData = GetCurrencyDataForOffer(x.Id),
+                    ItemData = GetItemDataForOffer(x.Id)
+                })
+                .ToList();
+
+            return StoreItemsToSend;
+        }
+
+        private static void InitialiseStoreOfferItemData()
+        {
+            List<StoreOfferItemData> StoreOfferItemsData = WorldDatabase.GetStoreOfferItemsData()
+                .OrderBy(i => i.Id)
+                .ToList();
+
+            StoreOfferItemDataList = StoreOfferItemsData.ToImmutableList();
+        }
+
+        private static List<ServerStoreOffers.OfferGroup.Offer.OfferItemData> GetItemDataForOffer(uint offerId)
+        {
+            List<ServerStoreOffers.OfferGroup.Offer.OfferItemData> StoreItemDataToSend = StoreOfferItemDataList
+                .Where(x => x.OfferId == offerId)
+                .Select(x => new ServerStoreOffers.OfferGroup.Offer.OfferItemData()
+                {
+                    Type = x.Type,
+                    AccountItemId = x.ItemId,
+                    Amount = x.Amount
+                })
+                .ToList();
+
+            return StoreItemDataToSend;
+        }
+
+        private static void InitialiseStoreOfferItemPrices()
+        {
+            List<StoreOfferItemPrice> StoreOfferItemPrices = WorldDatabase.GetStoreOfferItemPrices()
+                .OrderBy(i => i.Id)
+                .ToList();
+
+            StoreOfferItemPriceList = StoreOfferItemPrices.ToImmutableList();
+        }
+
+        public static byte[] GetPricesForOffer(uint offerId)
+        {
+            StoreOfferItemPrice MatchingItemPrices = StoreOfferItemPriceList
+                .FirstOrDefault(x => x.OfferId == offerId);
+
+            return new byte[]
+            {
+                MatchingItemPrices.Field1,
+                MatchingItemPrices.Field2,
+                MatchingItemPrices.Field3,
+                MatchingItemPrices.Field4,
+                MatchingItemPrices.Field5,
+                MatchingItemPrices.Field6,
+                MatchingItemPrices.Omnibits,
+                MatchingItemPrices.Field8
+            };
+        }
+
+        private static void InitialiseStoreOfferItemCurrencies()
+        {
+            List<StoreOfferItemCurrency> StoreOfferItemCurrencies = WorldDatabase.GetStoreOfferItemCurrencies()
+                .OrderBy(i => i.OfferId)
+                .ToList();
+
+            StoreOfferItemCurrencyList = StoreOfferItemCurrencies.ToImmutableList();
+        }
+
+        private static List<ServerStoreOffers.OfferGroup.Offer.OfferCurrencyData> GetCurrencyDataForOffer(uint offerId)
+        {
+            List<ServerStoreOffers.OfferGroup.Offer.OfferCurrencyData> StoreCurrencyToSend = StoreOfferItemCurrencyList
+                .Where(x => x.OfferId == offerId)
+                .Select(x => new ServerStoreOffers.OfferGroup.Offer.OfferCurrencyData()
+                {
+                    CurrencyId = x.CurrencyId,
+                    Unknown11 = x.Field11,
+                    Unknown12 = x.Field12,
+                    Unknown13 = x.Field13,
+                    Unknown14 = x.Field14,
+                    ExpiryTimestamp = 1995405795 // x.Expiry
+                })
+                .ToList();
+
+            return StoreCurrencyToSend;
+        }
+
+        public static void SendLoadSequence(WorldSession session)
+        {
+            SendStoreCategories(session);
+            SendStoreOffers(session);
+            SendStoreFinalise(session);
+        }
+
+        private static void SendStoreCategories(WorldSession session)
+        {
             session.EnqueueMessageEncrypted(new ServerStoreCategories
             {
-                StoreCategories = ServerStoreCategoriesList,
+                StoreCategories = StoreCategoryList.ToList(),
                 Unknown4 = 4
             });
+        }
+
+        private static void SendStoreOffers(WorldSession session)
+        {
+            List<ServerStoreOffers.OfferGroup> offersToSend = new List<ServerStoreOffers.OfferGroup>();
+            uint count = 0;
+
+            foreach(ServerStoreOffers.OfferGroup offerGroup in StoreOfferGroupList)
+            {
+                count++;
+                offersToSend.Add(offerGroup);
+                if(count == 20 || StoreOfferGroupList.IndexOf(offerGroup) == StoreOfferGroupList.Count - 1)
+                {
+                    session.EnqueueMessageEncrypted(new ServerStoreOffers
+                    {
+                        OfferGroups = offersToSend
+                    });
+                    offersToSend.RemoveRange(0, (int)count);
+                    count = 0;
+                }
+            }
+        }
+
+        private static void SendStoreFinalise(WorldSession session)
+        {
             session.EnqueueMessageEncrypted(new ServerStoreFinalise());
         }
     }
