@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerStoreCategories, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerStoreCategories)]
     public class ServerStoreCategories : IWritable
     {
         public class StoreCategory : IWritable
