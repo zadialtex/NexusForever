@@ -15,7 +15,6 @@ namespace NexusForever.WorldServer.Game.Entity.Static
         InputKeySet = 0x0008,
         Xp          = 0x0010,
         Innate      = 0x0080,
-        BindPoint   = 0x0100,
-        BindPoint   = 0x0080
+        BindPoint   = 0x0100
     }
 }

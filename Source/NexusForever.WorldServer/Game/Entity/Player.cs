@@ -184,7 +184,7 @@ namespace NexusForever.WorldServer.Game.Entity
             innateIndex     = model.InnateIndex;
             BindPoint       = model.BindPoint;
             TotalXp         = model.TotalXp;
-            XpToNextLevel   = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == Level + 1).MinXpForLevel;
+            XpToNextLevel   = GameTableManager.Instance.XpPerLevel.Entries.FirstOrDefault(c => c.Id == Level + 1).MinXpForLevel;
 
             CreateTime      = model.CreateTime;
             TimePlayedTotal = model.TimePlayedTotal;
@@ -442,7 +442,7 @@ namespace NexusForever.WorldServer.Game.Entity
                         Entitlement = e.Type,
                         Count       = e.Amount
                     })
-                    .ToList()
+                    .ToList(),
                 BindPoint = BindPoint,
                 Xp = TotalXp
             };
@@ -480,7 +480,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 InnateIndex = InnateIndex
             });
             
-            SocialManager.JoinChatChannels(Session);
+            SocialManager.Instance.JoinChatChannels(Session);
         }
 
         public ItemProficiency GetItemProficiencies()
@@ -620,7 +620,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Save(() =>
                 {
                     RemoveFromMap();
-                    SocialManager.LeaveChatChannels(Session);
+                    SocialManager.Instance.LeaveChatChannels(Session);
                     Session.Player = null;
                 });
             }
@@ -776,7 +776,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 return;
 
             Level = newLevel;
-            XpToNextLevel = GameTableManager.XpPerLevel.GetEntry((ulong)newLevel + 1).MinXpForLevel;
+            XpToNextLevel = GameTableManager.Instance.XpPerLevel.GetEntry((ulong)newLevel + 1).MinXpForLevel;
 
             // Grant Rewards for level up
             SpellManager.GrantSpells();
@@ -809,7 +809,7 @@ namespace NexusForever.WorldServer.Game.Entity
             if (newLevel == oldLevel)
                 return;
 
-            uint newXp = GameTableManager.XpPerLevel.GetEntry(newLevel).MinXpForLevel;
+            uint newXp = GameTableManager.Instance.XpPerLevel.GetEntry(newLevel).MinXpForLevel;
             Session.EnqueueMessageEncrypted(new ServerExperienceGained
             {
                 TotalXpGained = newXp - TotalXp,
