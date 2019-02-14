@@ -40,8 +40,8 @@ namespace NexusForever.WorldServer.Network.Message.Model
             writer.Write(Path, 3u);
             writer.Write(Class, 14u);
             writer.Write(Level);
-            writer.Write(IsLastLoggedOnInDaysSet);
-            writer.Write(LastLoggedInDays);
+            writer.Write(Unk2);
+            writer.Write(LastOnlineInDays);
         }
     }
 }
