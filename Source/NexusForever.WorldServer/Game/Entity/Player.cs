@@ -14,6 +14,7 @@ using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Database.Character.Model;
+using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Command;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
@@ -99,6 +100,9 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public uint PetGuid { get; set; }
 
+        public List<ulong> IgnoreList { get; set; }
+        public bool IsIgnoring(ulong value) => IgnoreList.Contains(value);
+
         public WorldSession Session { get; }
         public bool IsLoading { get; private set; } = true;
 
@@ -152,6 +156,7 @@ namespace NexusForever.WorldServer.Game.Entity
             PetCustomisationManager = new PetCustomisationManager(this, model);
             KeybindingManager       = new KeybindingManager(this, session.Account, model);
             DatacubeManager         = new DatacubeManager(this, model);
+            IgnoreList      = ContactManager.GetIgnoreList(model);
 
             // temp
             Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
@@ -300,6 +305,8 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             PathManager.SendInitialPackets();
             BuybackManager.SendBuybackItems(this);
+
+            ContactManager.OnLogin(Session);
 
             Session.EnqueueMessageEncrypted(new ServerHousingNeighbors());
             Session.EnqueueMessageEncrypted(new Server00F1());
@@ -502,6 +509,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     () =>
                 {
                     RemoveFromMap();
+                    ContactManager.OnLogout(Session);
                     Session.Player = null;
 
                     CleanupManager.Untrack(Session.Account);

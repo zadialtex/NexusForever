@@ -24,6 +24,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
             CharacterStat = new HashSet<CharacterStat>();
             CharacterTitle = new HashSet<CharacterTitle>();
             CharacterKeybinding = new HashSet<CharacterKeybinding>();
+            Contacts = new HashSet<Contacts>();
             Item = new HashSet<Item>();
         }
 
@@ -66,6 +67,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual ICollection<CharacterStat> CharacterStat { get; set; }
         public virtual ICollection<CharacterTitle> CharacterTitle { get; set; }
         public virtual ICollection<CharacterKeybinding> CharacterKeybinding { get; set; }
+        public virtual ICollection<Contacts> Contacts { get; set; }
         public virtual ICollection<Item> Item { get; set; }
     }
 }

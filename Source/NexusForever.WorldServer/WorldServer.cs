@@ -21,6 +21,7 @@ using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Game.Social;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Network;
+using NexusForever.WorldServer.Game.Contact;
 
 namespace NexusForever.WorldServer
 {
@@ -57,6 +58,7 @@ namespace NexusForever.WorldServer
             GlobalSpellManager.Initialise();
             ServerManager.Initialise();
 
+            ContactManager.Initialise();
             ResidenceManager.Initialise();
 
             // make sure the assigned realm id in the configuration file exists in the database
@@ -74,6 +76,7 @@ namespace NexusForever.WorldServer
                 MapManager.Update(lastTick);
                 ResidenceManager.Update(lastTick);
                 BuybackManager.Update(lastTick);
+                ContactManager.Update(lastTick);
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())
