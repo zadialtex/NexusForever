@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using NexusForever.WorldServer.Database.Character.Model;
 using ItemEntity = NexusForever.WorldServer.Game.Entity.Item;
 using ResidenceEntity = NexusForever.WorldServer.Game.Housing.Residence;
+using ContactEntity = NexusForever.WorldServer.Game.Contact.Contact;
 
 namespace NexusForever.WorldServer.Database.Character
 {
@@ -18,6 +19,18 @@ namespace NexusForever.WorldServer.Database.Character
                 action.Invoke(context);
                 await context.SaveChangesAsync();
             }
+        }
+
+        public static Model.Character GetCharacterById(ulong id)
+        {
+            using (var context = new CharacterContext())
+                return context.Character.FirstOrDefault(s => s.Id == id);
+        }
+
+        public static Model.Character GetCharacterByName(string name)
+        {
+            using (var context = new CharacterContext())
+                return context.Character.FirstOrDefault(s => s.Name == name);
         }
 
         public static ulong GetNextCharacterId()
@@ -158,6 +171,32 @@ namespace NexusForever.WorldServer.Database.Character
         {
             using (var context = new CharacterContext())
                 return context.CharacterMail.DefaultIfEmpty().Max(s => s.Id);
+        }
+        
+        public static List<Contacts> GetAllContacts()
+        {
+            using (var context = new CharacterContext())
+            {
+                return context.Contacts
+                    .ToList();
+            }
+        }
+
+        public static ulong GetNextContactId()
+        {
+            using (var context = new CharacterContext())
+            {
+                return context.Contacts.DefaultIfEmpty().Max(r => r.Id);
+            }
+        }
+
+        public static async Task SaveContact(ContactEntity contactEntity)
+        {
+            using (var context = new CharacterContext())
+            {
+                contactEntity.Save(context);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

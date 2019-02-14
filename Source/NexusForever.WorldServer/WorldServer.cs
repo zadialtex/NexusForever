@@ -24,6 +24,7 @@ using NexusForever.WorldServer.Game.Social;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network;
+using NexusForever.WorldServer.Game.Contact;
 
 namespace NexusForever.WorldServer
 {
@@ -64,6 +65,7 @@ namespace NexusForever.WorldServer
             GlobalQuestManager.Initialise();
             ServerManager.Initialise();
 
+            ContactManager.Initialise();
             ResidenceManager.Initialise();
             GlobalStorefrontManager.Initialise();
 
@@ -83,6 +85,7 @@ namespace NexusForever.WorldServer
                 ResidenceManager.Update(lastTick);
                 BuybackManager.Update(lastTick);
                 GlobalQuestManager.Update(lastTick);
+                ContactManager.Update(lastTick);
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())

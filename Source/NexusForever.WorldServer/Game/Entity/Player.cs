@@ -15,6 +15,7 @@ using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Database.Character.Model;
+using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -135,6 +136,9 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public uint? VanityPetGuid { get; set; }
 
+        public List<ulong> IgnoreList { get; set; }
+        public bool IsIgnoring(ulong value) => IgnoreList.Contains(value);
+
         public WorldSession Session { get; }
         public bool IsLoading { get; private set; } = true;
 
@@ -198,6 +202,7 @@ namespace NexusForever.WorldServer.Game.Entity
             MailManager             = new MailManager(this, model);
             ZoneMapManager          = new ZoneMapManager(this, model);
             QuestManager            = new QuestManager(this, model);
+            IgnoreList              = ContactManager.GetIgnoreList(model);
 
             Session.EntitlementManager.OnNewCharacter(model);
 
@@ -376,6 +381,8 @@ namespace NexusForever.WorldServer.Game.Entity
             SendInGameTime();
             PathManager.SendInitialPackets();
             BuybackManager.SendBuybackItems(this);
+
+            ContactManager.OnLogin(Session);
 
             Session.EnqueueMessageEncrypted(new ServerHousingNeighbors());
             Session.EnqueueMessageEncrypted(new Server00F1());
@@ -614,6 +621,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     RemoveFromMap();
                     SocialManager.LeaveChatChannels(Session);
+                    ContactManager.OnLogout(Session);
                     Session.Player = null;
                 });
             }
