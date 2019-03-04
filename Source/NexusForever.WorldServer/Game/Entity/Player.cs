@@ -322,6 +322,10 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             if (Zone != null)
             {
+                Session.EnqueueMessageEncrypted(new ServerChatZoneChange
+                {
+                    WorldZoneId = (ushort)Zone.Id
+                });
                 TextTable tt = GameTableManager.GetTextTable(Language.English);
 
                 Session.EnqueueMessageEncrypted(new ServerChat
@@ -348,6 +352,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         private void SendPacketsAfterAddToMap()
         {
+            SocialManager.JoinChatChannels(Session);
             SendInGameTime();
             PathManager.SendInitialPackets();
             BuybackManager.SendBuybackItems(this);
@@ -417,7 +422,6 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             playerCreate.SpecIndex = SpellManager.ActiveActionSet;
-
             Session.EnqueueMessageEncrypted(playerCreate);
 
             TitleManager.SendTitles();
@@ -575,6 +579,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Save(() =>
                 {
                     RemoveFromMap();
+                    SocialManager.LeaveChatChannels(Session);
                     Session.Player = null;
                 });
             }
