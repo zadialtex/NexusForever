@@ -39,5 +39,8 @@
         "ForcedOmnibitsPrice": 0,
         "CurrencyProtobucksEnabled": true,
         "CurrencyOmnibitsEnabled": true
+    },
+    "Rules": {
+        "CrossFactionChat":  true
     }
 }

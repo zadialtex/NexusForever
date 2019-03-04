@@ -7,6 +7,8 @@ using System.Reflection;
 using NexusForever.Shared;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.Shared.Configuration;
+using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Map.Search;
 using NexusForever.WorldServer.Game.Social.Model;
@@ -32,6 +34,8 @@ namespace NexusForever.WorldServer.Game.Social
 
         private delegate IChatFormat ChatFormatFactoryDelegate();
         private delegate void ChatChannelHandler(WorldSession session, ClientChat chat);
+
+        private readonly bool CrossFactionChat = ConfigurationManager<WorldServerConfiguration>.Instance.Config.Rules.CrossFactionChat;
 
         private SocialManager()
         {
@@ -143,6 +147,53 @@ namespace NexusForever.WorldServer.Game.Social
         }
 
         /// <summary>
+        /// Handle's whisper messages between 2 clients
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="whisper"></param>
+        public void HandleWhisperChat(WorldSession session, ClientChatWhisper whisper)
+        {
+            WorldSession targetSession = NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.Name == whisper.PlayerName);
+            if (targetSession != null)
+            {
+                if (targetSession == session)
+                {
+                    SendMessage(session, $"You cannot send a message to yourself.", "", ChatChannel.System);
+                    return;
+                }
+
+                if (targetSession.Player.Faction1 != session.Player.Faction1 && !CrossFactionChat)
+                {
+                    SendMessage(session, $"Player \"{whisper.PlayerName}\" not found.", "", ChatChannel.System);
+                    return;
+                }
+                
+                // Echo Message
+                session.EnqueueMessageEncrypted(new ServerChat
+                {
+                    Channel = ChatChannel.Whisper,
+                    Name = whisper.PlayerName,
+                    Text = whisper.Message,
+                    Self = true,
+                    Formats = ParseChatLinks(session, whisper).ToList(),
+                });
+
+                // Target Player Mesage
+                targetSession.EnqueueMessageEncrypted(new ServerChat
+                {
+                    Channel = ChatChannel.Whisper,
+                    Name = session.Player.Name,
+                    Text = whisper.Message,
+                    Formats = ParseChatLinks(session, whisper).ToList(),
+                });
+            }
+            else
+            {
+                SendMessage(session, $"Player \"{whisper.PlayerName}\" not found.", "", ChatChannel.System);
+            }
+        }
+
+        /// <summary>
         /// Parses chat links from <see cref="ChatFormat"/> delivered by <see cref="ClientChat"/>
         /// </summary>
         /// <param name="session"></param>
@@ -157,12 +208,26 @@ namespace NexusForever.WorldServer.Game.Social
         }
 
         /// <summary>
+        /// Parses chat links from <see cref="ChatFormat"/> delivered by <see cref="ClientChatWhisper"/>
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="chat"></param>
+        /// <returns></returns>
+        private IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChatWhisper chat)
+        {
+            foreach (ChatFormat format in chat.Formats)
+            {
+                yield return ParseChatFormat(session, format);
+            }
+        }
+
+        /// <summary>
         /// Parses a <see cref="ChatFormat"/> to return a formatted <see cref="ChatFormat"/>
         /// </summary>
         /// <param name="session"></param>
         /// <param name="format"></param>
         /// <returns></returns>
-        private static ChatFormat ParseChatFormat(WorldSession session, ChatFormat format)
+        private ChatFormat ParseChatFormat(WorldSession session, ChatFormat format)
         {
             switch (format.FormatModel)
             {
@@ -185,21 +250,32 @@ namespace NexusForever.WorldServer.Game.Social
                     {
                         Item item = session.Player.Inventory.GetItem(chatFormatItemGuid.Guid);
 
-                        // TODO: this probably needs to be a full item response
-                        return new ChatFormat
-                        {
-                            Type = ChatFormatType.ItemItemId,
-                            StartIndex = format.StartIndex,
-                            StopIndex = format.StopIndex,
-                            FormatModel = new ChatFormatItemId
-                            {
-                                ItemId = item.Entry.Id
-                            }
-                        };
+                        return GetChatFormatForItem(format, item);
                     }
                 default:
                     return format;
             }
+        }
+
+        /// <summary>
+        /// Returns formatted <see cref="ChatFormat"/> for an Item Link
+        /// </summary>
+        /// <param name="chatFormat"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        private ChatFormat GetChatFormatForItem(ChatFormat chatFormat, Item item)
+        {
+            // TODO: this probably needs to be a full item response
+            return new ChatFormat
+            {
+                Type = ChatFormatType.ItemItemId,
+                StartIndex = chatFormat.StartIndex,
+                StopIndex = chatFormat.StopIndex,
+                FormatModel = new ChatFormatItemId
+                {
+                    ItemId = item.Entry.Id
+                }
+            };
         }
 
         public void SendMessage(WorldSession session, string message, string name = "", ChatChannel channel = ChatChannel.System)
