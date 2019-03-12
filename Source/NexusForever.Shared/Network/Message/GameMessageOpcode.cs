@@ -47,6 +47,7 @@ namespace NexusForever.Shared.Network.Message
         ServerTitleSet                  = 0x0189,
         ServerTitleUpdate               = 0x018A,
         ServerTitles                    = 0x018B,
+        Client018F                      = 0x018F,
         ServerPlayerChanged             = 0x019B,
         ServerActionSet                 = 0x019D,
         ServerStanceChanged             = 0x019F,

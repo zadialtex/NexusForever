@@ -32,6 +32,13 @@ namespace NexusForever.WorldServer.Game.Social
         private delegate IChatFormat ChatFormatFactoryDelegate();
         private delegate void ChatChannelHandler(WorldSession session, ClientChat chat);
 
+        // TODO: Switch to caching session GUIDs and announce to each session by Guid.
+        private static Dictionary<ChatChannel, List<WorldSession>> chatChannelSessions = new Dictionary<ChatChannel, List<WorldSession>>
+        {
+            { ChatChannel.Nexus, new List<WorldSession>() },
+            { ChatChannel.Trade, new List<WorldSession>() }
+        };
+
         private static readonly bool CrossFactionChat = ConfigurationManager<WorldServerConfiguration>.Config.Rules.CrossFactionChat;
 
         public static void Initialise()
@@ -117,6 +124,33 @@ namespace NexusForever.WorldServer.Game.Social
             });
         }
 
+        /// <summary>
+        /// Add the <see cref="WorldSession"/> to the chat channels sessions list for appropriate chat channels.
+        /// </summary>
+        /// <param name="session"></param>
+        public static void JoinChatChannels(WorldSession session)
+        {
+            foreach(KeyValuePair<ChatChannel, List<WorldSession>> chatChannel in chatChannelSessions)
+            {
+                chatChannelSessions[chatChannel.Key].Add(session);
+
+                session.EnqueueMessageEncrypted(new ServerChatJoin
+                {
+                    Channel = chatChannel.Key
+                });
+            }
+        }
+
+        /// <summary>
+        /// Removes the <see cref="WorldSession"/> from appropriate chat channels.
+        /// </summary>
+        /// <param name="session"></param>
+        public static void LeaveChatChannels(WorldSession session)
+        {
+            foreach (KeyValuePair<ChatChannel, List<WorldSession>> chatChannel in chatChannelSessions)
+                chatChannelSessions[chatChannel.Key].Remove(session);
+        }
+
         [ChatChannelHandler(ChatChannel.Say)]
         [ChatChannelHandler(ChatChannel.Yell)]
         [ChatChannelHandler(ChatChannel.Emote)]
@@ -187,6 +221,28 @@ namespace NexusForever.WorldServer.Game.Social
             {
                 SendMessage(session, $"Player \"{whisper.PlayerName}\" not found.", "", ChatChannel.System);
             }
+        }
+
+        /// <summary>
+        /// Handles server-wide <see cref="ChatChannel"/>
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="chat"></param>
+        [ChatChannelHandler(ChatChannel.Nexus)]
+        [ChatChannelHandler(ChatChannel.Trade)]
+        private static void HandleChannelChat(WorldSession session, ClientChat chat)
+        {
+            var serverChat = new ServerChat
+            {
+                Guid = session.Player.Guid,
+                Channel = chat.Channel,
+                Name = session.Player.Name,
+                Text = chat.Message,
+                Formats = ParseChatLinks(session, chat).ToList(),
+            };
+
+            foreach (WorldSession channelSession in chatChannelSessions[chat.Channel])
+                channelSession.EnqueueMessageEncrypted(serverChat);
         }
 
         /// <summary>

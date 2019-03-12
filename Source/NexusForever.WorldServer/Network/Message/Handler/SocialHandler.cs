@@ -96,5 +96,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         {
             SocialManager.HandleWhisperChat(session, whisper);
         }
+
+        [MessageHandler(GameMessageOpcode.Client018F)]
+        public static void HandleChatJoin(WorldSession session, Client018F request)
+        {
+            SocialManager.JoinChatChannels(session);
+        }
     }
 }
