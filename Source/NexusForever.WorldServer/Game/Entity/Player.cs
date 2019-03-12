@@ -456,7 +456,6 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             playerCreate.SpecIndex = SpellManager.ActiveActionSet;
-
             Session.EnqueueMessageEncrypted(playerCreate);
 
             TitleManager.SendTitles();
@@ -472,6 +471,8 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 InnateIndex = InnateIndex
             });
+            
+            SocialManager.JoinChatChannels(Session);
         }
 
         public ItemProficiency GetItemProficiences()
@@ -612,6 +613,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Save(() =>
                 {
                     RemoveFromMap();
+                    SocialManager.LeaveChatChannels(Session);
                     Session.Player = null;
                 });
             }
