@@ -507,6 +507,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     () =>
                 {
                     RemoveFromMap();
+                    SocialManager.LeaveChatChannels(Session);
                     Session.Player = null;
 
                     CleanupManager.Untrack(Session.Account);
