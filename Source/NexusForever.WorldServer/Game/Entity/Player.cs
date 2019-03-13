@@ -24,6 +24,8 @@ using NexusForever.WorldServer.Game.Setting;
 using NexusForever.WorldServer.Game.Setting.Static;
 using NexusForever.WorldServer.Game.Social;
 using NexusForever.WorldServer.Game.Static;
+using NexusForever.WorldServer.Game.Spell;
+using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
@@ -41,6 +43,19 @@ namespace NexusForever.WorldServer.Game.Entity
         public Race Race { get; }
         public Class Class { get; }
         public List<float> Bones { get; } = new List<float>();
+
+        public uint TotalXp
+        {
+            get => totalXp;
+            set
+            {
+                totalXp = value;
+                saveMask |= PlayerSaveMask.Xp;
+            }
+        }
+
+        private uint totalXp;
+        public uint XpToNextLevel { get; private set; }
 
         public Path Path
         {
@@ -163,6 +178,8 @@ namespace NexusForever.WorldServer.Game.Entity
             Faction2        = (Faction)model.FactionId;
             innateIndex     = model.InnateIndex;
             BindPoint       = model.BindPoint;
+            TotalXp         = model.TotalXp;
+            XpToNextLevel   = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == Level + 1).MinXpForLevel;
 
             CreateTime      = model.CreateTime;
             TimePlayedTotal = model.TimePlayedTotal;
@@ -409,6 +426,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     })
                     .ToList()
                 BindPoint = BindPoint,
+                Xp = TotalXp
             };
 
             foreach (Currency currency in CurrencyManager)
@@ -665,6 +683,123 @@ namespace NexusForever.WorldServer.Game.Entity
                 ItemVisuals = GetAppearance().ToList()
             }, true);
         }
+        
+        /// Grants <see cref="Player"/> the supplied experience, handling level up if necessary.
+        /// </summary>
+        /// <param name="xp">Experience to grant</param>
+        /// <param name="reason"><see cref="ExpReason"/> for the experience grant</param>
+        public void GrantXp(uint xp, ExpReason reason = ExpReason.KillCreature)
+        {
+            uint maxLevel = 50;
+
+            if (xp < 1)
+                return;
+
+            //if (!IsAlive)
+            //    return;
+
+            if (Level >= maxLevel)
+                return;
+
+            // TODO: Signature Bonus XP Calculation
+            uint signatureXp = 0;
+
+            // TODO: Rest XP Calculation
+            uint restXp = 0;
+
+            uint currentLevel = Level;
+            uint currentXp = TotalXp;
+            uint xpToNextLevel = XpToNextLevel;
+            uint totalXp = xp + currentXp + signatureXp + restXp;
+
+            Session.EnqueueMessageEncrypted(new ServerExperienceGained
+            {
+                TotalXpGained = xp,
+                RestXpAmount = restXp,
+                SignatureXpAmount = signatureXp,
+                Reason = reason
+            });
+
+            while(totalXp >= xpToNextLevel && currentLevel < maxLevel)// WorldServer.Rules.MaxLevel)
+            {
+                totalXp -= xpToNextLevel;
+
+                if (currentLevel < maxLevel)
+                    GrantLevel((byte)(Level + 1));
+
+                currentLevel = Level;
+                xpToNextLevel = XpToNextLevel;
+            }
+
+            SetXp(xp + currentXp + signatureXp + restXp);
+        }
+
+        /// <summary>
+        /// Sets <see cref="Player"/> <see cref="TotalXp"/> to supplied value
+        /// </summary>
+        /// <param name="xp"></param>
+        private void SetXp(uint xp)
+        {
+            TotalXp = xp;
+        }
+
+        /// <summary>
+        /// Grants <see cref="Player"/> the supplied level and adjusts XP accordingly
+        /// </summary>
+        /// <param name="newLevel">New level to be set</param>
+        public void GrantLevel(byte newLevel)
+        {
+            uint oldLevel = Level;
+
+            if (newLevel == oldLevel)
+                return;
+
+            Level = newLevel;
+            XpToNextLevel = GameTableManager.XpPerLevel.GetEntry((ulong)newLevel + 1).MinXpForLevel;
+
+            // Grant Rewards for level up
+            SpellManager.GrantSpells();
+                // Unlock LAS slots
+                // Unlock AMPs
+                // Add feature access
+
+            // Play Level up effect
+            PlayLevelUpEffect(newLevel);
+        }
+
+        /// <summary>
+        /// Play the level up effect for the supplied level on this player
+        /// </summary>
+        /// <param name="level">Level to play effect for</param>
+        public void PlayLevelUpEffect(byte level)
+        {
+            CastSpell(53378, level, new SpellParameters());
+        }
+
+        /// <summary>
+        /// Sets <see cref="Player"/> to the supplied level and adjusts XP accordingly. Mainly for use with GM commands.
+        /// </summary>
+        /// <param name="newLevel">New level to be set</param>
+        /// <param name="reason"><see cref="ExpReason"/> for the level grant</param>
+        public void SetLevel(byte newLevel, ExpReason reason = ExpReason.Cheat)
+        {
+            uint oldLevel = Level;
+
+            if (newLevel == oldLevel)
+                return;
+
+            uint newXp = GameTableManager.XpPerLevel.GetEntry(newLevel).MinXpForLevel;
+            Session.EnqueueMessageEncrypted(new ServerExperienceGained
+            {
+                TotalXpGained = newXp - TotalXp,
+                RestXpAmount = 0,
+                SignatureXpAmount = 0,
+                Reason = reason
+            });
+            SetXp(newXp);
+
+            GrantLevel(newLevel);
+        }
 
         /// <summary>
         /// Send <see cref="GenericError"/> to <see cref="Player"/>.
@@ -741,6 +876,12 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     model.InputKeySet = (sbyte)InputKeySet;
                     entity.Property(p => p.InputKeySet).IsModified = true;
+                }
+                
+                if ((saveMask & PlayerSaveMask.Xp) != 0)
+                {
+                    model.TotalXp = TotalXp;
+                    entity.Property(p => p.TotalXp).IsModified = true;
                 }
 
                 if ((saveMask & PlayerSaveMask.Innate) != 0)

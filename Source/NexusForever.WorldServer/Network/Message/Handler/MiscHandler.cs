@@ -53,7 +53,12 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     LastLoggedInDays = -1f
                 });
             }));
-            
+        }
+        
+        [MessageHandler(GameMessageOpcode.ClientReplayLevelRequest)]
+        public static void HandleReplayLevel(WorldSession session, ClientReplayLevelUp request)
+        {
+            session.Player.PlayLevelUpEffect((byte)request.Level);
         }
 
         [MessageHandler(GameMessageOpcode.ClientToggleWeapons)]
