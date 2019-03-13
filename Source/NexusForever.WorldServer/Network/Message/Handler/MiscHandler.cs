@@ -10,5 +10,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         {
             session.Heartbeat.OnHeartbeat();
         }
+
+        [MessageHandler(GameMessageOpcode.ClientReplayLevelRequest)]
+        public static void HandleReplayLevel(WorldSession session, ClientReplayLevelRequest request)
+        {
+            session.Player.PlayLevelUpEffect((byte)request.Level);
+        }
     }
 }

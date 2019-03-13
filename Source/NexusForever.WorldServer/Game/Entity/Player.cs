@@ -20,6 +20,7 @@ using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Game.Social;
+using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -50,6 +51,19 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         private byte level;
+
+        public uint TotalXp
+        {
+            get => totalXp;
+            set
+            {
+                totalXp = value;
+                saveMask |= PlayerSaveMask.Xp;
+            }
+        }
+
+        private uint totalXp;
+        public uint XpToNextLevel { get; private set; }
 
         public Path Path
         {
@@ -126,6 +140,8 @@ namespace NexusForever.WorldServer.Game.Entity
             CostumeIndex    = model.ActiveCostumeIndex;
             Faction1        = (Faction)model.FactionId;
             Faction2        = (Faction)model.FactionId;
+            TotalXp         = model.TotalXp;
+            XpToNextLevel   = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == Level + 1).MinXpForLevel;
 
             // managers
             CostumeManager  = new CostumeManager(this, session.Account, model);
@@ -320,7 +336,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     FactionId = Faction1, // This does not do anything for the player's "main" faction. Exiles/Dominion
                 },
-                ActiveCostumeIndex = CostumeIndex
+                ActiveCostumeIndex = CostumeIndex,
+                Xp = TotalXp
             };
 
             for (uint i = 1u; i < 17u; i++)
@@ -541,6 +558,93 @@ namespace NexusForever.WorldServer.Game.Entity
             RemoveFromMap();
         }
 
+        public void GrantXp(uint xp)
+        {
+            uint maxLevel = 50;
+
+            if (xp < 1)
+                return;
+
+            //if (!IsAlive)
+            //    return;
+
+            if (Level >= maxLevel)
+                return;
+
+            // Signature Bonus XP Calculation
+            uint signatureXp = 0;
+
+            // Rest XP Calculation
+            uint restXp = 0;
+
+            uint currentLevel = Level;
+            uint currentXp = TotalXp;
+            uint xpToNextLevel = XpToNextLevel;
+            uint totalXp = xp + currentXp + signatureXp + restXp;
+
+            Session.EnqueueMessageEncrypted(new ServerPlayerGrantXp
+            {
+                TotalXpGained = xp,
+                RestXpAmount = restXp,
+                SignatureXpAmount = signatureXp,
+                Unknown3 = 3
+            });
+
+            while(totalXp >= xpToNextLevel && currentLevel < maxLevel)// WorldServer.Rules.MaxLevel)
+            {
+                totalXp -= xpToNextLevel;
+
+                if (currentLevel < maxLevel)
+                    GrantLevel((byte)(Level + 1));
+
+                currentLevel = Level;
+                xpToNextLevel = XpToNextLevel;
+            }
+
+            SetXp(xp + currentXp + signatureXp + restXp);
+        }
+
+        private void SetXp(uint xp)
+        {
+            TotalXp = xp;
+        }
+
+        public void GrantLevel(byte newLevel)
+        {
+            byte oldLevel = Level;
+
+            if (newLevel == oldLevel)
+                return;
+
+            Level = newLevel;
+            XpToNextLevel = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == newLevel + 1).MinXpForLevel;
+
+            // Send level up stat update
+
+            // Grant Rewards for level up
+                // Add Skills
+                // Unlock LAS slots
+                // Unlock AMPs
+                // Add feature access
+
+            // Play Level up effect
+            PlayLevelUpEffect(newLevel);
+        }
+
+        public void PlayLevelUpEffect(byte level)
+        {
+            Spell4Entry spell4Entry = GameTableManager.Spell4.Entries
+                .Where(e => e.Spell4BaseIdBaseSpell == 53378 && e.TierIndex == level)
+                .FirstOrDefault();
+            SpellBaseInfo spellBaseInfo = GlobalSpellManager.GetSpellBaseInfo(spell4Entry.Spell4BaseIdBaseSpell);
+            SpellInfo spellInfo = spellBaseInfo.GetSpellInfo((byte)spell4Entry.TierIndex);
+
+            CastSpell(new SpellParameters
+            {
+                SpellInfo = spellInfo
+            });
+        }
+
         public void Save(AuthContext context)
         {
             Session.GenericUnlockManager.Save(context);
@@ -589,6 +693,12 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     model.ActiveCostumeIndex = CostumeIndex;
                     entity.Property(p => p.ActiveCostumeIndex).IsModified = true;
+                }
+
+                if ((saveMask & PlayerSaveMask.Xp) != 0)
+                {
+                    model.TotalXp = TotalXp;
+                    entity.Property(p => p.TotalXp).IsModified = true;
                 }
 
                 saveMask = PlayerSaveMask.None;
