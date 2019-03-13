@@ -13,6 +13,6 @@ namespace NexusForever.WorldServer.Game.Entity.Static
         Location  = 0x0002,
         Path      = 0x0004,
         Costume   = 0x0008,
-        Xp        = 0x0016
+        Xp        = 0x0010
     }
 }
