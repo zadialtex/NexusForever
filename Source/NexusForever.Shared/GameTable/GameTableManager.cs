@@ -294,8 +294,13 @@ namespace NexusForever.Shared.GameTable
         public static GameTable<ItemStatEntry> ItemStat { get; private set; }
         public static GameTable<LanguageEntry> Language { get; private set; }
         public static GameTable<LevelDifferentialAttributeEntry> LevelDifferentialAttribute { get; private set; }
+
+        [GameData]
         public static GameTable<LevelUpUnlockEntry> LevelUpUnlock { get; private set; }
+
+        [GameData]
         public static GameTable<LevelUpUnlockTypeEntry> LevelUpUnlockType { get; private set; }
+        
         public static GameTable<LiveEventEntry> LiveEvent { get; private set; }
         public static GameTable<LiveEventDisplayItemEntry> LiveEventDisplayItem { get; private set; }
         public static GameTable<LoadingScreenTipEntry> LoadingScreenTip { get; private set; }

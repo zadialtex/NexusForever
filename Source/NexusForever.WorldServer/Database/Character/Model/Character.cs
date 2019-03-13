@@ -50,6 +50,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public byte ActiveSpec { get; set; }
         public uint TimePlayedTotal { get; set; }
         public uint TimePlayedLevel { get; set; }
+        public uint TotalXp { get; set; }
 
         public virtual Residence Residence { get; set; }
         public virtual ICollection<CharacterActionSetAmp> CharacterActionSetAmp { get; set; }
