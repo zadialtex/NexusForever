@@ -40,6 +40,7 @@ namespace NexusForever.Shared.Network.Message
         ClientSellItemToVendor          = 0x0166,
         ServerAbilityPoints             = 0x0169,
         ServerShowActionBar             = 0x016C,
+        ClientToggleWeapons             = 0x0177,
         ServerSpellUpdate               = 0x017B,
         ClientItemSplit                 = 0x017D,
         ServerItemStackCountUpdate      = 0x017F,
@@ -181,7 +182,8 @@ namespace NexusForever.Shared.Network.Message
         Server092C                      = 0x092C,
         ServerItemVisualUpdate          = 0x0933,
         ServerEntityFaction             = 0x0934,
-        ServerEntityStatUpdate          = 0x0935, // 0x0938??
+        ServerStatUpdateFloat           = 0x0935,
+        ServerStatUpdateInt             = 0x0938,
         Server093A                      = 0x093A,
         ServerEmote                     = 0x093C,
         ClientWhoRequest                = 0x0959,
