@@ -56,7 +56,7 @@ namespace NexusForever.Shared.Network.Message
         ServerAbilities                 = 0x01A0,
         Server01A3                      = 0x01A3, // AMP
         ServerPathUpdateXP              = 0x01AA,
-        ServerExperienceGained          = 0x01AC,
+        ServerPlayerGrantXp             = 0x01AC,
         ClientVehicleDisembark          = 0x01AF,
         ServerChatJoin                  = 0x01BC,
         ServerChatAccept                = 0x01C2,
@@ -140,6 +140,7 @@ namespace NexusForever.Shared.Network.Message
         ServerRealmMessages             = 0x0763,
         ClientTitleSet                  = 0x078E,
         ClientRealmList                 = 0x07A4,
+        ClientReplayLevelRequest        = 0x07A5,
         ClientCharacterSelect           = 0x07DD,
         ClientCharacterList             = 0x07E0,
         ClientVendor                    = 0x07EA,
