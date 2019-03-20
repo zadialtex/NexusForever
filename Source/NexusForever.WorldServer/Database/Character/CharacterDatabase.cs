@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using NexusForever.WorldServer.Database.Character.Model;
 using ItemEntity = NexusForever.WorldServer.Game.Entity.Item;
 using ResidenceEntity = NexusForever.WorldServer.Game.Housing.Residence;
+using GuildEntity = NexusForever.WorldServer.Game.Guild.Guild;
 
 namespace NexusForever.WorldServer.Database.Character
 {
@@ -142,6 +143,15 @@ namespace NexusForever.WorldServer.Database.Character
                     .Include(r => r.Owner)
                     .Where(r => r.PrivacyLevel == 0)
                     .ToList();
+            }
+        }
+
+        public static async Task SaveGuild(GuildEntity guild)
+        {
+            using (var context = new CharacterContext())
+            {
+                guild.Save(context);
+                await context.SaveChangesAsync();
             }
         }
     }

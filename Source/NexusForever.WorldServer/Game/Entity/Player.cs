@@ -299,6 +299,8 @@ namespace NexusForever.WorldServer.Game.Entity
         private void SendPacketsAfterAddToMap()
         {
             PathManager.SendInitialPackets();
+            Session.EnqueueMessageEncrypted(new ServerGuildInit());
+
             BuybackManager.SendBuybackItems(this);
 
             Session.EnqueueMessageEncrypted(new ServerHousingNeighbors());
@@ -321,6 +323,12 @@ namespace NexusForever.WorldServer.Game.Entity
                         Id    = RewardProperty.ExtraDecorSlots,
                         Type  = 1,
                         Value = 2000
+                    },
+                    new ServerRewardPropertySet.RewardProperty
+                    {
+                        Id    = (RewardProperty)21,
+                        Type  = 1,
+                        Value = 1
                     }
                 }
             });
