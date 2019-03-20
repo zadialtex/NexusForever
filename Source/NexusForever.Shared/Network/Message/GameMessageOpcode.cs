@@ -36,6 +36,7 @@ namespace NexusForever.Shared.Network.Message
         ServerCharacterFlagsUpdated     = 0x00FE,
         Server0104                      = 0x0104, // Galactic Archive
         ServerGenericError              = 0x0106,
+        ClientGuildHolomarkUpdate       = 0x010C,
         ServerHousingPrivacy            = 0x010E,
         ServerCharacter                 = 0x010F, // single character
         ServerItemAdd                   = 0x0111,
@@ -147,7 +148,15 @@ namespace NexusForever.Shared.Network.Message
         ClientItemGenericUnlock         = 0x0400,
         ClientQuestShareResult          = 0x045E,
         ClientQuestShare                = 0x045F,
-        Server0497                      = 0x0497, // guild info
+        ClientGuildRegister             = 0x0481,
+        ServerGuildInvite               = 0x0491,
+        ServerGuildJoin                 = 0x0493,
+        ServerGuildInit                 = 0x0497, // guild info
+        ServerGuildRoster               = 0x04A0,
+        ServerGuildNameplateAdd         = 0x04AC,
+        ServerGuildNameplateSet         = 0x04AE,
+        ClientGuildOperation            = 0x04B1,
+        ServerGuildResult               = 0x04C9,
         ClientCastSpell                 = 0x04DB,
         ServerHousingResidenceDecor     = 0x04DE,
         ServerHousingProperties         = 0x04DF,
