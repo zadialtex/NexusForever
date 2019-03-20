@@ -384,7 +384,11 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             SendInGameTime();
             PathManager.SendInitialPackets();
+            Session.EnqueueMessageEncrypted(new ServerGuildInit());
+
             BuybackManager.Instance.SendBuybackItems(this);
+
+            ContactManager.OnLogin(Session);
 
             Session.EnqueueMessageEncrypted(new ServerHousingNeighbors());
             Session.EnqueueMessageEncrypted(new Server00F1());
@@ -424,6 +428,12 @@ namespace NexusForever.WorldServer.Game.Entity
                         Id    = RewardProperty.ExtraDecorSlots,
                         Type  = 1,
                         Value = 2000
+                    },
+                    new ServerRewardPropertySet.RewardProperty
+                    {
+                        Id    = RewardProperty.GuildCreateOrInviteAccess,
+                        Type  = 1,
+                        Value = 1
                     }
                 }
             });

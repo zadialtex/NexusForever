@@ -7,6 +7,7 @@ using NexusForever.WorldServer.Database.Character.Model;
 using ItemEntity = NexusForever.WorldServer.Game.Entity.Item;
 using ResidenceEntity = NexusForever.WorldServer.Game.Housing.Residence;
 using ContactEntity = NexusForever.WorldServer.Game.Contact.Contact;
+using GuildEntity = NexusForever.WorldServer.Game.Guild.Guild;
 
 namespace NexusForever.WorldServer.Database.Character
 {
@@ -190,6 +191,14 @@ namespace NexusForever.WorldServer.Database.Character
             using (var context = new CharacterContext())
             {
                 contactEntity.Save(context);
+            }
+        }
+        
+        public static async Task SaveGuild(GuildEntity guild)
+        {
+            using (var context = new CharacterContext())
+            {
+                guild.Save(context);
                 await context.SaveChangesAsync();
             }
         }

@@ -26,6 +26,7 @@ using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Game.Contact;
+using NexusForever.WorldServer.Game.Guild;
 
 namespace NexusForever.WorldServer
 {
@@ -73,6 +74,8 @@ namespace NexusForever.WorldServer
             GlobalAchievementManager.Instance.Initialise();
             ContactManager.Initialise();
 
+            GuildManager.Initialise();
+
             // make sure the assigned realm id in the configuration file exists in the database
             RealmId = ConfigurationManager<WorldServerConfiguration>.Instance.Config.RealmId;
             if (ServerManager.Instance.Servers.All(s => s.Model.Id != RealmId))
@@ -90,6 +93,7 @@ namespace NexusForever.WorldServer
                 BuybackManager.Instance.Update(lastTick);
                 GlobalQuestManager.Instance.Update(lastTick);
                 ContactManager.Update(lastTick);
+                GuildManager.Update(lastTick);
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())
