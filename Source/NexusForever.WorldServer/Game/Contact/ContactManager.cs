@@ -182,9 +182,8 @@ namespace NexusForever.WorldServer.Game.Contact
         /// <param name="returnRequest">True if the player is making the requester a friend as well</param>
         public static void AcceptFriendRequest(WorldSession session, ulong contactId, bool returnRequest = false)
         {
-            contactsCache.TryGetValue(contactId, out Contact contactRequest);
-            if (contactRequest == null)
-                throw new Exception();
+            if(!contactsCache.TryGetValue(contactId, out Contact contactRequest))
+                throw new Exception($"Contact Request with ID {contactId} not found");
 
             // Ensure Contact can be accepted
             if (contactRequest.IsPendingDelete || !contactRequest.IsPendingAcceptance)
@@ -246,9 +245,8 @@ namespace NexusForever.WorldServer.Game.Contact
         /// <param name="addIgnore">Flag to create an ignore entry for this user</param>
         public static void DeclineFriendRequest(WorldSession session, ulong contactId, bool addIgnore = false)
         {
-            contactsCache.TryGetValue(contactId, out Contact contactRequest);
-            if (contactRequest == null)
-                throw new Exception();
+            if(!contactsCache.TryGetValue(contactId, out Contact contactRequest))
+                throw new Exception($"Contact Request with ID {contactId} not found");
 
             contactRequest.DeclineRequest();
 
@@ -317,9 +315,7 @@ namespace NexusForever.WorldServer.Game.Contact
         {
             WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == contactRequest.ContactId);
             if (targetSession != null)
-            {
                 SendContactRequestRemove(targetSession, contactRequest.Id);
-            }
         }
 
         /// <summary>
@@ -332,7 +328,7 @@ namespace NexusForever.WorldServer.Game.Contact
         {
             Contact contactToDelete = contactsCache.Values.FirstOrDefault(s => s.OwnerId == session.Player.CharacterId && s.ContactId == characterIdentity.CharacterId && !s.IsPendingDelete);
             if (contactToDelete == null)
-                throw new Exception();
+                throw new Exception($"Contact matching realm {characterIdentity.RealmId} & characterId {characterIdentity.CharacterId} not found.");
 
             DeleteContact(session, contactToDelete, type);
         }
@@ -393,7 +389,7 @@ namespace NexusForever.WorldServer.Game.Contact
         {
             Contact contactToModify = contactsCache.Values.FirstOrDefault(s => s.OwnerId == session.Player.CharacterId && s.ContactId == characterIdentity.CharacterId && !s.IsPendingDelete);
             if (contactToModify == null)
-                throw new Exception();
+                throw new Exception($"Contact matching realm {characterIdentity.RealmId} & characterId {characterIdentity.CharacterId} not found.");
 
             SetPrivateNote(session, contactToModify, note);
         }
