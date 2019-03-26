@@ -7,12 +7,12 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerContactsUpdateStatus, MessageDirection.Server)]
     public class ServerContactsUpdateStatus : IWritable
     {
-        public CharacterIdentity CharacterIdentity { get; set; }
+        public TargetPlayerIdentity PlayerIdentity { get; set; }
         public float LastOnlineInDays { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
-            CharacterIdentity.Write(writer);
+            PlayerIdentity.Write(writer);
             writer.Write(LastOnlineInDays);
         }
     }

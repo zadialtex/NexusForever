@@ -1,3 +1,4 @@
+using NexusForever.Shared.Game.Events;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Database.Character.Model;
@@ -34,33 +35,36 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 return;
             }
 
-            Character character = CharacterDatabase.GetCharacterByName(request.PlayerName);
-            if (character != null)
+            session.EnqueueEvent(new TaskGenericEvent<Character>(CharacterDatabase.GetCharacterByName(request.PlayerName),
+                character =>
             {
-                // TODO: Handle Rival, Ignore, and Account Requests
-                if (request.Type == ContactType.Account)
-                    ContactManager.SendContactsResult(session, ContactResult.UnableToProcess);
-                else
-                    switch (request.Type)
-                    {
-                        case ContactType.Friend:
-                            ContactManager.CreateFriendRequest(session, character.Id, request.Message);
-                            break;
-                        case ContactType.Rival:
-                            ContactManager.CreateRival(session, character.Id);
-                            break;
-                        case ContactType.Ignore:
-                            ContactManager.CreateIgnored(session, character.Id);
-                            break;
-                        default:
-                            ContactManager.SendContactsResult(session, ContactResult.InvalidType);
-                            break;
-                    }
+                if (character != null)
+                {
+                    // TODO: Handle Rival, Ignore, and Account Requests
+                    if (request.Type == ContactType.Account)
+                        ContactManager.SendContactsResult(session, ContactResult.UnableToProcess);
+                    else
+                        switch (request.Type)
+                        {
+                            case ContactType.Friend:
+                                ContactManager.CreateFriendRequest(session, character.Id, request.Message);
+                                break;
+                            case ContactType.Rival:
+                                ContactManager.CreateRival(session, character.Id);
+                                break;
+                            case ContactType.Ignore:
+                                ContactManager.CreateIgnored(session, character.Id);
+                                break;
+                            default:
+                                ContactManager.SendContactsResult(session, ContactResult.InvalidType);
+                                break;
+                        }
 
-                return;
-            }
-            else
-                ContactManager.SendContactsResult(session, ContactResult.PlayerNotFound);
+                    return;
+                }
+                else
+                    ContactManager.SendContactsResult(session, ContactResult.PlayerNotFound);
+            }));
         }
 
         [MessageHandler(GameMessageOpcode.ClientContactsRequestResponse)]
@@ -86,13 +90,13 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientContactsRequestDelete)]
         public static void HandleDeleteResponse(WorldSession session, ClientContactsRequestDelete request)
         {
-            ContactManager.DeleteContact(session, request.CharacterIdentity, request.Type);
+            ContactManager.DeleteContact(session, request.PlayerIdentity, request.Type);
         }
 
         [MessageHandler(GameMessageOpcode.ClientContactsSetNote)]
         public static void HandleModifyPrivateNote(WorldSession session, ClientContactsSetNote request)
         {
-            ContactManager.SetPrivateNote(session, request.CharacterIdentity, request.Note);
+            ContactManager.SetPrivateNote(session, request.PlayerIdentity, request.Note);
         }
 
         //[MessageHandler(GameMessageOpcode.Client03BF)]

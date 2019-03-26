@@ -1,4 +1,5 @@
-﻿using NexusForever.WorldServer.Database.Character;
+﻿using NexusForever.Shared.Game.Events;
+using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Game.Contact.Static;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -92,46 +93,6 @@ namespace NexusForever.WorldServer.Game.Contact
         public static void RemoveFromCache(Contact contactToRemove)
         {
             contactsCache.Remove(contactToRemove.Id, out Contact removedContact);
-        }
-
-        /// <summary>
-        /// Responds to <see cref="Contact"/> information requests the client makes.
-        /// </summary>
-        /// <param name="session">Session requesting the information</param>
-        /// <param name="character">Character the client is requesting information about</param>
-        /// <param name="type"><see cref="ContactType"/> the associated Contact is to the Session</param>
-        public static void HandlePlayerInfoResponse(WorldSession session, Character character, ContactType type)
-        {
-            if (type == ContactType.Ignore)
-                session.EnqueueMessageEncrypted(new ServerPlayerInfoBasicResponse
-                {
-                    Unk0 = 0,
-                    CharacterIdentity = new CharacterIdentity
-                    {
-                        RealmId = WorldServer.RealmId,
-                        CharacterId = character.Id
-                    },
-                    Name = character.Name,
-                    Faction = (Faction)character.FactionId,
-                });
-            else
-                session.EnqueueMessageEncrypted(new ServerPlayerInfoFullResponse
-                {
-                    Unk0 = 0,
-                    CharacterIdentity = new CharacterIdentity
-                    {
-                        RealmId = WorldServer.RealmId,
-                        CharacterId = character.Id
-                    },
-                    Name = character.Name,
-                    Faction = (Faction)character.FactionId,
-                    Unk1 = true,
-                    Path = (Path)character.ActivePath,
-                    Class = (Class)character.Class,
-                    Level = character.Level,
-                    Unk2 = true,
-                    LastOnlineInDays = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == character.Id) != null ? 0 : -30f // TODO: Get Last Online from DB & Calculate Time Offline (Hard coded for 30 days currently)
-                });
         }
 
         /// <summary>
@@ -285,7 +246,7 @@ namespace NexusForever.WorldServer.Game.Contact
                 if (contactSession != null)
                     contactSession.EnqueueMessageEncrypted(new ServerContactsUpdateStatus
                     {
-                        CharacterIdentity = new CharacterIdentity
+                        PlayerIdentity = new TargetPlayerIdentity
                         {
                             RealmId = WorldServer.RealmId,
                             CharacterId = session.Player.CharacterId
@@ -322,13 +283,13 @@ namespace NexusForever.WorldServer.Game.Contact
         /// Delete <see cref="Contact"/> from a player's contacts
         /// </summary>
         /// <param name="session">Session of player making the deletion</param>
-        /// <param name="characterIdentity"><see cref="CharacterIdentity"/> of the player to delete</param>
+        /// <param name="playerIdentity"><see cref="TargetPlayerIdentity"/> of the player to delete</param>
         /// <param name="type">Type to confirm deletion with</param>
-        public static void DeleteContact(WorldSession session, CharacterIdentity characterIdentity, ContactType type)
+        public static void DeleteContact(WorldSession session, TargetPlayerIdentity playerIdentity, ContactType type)
         {
-            Contact contactToDelete = contactsCache.Values.FirstOrDefault(s => s.OwnerId == session.Player.CharacterId && s.ContactId == characterIdentity.CharacterId && !s.IsPendingDelete);
+            Contact contactToDelete = contactsCache.Values.FirstOrDefault(s => s.OwnerId == session.Player.CharacterId && s.ContactId == playerIdentity.CharacterId && !s.IsPendingDelete);
             if (contactToDelete == null)
-                throw new Exception($"Contact matching realm {characterIdentity.RealmId} & characterId {characterIdentity.CharacterId} not found.");
+                throw new Exception($"Contact matching realm {playerIdentity.RealmId} & characterId {playerIdentity.CharacterId} not found.");
 
             DeleteContact(session, contactToDelete, type);
         }
@@ -383,13 +344,13 @@ namespace NexusForever.WorldServer.Game.Contact
         /// Set a private note associated with a <see cref="Contact"/>
         /// </summary>
         /// <param name="session">Sesion of the player making the note change</param>
-        /// <param name="characterIdentity">CharacterIdentity of the player's note to update</param>
+        /// <param name="playerIdentity">CharacterIdentity of the player's note to update</param>
         /// <param name="note">Note to set</param>
-        public static void SetPrivateNote(WorldSession session, CharacterIdentity characterIdentity, string note)
+        public static void SetPrivateNote(WorldSession session, TargetPlayerIdentity playerIdentity, string note)
         {
-            Contact contactToModify = contactsCache.Values.FirstOrDefault(s => s.OwnerId == session.Player.CharacterId && s.ContactId == characterIdentity.CharacterId && !s.IsPendingDelete);
+            Contact contactToModify = contactsCache.Values.FirstOrDefault(s => s.OwnerId == session.Player.CharacterId && s.ContactId == playerIdentity.CharacterId && !s.IsPendingDelete);
             if (contactToModify == null)
-                throw new Exception($"Contact matching realm {characterIdentity.RealmId} & characterId {characterIdentity.CharacterId} not found.");
+                throw new Exception($"Contact matching realm {playerIdentity.RealmId} & characterId {playerIdentity.CharacterId} not found.");
 
             SetPrivateNote(session, contactToModify, note);
         }
@@ -564,19 +525,35 @@ namespace NexusForever.WorldServer.Game.Contact
         {
             List<ServerContactsRequestList.RequestData> contactRequestDataList = new List<ServerContactsRequestList.RequestData>();
 
+            List<Contact> contactRequestsToSend = new List<Contact>();
+
             foreach (Contact contactRequest in contactsCache.Values.Where(s => s.ContactId == session.Player.CharacterId && s.IsPendingAcceptance && !s.IsPendingDelete).ToList())
             {
                 CalculateExpiryTime(contactRequest, out float expiryTime);
                 if (expiryTime > 0f)
-                    contactRequestDataList.Add(GetContactRequestData(contactRequest, CharacterDatabase.GetCharacterById(contactRequest.OwnerId), contactRequest.InviteMessage, expiryTime));
+                    contactRequestsToSend.Add(contactRequest);
                 else
                     contactRequest.DeclineRequest();
             }
 
-            session.EnqueueMessageEncrypted(new ServerContactsRequestList
+            session.EnqueueEvent(new TaskGenericEvent<List<Character>>(CharacterDatabase.GetCharactersByIdList(contactRequestsToSend.Select(i => i.OwnerId).ToList()),
+                characters =>
             {
-                ContactRequests = contactRequestDataList
-            });
+                foreach (Character character in characters)
+                {
+                    Contact contactRequest = contactRequestsToSend.FirstOrDefault(i => i.OwnerId == character.Id);
+                    if(contactRequest != null)
+                    {
+                        CalculateExpiryTime(contactRequest, out float expiryTime);
+                        contactRequestDataList.Add(GetContactRequestData(contactRequest, character, contactRequest.InviteMessage, expiryTime));
+                    }
+                }
+
+                session.EnqueueMessageEncrypted(new ServerContactsRequestList
+                {
+                    ContactRequests = contactRequestDataList
+                });
+            }));
         }
 
         /// <summary>
@@ -591,7 +568,7 @@ namespace NexusForever.WorldServer.Game.Contact
             return new ServerContactsRequestList.RequestData
             {
                 ContactId = contactRequest.Id,
-                CharacterIdentity = new CharacterIdentity
+                PlayerIdentity = new TargetPlayerIdentity
                 {
                     RealmId = WorldServer.RealmId,
                     CharacterId = character.Id
@@ -667,7 +644,7 @@ namespace NexusForever.WorldServer.Game.Contact
             return new ContactData
             {
                 ContactId = contact.Id,
-                IdentityData = new CharacterIdentity
+                PlayerIdentity = new TargetPlayerIdentity
                 {
                     RealmId = WorldServer.RealmId,
                     CharacterId = contact.ContactId
