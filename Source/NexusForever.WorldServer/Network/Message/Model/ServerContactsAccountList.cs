@@ -7,7 +7,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsAccountList, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsAccountList)]
     public class ServerContactsAccountList : IWritable
     {
         public class AccountFriend : IWritable

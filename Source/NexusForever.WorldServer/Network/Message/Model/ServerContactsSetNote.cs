@@ -4,7 +4,7 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsSetNote, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsSetNote)]
     public class ServerContactsSetNote : IWritable
     {
         public ulong ContactId { get; set; }

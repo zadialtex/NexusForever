@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Game.Social.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientContactsStatusChange, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientContactsStatusChange)]
     public class ClientContactsStatusChange : IReadable
     {
         public ChatPresenceState Presence { get; set; }

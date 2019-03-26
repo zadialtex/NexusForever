@@ -4,10 +4,10 @@ using NexusForever.WorldServer.Game.Contact.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientContactsRequestAdd, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientContactsRequestAdd)]
     public class ClientContactsRequestAdd : IReadable
     {
-        public string PlayerName { get; private set; } // first value of 0x7FD response, probably global increment
+        public string PlayerName { get; private set; }
         public string Unknown0 { get; private set; }
         public ContactType Type { get; private set; }
         public string Message { get; private set; }

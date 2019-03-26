@@ -7,7 +7,7 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
     public class CharacterData : IWritable
     {
         public string Name { get; set; } = "";
-        public CharacterIdentity CharacterIdentityData  { get; set; } = new CharacterIdentity();
+        public TargetPlayerIdentity PlayerIdentity  { get; set; } = new TargetPlayerIdentity();
         public Class Class { get; set; }
         public Race Race  { get; set; }
         public Path Path { get; set; }
@@ -18,7 +18,7 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
         public void Write(GamePacketWriter writer)
         {
             writer.WriteStringWide(Name);
-            CharacterIdentityData.Write(writer);
+            PlayerIdentity.Write(writer);
             writer.Write(Class, 14u);
             writer.Write(Race, 14u);
             writer.Write(Path, 32);

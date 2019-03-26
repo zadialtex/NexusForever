@@ -5,20 +5,20 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerPlayerInfoBasicResponse, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerPlayerInfoBasicResponse)]
     public class ServerPlayerInfoBasicResponse : IWritable
     {
-        public byte Unk0 { get; set; } = 0;
-        public CharacterIdentity CharacterIdentity { get; set; }
+        public byte ResultCode { get; set; }
+        public TargetPlayerIdentity Identity { get; set; }
         public string Name { get; set; }
         public Faction Faction { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(Unk0, 3);
-            CharacterIdentity.Write(writer);
+            writer.Write(ResultCode, 3u);
+            Identity.Write(writer);
             writer.WriteStringFixed(Name);
-            writer.Write((ushort)Faction, 14);
+            writer.Write(Faction, 14u);
         }
     }
 }

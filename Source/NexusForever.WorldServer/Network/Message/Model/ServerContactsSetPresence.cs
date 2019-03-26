@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Game.Social.Static;
 namespace NexusForever.WorldServer.Network.Message.Model
 {
 
-    [Message(GameMessageOpcode.ServerContactsSetPresence, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsSetPresence)]
     public class ServerContactsSetPresence : IWritable
     {
         public uint AccountId { get; set; }
