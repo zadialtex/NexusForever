@@ -21,18 +21,6 @@ namespace NexusForever.WorldServer.Database.Character
             }
         }
 
-        public static Model.Character GetCharacterById(ulong id)
-        {
-            using (var context = new CharacterContext())
-                return context.Character.FirstOrDefault(s => s.Id == id);
-        }
-
-        public static Model.Character GetCharacterByName(string name)
-        {
-            using (var context = new CharacterContext())
-                return context.Character.FirstOrDefault(s => s.Name == name);
-        }
-
         public static ulong GetNextCharacterId()
         {
             using (var context = new CharacterContext())
@@ -49,6 +37,12 @@ namespace NexusForever.WorldServer.Database.Character
         {
             using (var context = new CharacterContext())
                 return await context.Character.FirstOrDefaultAsync(e => e.Name == name);
+        }
+
+        public static async Task<List<Model.Character>> GetCharactersByIdList(List<ulong> characterIdList)
+        {
+            using (var context = new CharacterContext())
+                return await context.Character.Where(e => characterIdList.Contains(e.Id)).ToListAsync();
         }
 
         public static ulong GetNextItemId()

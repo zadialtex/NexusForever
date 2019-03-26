@@ -4,15 +4,15 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientContactsSetNote, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientContactsSetNote)]
     public class ClientContactsSetNote : IReadable
     {
-        public CharacterIdentity CharacterIdentity { get; private set; } = new CharacterIdentity();
+        public TargetPlayerIdentity PlayerIdentity { get; private set; } = new TargetPlayerIdentity();
         public string Note { get; private set; }
 
         public void Read(GamePacketReader reader)
         {
-            CharacterIdentity.Read(reader);
+            PlayerIdentity.Read(reader);
             Note = reader.ReadWideString();
         }
     }

@@ -6,7 +6,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsList, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsList)]
     public class ServerContactsList : IWritable
     {
         public List<ContactData> Contacts { get; set; } = new List<ContactData>();

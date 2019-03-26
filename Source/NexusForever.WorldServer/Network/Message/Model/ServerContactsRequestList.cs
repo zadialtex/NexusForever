@@ -7,13 +7,13 @@ using System.Collections.Generic;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsRequestList, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsRequestList)]
     public class ServerContactsRequestList : IWritable
     {
         public class RequestData : IWritable
         {
             public ulong ContactId { get; set; }
-            public CharacterIdentity CharacterIdentity { get; set; }
+            public TargetPlayerIdentity PlayerIdentity { get; set; }
             public ContactType ContactType { get; set; } // 3
             public float ExpiryInDays { get; set; }
             public string Message { get; set; }
@@ -25,7 +25,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
             public void Write(GamePacketWriter writer)
             {
                 writer.Write(ContactId);
-                CharacterIdentity.Write(writer);
+                PlayerIdentity.Write(writer);
                 writer.Write(ContactType, 3u);
                 writer.Write(ExpiryInDays);
                 writer.WriteStringWide(Message);

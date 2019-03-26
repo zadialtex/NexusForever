@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Game.Contact.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsUpdateType, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsUpdateType)]
     public class ServerContactsUpdateType : IWritable
     {
         public ulong ContactId { get; set; }
