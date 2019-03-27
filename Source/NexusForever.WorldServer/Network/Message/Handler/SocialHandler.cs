@@ -70,20 +70,22 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientWhoRequest)]
         public static void HandleWhoRequest(WorldSession session, ClientWhoRequest request)
         {
-            List<ServerWhoResponse.WhoPlayer> players = new List<ServerWhoResponse.WhoPlayer>
-            {
-                new ServerWhoResponse.WhoPlayer
-                {
-                    Name = session.Player.Name,
-                    Level = session.Player.Level,
-                    Race = session.Player.Race,
-                    Class = session.Player.Class,
-                    Path = session.Player.Path,
-                    Faction = Faction.Dominion,
-                    Sex = session.Player.Sex,
-                    Zone = 1417
-                }
-            };
+            List<WorldSession> allSessions = NetworkManager<WorldSession>.GetAllSessions().ToList();
+            List<ServerWhoResponse.WhoPlayer> players = new List<ServerWhoResponse.WhoPlayer>();
+
+            foreach (WorldSession sessionEntry in allSessions)
+                if(sessionEntry.Player != null)
+                    players.Add(new ServerWhoResponse.WhoPlayer
+                    {
+                        Name = sessionEntry.Player.Name,
+                        Level = sessionEntry.Player.Level,
+                        Race = sessionEntry.Player.Race,
+                        Class = sessionEntry.Player.Class,
+                        Path = sessionEntry.Player.Path,
+                        Faction = sessionEntry.Player.Faction1,
+                        Sex = sessionEntry.Player.Sex,
+                        Zone = sessionEntry.Player.Zone.Id
+                    });
 
             session.EnqueueMessageEncrypted(new ServerWhoResponse
             {
@@ -101,6 +103,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleChatJoin(WorldSession session, Client018F request)
         {
             SocialManager.JoinChatChannels(session);
+            SocialManager.SendMessage(session, "MOTD: Welcome to Kirmmin's Test Server! !character is a new command - you can add XP and level up (without relogging!). !currency is a new command, /who works, and we now have chat channels & whispers! (Updated 14 Mar 2019)", "", ChatChannel.Realm);
         }
     }
 }

@@ -39,16 +39,16 @@ namespace NexusForever.AuthServer.Network.Message.Handler
                 session.EnqueueEvent(new TaskEvent(AuthDatabase.UpdateAccountSessionKey(account, sessionKey),
                     () =>
                 {
-                    ServerInfo server = ServerManager.Servers.First();
-                    session.EnqueueMessageEncrypted(new ServerRealmInfo
-                    {
-                        AccountId  = account.Id,
-                        SessionKey = sessionKey,
-                        Realm      = server.Model.Name,
-                        Host       = server.Address,
-                        Port       = server.Model.Port,
-                        Type       = server.Model.Type
-                    });
+                    foreach(ServerInfo server in ServerManager.Servers)
+                        session.EnqueueMessageEncrypted(new ServerRealmInfo
+                        {
+                            AccountId  = account.Id,
+                            SessionKey = sessionKey,
+                            Realm      = server.Model.Name,
+                            Host       = server.Address,
+                            Port       = server.Model.Port,
+                            Type       = server.Model.Type
+                        });
                 }));
             }));
         }

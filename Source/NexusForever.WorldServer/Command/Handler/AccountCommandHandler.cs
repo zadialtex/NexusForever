@@ -27,21 +27,21 @@ namespace NexusForever.WorldServer.Command.Handler
                 .ConfigureAwait(false);
         }
 
-        [SubCommandHandler("delete", "email - Delete an account")]
-        public async Task HandleAccountDeleteAsync(CommandContext context, string subCommand, string[] parameters)
-        {
-            if (parameters.Length < 1)
-            {
-                await SendHelpAsync(context).ConfigureAwait(false);
-                return;
-            }
+        // [SubCommandHandler("delete", "email - Delete an account")]
+        // public async Task HandleAccountDeleteAsync(CommandContext context, string subCommand, string[] parameters)
+        // {
+        //     if (parameters.Length < 1)
+        //     {
+        //         await SendHelpAsync(context).ConfigureAwait(false);
+        //         return;
+        //     }
 
-            if (AuthDatabase.DeleteAccount(parameters[0]))
-                await context.SendMessageAsync($"Account {parameters[0]} successfully removed!")
-                    .ConfigureAwait(false);
-            else
-                await context.SendMessageAsync($"Cannot find account with Email: {parameters[0]}")
-                    .ConfigureAwait(false);
-        }
+        //     if (AuthDatabase.DeleteAccount(parameters[0]))
+        //         await context.SendMessageAsync($"Account {parameters[0]} successfully removed!")
+        //             .ConfigureAwait(false);
+        //     else
+        //         await context.SendMessageAsync($"Cannot find account with Email: {parameters[0]}")
+        //             .ConfigureAwait(false);
+        // }
     }
 }

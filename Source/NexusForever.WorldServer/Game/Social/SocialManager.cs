@@ -132,6 +132,9 @@ namespace NexusForever.WorldServer.Game.Social
         {
             foreach(KeyValuePair<ChatChannel, List<WorldSession>> chatChannel in chatChannelSessions)
             {
+                if (chatChannelSessions[chatChannel.Key].Contains(session) || chatChannelSessions[chatChannel.Key].FindAll(s => s.Player == session.Player).ToList().Count <= 0)
+                    chatChannelSessions[chatChannel.Key].Remove(session);
+
                 chatChannelSessions[chatChannel.Key].Add(session);
 
                 session.EnqueueMessageEncrypted(new ServerChatJoin

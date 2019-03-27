@@ -15,7 +15,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
         public Vector3 Rotation { get; set; } = Vector3.Zero;
-        public Dictionary<Stat, StatValue> Stats { get; } = new Dictionary<Stat, StatValue>();
+        public Dictionary<Stat, StatValue> Stats { get; set; } = new Dictionary<Stat, StatValue>();
         public Dictionary<Property, PropertyValue> Properties { get; } = new Dictionary<Property, PropertyValue>();
 
         public uint DisplayInfo { get; protected set; }
@@ -62,6 +62,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 EntityModel = BuildEntityModel(),
                 CreateFlags   = (byte)CreateFlags,
                 Stats       = Stats.Values.ToList(),
+
                 Commands =
                 {
                     {

@@ -69,6 +69,7 @@ namespace NexusForever.WorldServer
             WorldManager.Initialise(lastTick =>
             {
                 NetworkManager<WorldSession>.Update(lastTick);
+                Console.Title = Title + " :: Clients: " + NetworkManager<WorldSession>.GetAllSessions().Count;
                 MapManager.Update(lastTick);
                 ResidenceManager.Update(lastTick);
                 BuybackManager.Update(lastTick);

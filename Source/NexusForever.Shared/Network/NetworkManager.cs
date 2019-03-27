@@ -30,6 +30,11 @@ namespace NexusForever.Shared.Network
             return sessions.SingleOrDefault(func);
         }
 
+        public static HashSet<T> GetAllSessions()
+        {
+            return sessions;
+        }
+
         public static void Shutdown()
         {
             connectionListener?.Shutdown();

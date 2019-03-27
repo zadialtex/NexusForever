@@ -89,6 +89,11 @@ namespace NexusForever.WorldServer.Game.Entity
 
         private sbyte costumeIndex;
 
+        public DateTime CreateTime { get; }
+        public double TimePlayedTotal { get; private set; }
+        public double TimePlayedLevel { get; private set; }
+        public double TimePlayedSession { get; private set; }
+        
         /// <summary>
         /// Guid of the <see cref="WorldEntity"/> that currently being controlled by the <see cref="Player"/>.
         /// </summary>
@@ -143,6 +148,10 @@ namespace NexusForever.WorldServer.Game.Entity
             TotalXp         = model.TotalXp;
             XpToNextLevel   = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == Level + 1).MinXpForLevel;
 
+            CreateTime      = model.CreateTime;
+            TimePlayedTotal = model.TimePlayedTotal;
+            TimePlayedLevel = model.TimePlayedLevel;
+
             // managers
             CostumeManager  = new CostumeManager(this, session.Account, model);
             Inventory       = new Inventory(this, model);
@@ -163,29 +172,6 @@ namespace NexusForever.WorldServer.Game.Entity
             Properties.Add(Property.MoveSpeedMultiplier, new PropertyValue(Property.MoveSpeedMultiplier, 1f, 1f));
             Properties.Add(Property.JumpHeight, new PropertyValue(Property.JumpHeight, 2.5f, 2.5f));
             Properties.Add(Property.GravityMultiplier, new PropertyValue(Property.GravityMultiplier, 1f, 1f));
-
-            // temp
-            // TODO:
-            // a) move (Add's) to CharacterHandler / CharacterCration
-            // b) store abilities persistently
-            // c) handle starting abilities by class - sadly no tbl data available...
-            SpellManager.AddSpell(47769); // Transmat to Illium
-            SpellManager.AddSpell(22919); // Recall house - broken, seems to require an additional unlock
-            SpellManager.AddSpell(38934); // some pewpew mount
-            SpellManager.AddSpell(62503); // falkron mount
-            SpellManager.AddSpell(63431); // zBoard 79 mount
-            SpellManager.AddSpell(31213); // Spellsurge
-            SpellManager.AddSpell(38229); // Portal capital city
-            SpellManager.AddSpell(23148); // Shred
-            SpellManager.AddSpell(23161); // Impale
-            SpellManager.AddSpell(23173); // Stagger
-            SpellManager.AddSpell(46803); // Summon Group
-            SpellManager.AddSpellToActionSet(0, 23148, UILocation.LAS1);
-            SpellManager.AddSpellToActionSet(0, 23161, UILocation.LAS2, 2);
-            SpellManager.AddSpellToActionSet(0, 23173, UILocation.LAS3, 3);
-            SpellManager.AddSpellToActionSet(0, 46803, UILocation.PathAbility);
-            SpellManager.AddSpell(62563); // pet
-            SpellManager.AddSpell(62562); // pet
 
             Costume costume = null;
             if (CostumeIndex >= 0)
@@ -221,6 +207,11 @@ namespace NexusForever.WorldServer.Game.Entity
             timeToSave -= lastTick;
             if (timeToSave <= 0d)
             {
+                double timeSinceLastSave = GetTimeSinceLastSave();
+                TimePlayedSession += timeSinceLastSave;
+                TimePlayedLevel += timeSinceLastSave;
+                TimePlayedTotal += timeSinceLastSave;
+
                 timeToSave = SaveDuration;
 
                 Session.EnqueueEvent(new TaskEvent(AuthDatabase.Save(Save),
@@ -293,23 +284,23 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 TextTable tt = GameTableManager.GetTextTable(Language.English);
 
+                #if DEBUG
                 Session.EnqueueMessageEncrypted(new ServerChat
                 {
                     Guid    = Session.Player.Guid,
                     Channel = ChatChannel.System,
                     Text    = $"New Zone: {tt.GetEntry(Zone.LocalizedTextIdName)}"
                 });
+                #endif
             }
         }
 
         private void SendPacketsAfterAddToMap()
         {
-            PathManager.SendPathLogPacket();
+            PathManager.SendInitialPackets();
             BuybackManager.SendBuybackItems(this);
 
             Session.EnqueueMessageEncrypted(new ServerHousingNeighbors());
-            
-            Session.EnqueueMessageEncrypted(new ServerPathLog());
             Session.EnqueueMessageEncrypted(new Server00F1());
             SetControl(this);
 
@@ -324,6 +315,12 @@ namespace NexusForever.WorldServer.Game.Entity
                         Id    = 11,
                         Type  = 1,
                         Value = CostumeManager.CostumeCap
+                    },
+                    new Server092C.Variable
+                    {
+                        Id   = 31,
+                        Type = 1,
+                        Value = 2000
                     }
                 }
             });
@@ -358,6 +355,8 @@ namespace NexusForever.WorldServer.Game.Entity
                     Reason = 49
                 });
             }
+
+            playerCreate.SpecIndex = SpellManager.ActiveActionSet;
 
             Session.EnqueueMessageEncrypted(playerCreate);
 
@@ -397,7 +396,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     EntityCommand.SetPlatform,
                     new SetPlatformCommand
                     {
-                        Platform = VehicleGuid
+                        UnitId = VehicleGuid
                     }
                 },
                 {
@@ -592,7 +591,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Unknown3 = 3
             });
 
-            while(totalXp >= xpToNextLevel && currentLevel < maxLevel)// WorldServer.Rules.MaxLevel)
+            while (totalXp >= xpToNextLevel && currentLevel < maxLevel)// WorldServer.Rules.MaxLevel)
             {
                 totalXp -= xpToNextLevel;
 
@@ -606,22 +605,43 @@ namespace NexusForever.WorldServer.Game.Entity
             SetXp(xp + currentXp + signatureXp + restXp);
         }
 
-        private void SetXp(uint xp)
+        private void SetXp(uint totalXp)
         {
-            TotalXp = xp;
+            TotalXp = totalXp;
         }
 
-        public void GrantLevel(byte newLevel)
+        public void GrantLevel(byte newLevel, bool setXp = false)
         {
             byte oldLevel = Level;
 
             if (newLevel == oldLevel)
                 return;
 
+            if (setXp)
+            {
+                uint newXp = GameTableManager.XpPerLevel.GetEntry(newLevel).MinXpForLevel;
+                Session.EnqueueMessageEncrypted(new ServerPlayerGrantXp
+                {
+                    TotalXpGained = newXp - TotalXp,
+                    RestXpAmount = 0,
+                    SignatureXpAmount = 0,
+                    Unknown3 = 3
+                });
+                SetXp(newXp);
+            }
+
             Level = newLevel;
+            Stats.Remove(Stat.Level);
+            Stats.Add(Stat.Level, new StatValue(Stat.Level, newLevel));
             XpToNextLevel = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == newLevel + 1).MinXpForLevel;
 
             // Send level up stat update
+            EnqueueToVisible(new ServerStatUpdateInt
+            {
+                Guid = Guid,
+                Stat = Stat.Level,
+                Value = newLevel
+            }, true);
 
             // Grant Rewards for level up
                 // Add Skills
@@ -630,7 +650,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 // Add feature access
 
             // Play Level up effect
-            PlayLevelUpEffect(newLevel);
+            //PlayLevelUpEffect(newLevel);
         }
 
         public void PlayLevelUpEffect(byte level)
@@ -706,12 +726,26 @@ namespace NexusForever.WorldServer.Game.Entity
                 saveMask = PlayerSaveMask.None;
             }
 
+            model.TimePlayedLevel = (uint)TimePlayedLevel;
+            entity.Property(p => p.TimePlayedLevel).IsModified = true;
+            model.TimePlayedTotal = (uint)TimePlayedTotal;
+            entity.Property(p => p.TimePlayedTotal).IsModified = true;
+
             Inventory.Save(context);
             CurrencyManager.Save(context);
             PathManager.Save(context);
             TitleManager.Save(context);
             CostumeManager.Save(context);
             PetCustomisationManager.Save(context);
+            SpellManager.Save(context);
+        }
+
+        /// <summary>
+        /// Returns the time in seconds that has past since the last <see cref="Player"/> save.
+        /// </summary>
+        public double GetTimeSinceLastSave()
+        {
+            return SaveDuration - timeToSave;
         }
     }
 }
