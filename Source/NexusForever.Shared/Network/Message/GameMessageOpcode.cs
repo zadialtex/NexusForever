@@ -118,6 +118,9 @@ namespace NexusForever.Shared.Network.Message
         ServerAuthAccepted              = 0x0591,
         ClientHelloAuth                 = 0x0592,
         ServerClientLogout              = 0x0594,
+        ClientPlayerInfoRequest         = 0x0597,
+        ServerPlayerInfoBasicResponse   = 0x0598,
+        ServerPlayerInfoFullResponse    = 0x0599,
         ServerAvailableMail             = 0x05A3,
         Server0635                      = 0x0635,
         ServerMovementControl           = 0x0636, // handler sends 0x0635 and 0x063A
@@ -125,6 +128,7 @@ namespace NexusForever.Shared.Network.Message
         ServerEntityCommand             = 0x0638, // bidirectional? packet has both read and write handlers
         Server0639                      = 0x0639, // mount up or something
         ClientPlayerMovementSpeedUpdate = 0x063B,
+        ServerAuthDenied                = 0x063D,
         ServerOwnedCommodityOrders      = 0x064C,
         ServerOwnedItemAuctions         = 0x064D,
         ClientRequestPlayed             = 0x0693,
@@ -149,12 +153,14 @@ namespace NexusForever.Shared.Network.Message
         ServerRealmList                 = 0x0761, // bidirectional? packet has both read and write handlers
         ServerRealmMessages             = 0x0763,
         ClientTitleSet                  = 0x078E,
+        ServerNewRealm                  = 0x07A1,
         ClientRealmList                 = 0x07A4,
         ClientReplayLevelRequest        = 0x07A5,
         ClientCharacterSelect           = 0x07DD,
         ClientCharacterList             = 0x07E0,
         ClientVendor                    = 0x07EA,
         ClientPetCustomisation          = 0x07ED,
+        ClientSelectRealm               = 0x07DF,
         ServerSpellGo                   = 0x07F4,
         Server07F5                      = 0x07F5, // spell related
         Server07F6                      = 0x07F6, // spell related

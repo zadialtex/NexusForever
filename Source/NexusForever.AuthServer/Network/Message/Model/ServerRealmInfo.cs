@@ -6,25 +6,25 @@ namespace NexusForever.AuthServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerRealmInfo, MessageDirection.Server)]
     public class ServerRealmInfo : IWritable
     {
-        public uint Host { get; set; }
+        public uint Address { get; set; }
         public ushort Port { get; set; }
         public byte[] SessionKey { get; set; }
         public uint AccountId { get; set; }
         public string Realm { get; set; }
-        public uint Unknown1 { get; set; }
+        public uint Flags { get; set; }
         public byte Type { get; set; }
-        public uint Unknown3 { get; set; }
+        public uint NoteTextId { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(Host);
+            writer.Write(Address);
             writer.Write(Port);
             writer.WriteBytes(SessionKey, 16u);
             writer.Write(AccountId);
             writer.WriteStringWide(Realm);
-            writer.Write(Unknown1);
+            writer.Write(Flags);
             writer.Write(Type, 2);
-            writer.Write(Unknown3, 21);
+            writer.Write(NoteTextId, 21u);
         }
     }
 }
