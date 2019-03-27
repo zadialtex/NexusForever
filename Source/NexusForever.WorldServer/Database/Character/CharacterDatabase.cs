@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using NexusForever.WorldServer.Database.Character.Model;
 using ItemEntity = NexusForever.WorldServer.Game.Entity.Item;
 using ResidenceEntity = NexusForever.WorldServer.Game.Housing.Residence;
+using ContactEntity = NexusForever.WorldServer.Game.Contact.Contact;
 
 namespace NexusForever.WorldServer.Database.Character
 {
@@ -36,6 +37,12 @@ namespace NexusForever.WorldServer.Database.Character
         {
             using (var context = new CharacterContext())
                 return await context.Character.FirstOrDefaultAsync(e => e.Name == name);
+        }
+
+        public static async Task<List<Model.Character>> GetCharactersByIdList(List<ulong> characterIdList)
+        {
+            using (var context = new CharacterContext())
+                return await context.Character.Where(e => characterIdList.Contains(e.Id)).ToListAsync();
         }
 
         public static ulong GetNextItemId()
@@ -117,7 +124,32 @@ namespace NexusForever.WorldServer.Database.Character
                     .Include(r => r.Owner)
                     .SingleOrDefaultAsync(r => r.Owner.Name == name);
             }
+        }
 
+        public static List<Contacts> GetAllContacts()
+        {
+            using (var context = new CharacterContext())
+            {
+                return context.Contacts
+                    .ToList();
+            }
+        }
+
+        public static ulong GetNextContactId()
+        {
+            using (var context = new CharacterContext())
+            {
+                return context.Contacts.DefaultIfEmpty().Max(r => r.Id);
+            }
+        }
+
+        public static async Task SaveContact(ContactEntity contactEntity)
+        {
+            using (var context = new CharacterContext())
+            {
+                contactEntity.Save(context);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }
