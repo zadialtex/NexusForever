@@ -394,15 +394,21 @@ namespace NexusForever.WorldServer.Game.Entity
                     },
                     new ServerRewardPropertySet.RewardProperty
                     {
-                        Id    = RewardProperty.ExtraDecorSlots,
+                        Id    = RewardProperty.BagSlots,
                         Type  = 1,
-                        Value = 2000
+                        Value = 4
                     },
                     new ServerRewardPropertySet.RewardProperty
                     {
                         Id    = RewardProperty.Trading,
                         Type  = 1,
                         Value = 1
+                    },
+                    new ServerRewardPropertySet.RewardProperty
+                    {
+                        Id    = RewardProperty.ExtraDecorSlots,
+                        Type  = 1,
+                        Value = 2000
                     }
                 }
             });

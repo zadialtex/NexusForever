@@ -43,6 +43,16 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Get all <see cref="Item"/> stored in this <see cref="Bag"/>
+        /// </summary>
+        /// <returns></returns>
+        public List<Item> GetItems()
+        {
+            return items.ToList();
+        }
+
+
+        /// <summary>
         /// Returns the first empty bag index, if the bag is full <see cref="uint.MaxValue"/> is returned.
         /// </summary>
         public uint GetFirstAvailableBagIndex()
@@ -106,12 +116,10 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             if (items.Length + capacityChange < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacityChange));
-            if (items.Length + capacityChange < items.Length)
-                throw new ArgumentOutOfRangeException(nameof(capacityChange));
 
             Array.Resize(ref items, items.Length + capacityChange);
 
-            log.Trace($"Resized bag {Location} from {items.Length} to {items.Length + capacityChange} slots.");
+            log.Trace($"Resized bag {Location} from {items.Length - capacityChange} to {items.Length} slots.");
         }
 
         public IEnumerator<Item> GetEnumerator()
