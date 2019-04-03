@@ -23,6 +23,23 @@ namespace NexusForever.WorldServer.Game.Spell
             info.AddDamage((DamageType)info.Entry.DamageType, 1337);
         }
 
+        [SpellEffectHandler(SpellEffectType.Disguise)]
+        private void HandleEffectDisguise(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            if (!(target is Player player))
+                return;
+
+            Creature2Entry creature2 = GameTableManager.Creature2.GetEntry(info.Entry.DataBits02);
+            if (creature2 == null)
+                return;
+
+            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Creature2DisplayGroupEntry.Entries.FirstOrDefault(d => d.Creature2DisplayGroupId == creature2.Creature2DisplayGroupId);
+            if (displayGroupEntry == null)
+                return;
+
+            player.SetDisplayInfo(displayGroupEntry.Creature2DisplayInfoId);
+        }
+
         [SpellEffectHandler(SpellEffectType.Proxy)]
         private void HandleEffectProxy(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
