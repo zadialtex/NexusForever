@@ -334,7 +334,7 @@ namespace NexusForever.WorldServer.Game.Entity
             Debug.Assert(bag != null);
 
             // update any existing stacks before creating new items
-            if (itemEntry.MaxStackCount > 1)
+            if (IsStackable(itemEntry) && itemEntry.MaxStackCount > 1)
             {
                 foreach (Item item in bag.Where(i => i.Entry.Id == itemEntry.Id))
                 {
@@ -357,7 +357,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 if (bagIndex == uint.MaxValue)
                     return;
 
-                var item = new Item(characterId, itemEntry, Math.Min(count, itemEntry.MaxStackCount), charges);
+                var item = new Item(characterId, itemEntry, Math.Min(count, IsStackable(itemEntry) ? itemEntry.MaxStackCount : 1));
                 AddItem(item, InventoryLocation.Inventory, bagIndex);
 
                 if (!player?.IsLoading ?? false)
@@ -854,27 +854,27 @@ namespace NexusForever.WorldServer.Game.Entity
 
             ItemError itemError = 0;
 
-            if (!srcItem.IsEquippableBag() && !IsEquippedBagLocation(to))
+            if (!IsEquippableBag(srcItem.Entry) && !IsEquippedBagLocation(to))
                 itemError = ItemError.InvalidForThisSlot;
 
             // TODO: Mail items it can't bag, instead of erroring? Or, flow into overflow?
             int capacityChange = 0;
             int removingBag = 0;
-            if (srcItem.IsEquippableBag() && IsEquippedBagLocation(to))
+            if (IsEquippableBag(srcItem.Entry) && IsEquippedBagLocation(to))
             {
                 if (dstItem == null && !IsEquippedBagLocation(from))
                     capacityChange = (int)srcItem.Entry.MaxStackCount; // Adding bag
                 else if (dstItem != null && !IsEquippedBagLocation(from))
                     capacityChange = (int)srcItem.Entry.MaxStackCount - (int)dstItem.Entry.MaxStackCount; // Replacing bag
             }
-            else if (srcItem.IsEquippableBag() && IsEquippedBagLocation(from))
+            else if (IsEquippableBag(srcItem.Entry) && IsEquippedBagLocation(from))
             {
                 if (dstItem == null && !IsEquippedBagLocation(to))
                 {
                     capacityChange -= (int)srcItem.Entry.MaxStackCount; // Removing bag (-1 for actual bag)
                     removingBag = 1;
                 }
-                else if (dstItem != null && dstItem.IsEquippableBag())
+                else if (dstItem != null && IsEquippableBag(dstItem.Entry))
                     capacityChange = (int)dstItem.Entry.MaxStackCount - (int)srcItem.Entry.MaxStackCount; // Replacing bag
             }
 
@@ -966,6 +966,23 @@ namespace NexusForever.WorldServer.Game.Entity
                 return false;
 
             return containers.Contains((EquippedItem)bagIndex);
+        }
+
+        // <summary>
+        /// Returns whether this item is a stackable item
+        /// </summary>
+        public bool IsStackable(Item2Entry item2Entry)
+        {
+            // TODO: Figure out other non-stackable items, which have MaxStackCount > 1
+            return !IsEquippableBag(item2Entry);
+        }
+
+        /// <summary>
+        /// Returns whether this item is an equippable bag for expanding inventory slots
+        /// </summary>
+        public bool IsEquippableBag(Item2Entry item2Entry)
+        {
+            return item2Entry.Item2FamilyId == 5 && item2Entry.Item2CategoryId == 88 && item2Entry.Item2TypeId == 134;
         }
 
         private Bag GetBag(InventoryLocation location)
