@@ -400,6 +400,12 @@ namespace NexusForever.WorldServer.Game.Entity
                     },
                     new ServerRewardPropertySet.RewardProperty
                     {
+                        Id    = RewardProperty.ExtraDecorSlots,
+                        Type  = 1,
+                        Value = 2000
+                    },
+                    new ServerRewardPropertySet.RewardProperty
+                    {
                         Id    = RewardProperty.BagSlots,
                         Type  = 1,
                         Value = 4

@@ -44,7 +44,13 @@ namespace NexusForever.WorldServer.Game.Entity
                 bags.Add(location, new Bag(location, defaultCapacity));
 
             foreach (var itemModel in model.Item.Select(i => i).OrderBy(i => i.Location).ToList())
-                AddItem(new Item(itemModel));
+            {
+                Item item = new Item(itemModel);
+                AddItem(item);
+
+                if (IsEquippedBagLocation(item.Location, item.BagIndex))
+                    GetBag(InventoryLocation.Inventory).Resize((int)item.Entry.MaxStackCount);
+            }
         }
 
         /// <summary>
@@ -391,14 +397,26 @@ namespace NexusForever.WorldServer.Game.Entity
                 throw new InvalidPacketValueException();
 
             Item dstItem = dstBag.GetItem(to.BagIndex);
+
+            if (IsEquippedBagLocation(from) || IsEquippedBagLocation(to))
+                HandleEquippedBagChange(from, to, srcItem, dstItem);
+            else
+                ItemMove(from, to, srcItem, dstItem);
+        }
+
+        /// <summary>
+        /// Move <see cref="Item"/> from one <see cref="ItemLocation"/> to another, handling swapping if necessary.
+        /// </summary>
+        private void ItemMove(ItemLocation from, ItemLocation to, Item srcItem, Item dstItem = null)
+        {
+            if (srcItem == null || from == null || to == null)
+                throw new InvalidPacketValueException();
+
+            if (dstItem == null && GetBag(to.Location).GetItem(to.BagIndex) != null)
+                throw new InvalidPacketValueException();
+
             try
             {
-                ItemError itemError = 0;
-                if (!CheckInventoryContainersOnMove(srcItem, dstItem))
-                    itemError = ItemError.BagMustBeEmpty;
-
-                if(itemError == 0)
-                {
                 RemoveItem(srcItem);
 
                 if (dstItem == null)
@@ -411,7 +429,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     {
                         To = new ItemDragDrop
                         {
-                            Guid     = srcItem.Guid,
+                            Guid = srcItem.Guid,
                             DragDrop = ItemLocationToDragDropData(to.Location, (ushort)to.BagIndex)
                         }
                     });
@@ -446,23 +464,14 @@ namespace NexusForever.WorldServer.Game.Entity
                     {
                         To = new ItemDragDrop
                         {
-                            Guid     = srcItem.Guid,
+                            Guid = srcItem.Guid,
                             DragDrop = ItemLocationToDragDropData(to.Location, (ushort)to.BagIndex)
                         },
                         From = new ItemDragDrop
                         {
-                            Guid     = dstItem.Guid,
+                            Guid = dstItem.Guid,
                             DragDrop = ItemLocationToDragDropData(from.Location, (ushort)from.BagIndex)
                         }
-                    });
-                }
-            }
-                else
-                {
-                    player.Session.EnqueueMessageEncrypted(new ServerItemError
-                    {
-                        ItemGuid = srcItem.Guid,
-                        ErrorCode = itemError
                     });
                 }
             }
@@ -750,13 +759,6 @@ namespace NexusForever.WorldServer.Game.Entity
             if (player != null && bag.Location == InventoryLocation.Equipped)
                 if (IsVisualItem(item))
                     VisualUpdate(item);
-
-            if (bag.Location == InventoryLocation.Equipped && IsInventoryContainer(item))
-            {
-                int capacityChange = (int)item.Entry.MaxStackCount;
-                GetBag(InventoryLocation.Inventory).Resize(capacityChange);
-                AdjustItemsBagIndexInInventory(capacityChange, GetStartingBagIndexForContainer((EquippedItem)item.BagIndex));
-            }
         }
 
         /// <summary>
@@ -775,13 +777,6 @@ namespace NexusForever.WorldServer.Game.Entity
             if (player != null && bag.Location == InventoryLocation.Equipped)
                 if (IsVisualItem(item))
                     VisualUpdate(item);
-
-            if (bag.Location == InventoryLocation.Equipped && IsInventoryContainer(item))
-            {
-                int capacityChange = (int)item.Entry.MaxStackCount * -1;
-                AdjustItemsBagIndexInInventory(capacityChange, GetStartingBagIndexForContainer((EquippedItem)item.BagIndex));
-                GetBag(InventoryLocation.Inventory).Resize(capacityChange);
-            }
 
             bag.RemoveItem(item);
         }
@@ -849,9 +844,97 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Handles the addition, removal, and swapping of equipped bags. Should only be called from <see cref="ItemMove(ItemLocation, ItemLocation)"/>
+        /// </summary>
+        private void HandleEquippedBagChange(ItemLocation from, ItemLocation to, Item srcItem, Item dstItem)
+        {
+            Bag inventory = GetBag(InventoryLocation.Inventory);
+            if (inventory == null)
+                throw new InvalidPacketValueException($"Can't find Inventory.");
+
+            ItemError itemError = 0;
+
+            if (!srcItem.IsEquippableBag() && !IsEquippedBagLocation(to))
+                itemError = ItemError.InvalidForThisSlot;
+
+            // TODO: Mail items it can't bag, instead of erroring? Or, flow into overflow?
+            int capacityChange = 0;
+            if (srcItem.IsEquippableBag() && IsEquippedBagLocation(to))
+            {
+                if (dstItem == null && !IsEquippedBagLocation(from))
+                    capacityChange = (int)srcItem.Entry.MaxStackCount; // Adding bag
+                else if (dstItem != null && !IsEquippedBagLocation(from))
+                    capacityChange = (int)srcItem.Entry.MaxStackCount - (int)dstItem.Entry.MaxStackCount; // Replacing bag
+            }
+            else if (srcItem.IsEquippableBag() && IsEquippedBagLocation(from))
+            {
+                if (dstItem == null && !IsEquippedBagLocation(to))
+                    capacityChange -= (int)srcItem.Entry.MaxStackCount; // Removing bag (-1 for actual bag)
+                else if (dstItem != null && dstItem.IsEquippableBag())
+                    capacityChange = (int)dstItem.Entry.MaxStackCount - (int)srcItem.Entry.MaxStackCount; // Replacing bag
+            }
+
+            if (capacityChange < 0 && inventory.SlotsRemaining < (capacityChange * -1 + 1))
+                itemError = ItemError.BagMustBeEmpty;
+
+            if (itemError == 0)
+            {
+                ItemMove(from, to, srcItem, dstItem);
+
+                if (capacityChange < 0)
+                    MoveItemsAfterBagSwap(capacityChange);
+                    
+                if (capacityChange != 0)
+                    inventory.Resize(capacityChange);
+            }
+            else
+                player.Session.EnqueueMessageEncrypted(new ServerItemError
+                {
+                    ItemGuid = srcItem.Guid,
+                    ErrorCode = itemError
+                });
+        }
+
+        /// <summary>
+        /// Used to adjust items after a bag is equipped. Should only occur when the Inventory size shrinks.
+        /// </summary>
+        private void MoveItemsAfterBagSwap(int capacityChange)
+        {
+            Bag inventory = GetBag(InventoryLocation.Inventory);
+            if (inventory == null)
+                throw new InvalidPacketValueException("Can't find Inventory.");
+
+            int inventoryMaxIndex = inventory.GetSize() - 1;
+
+            for (int i = inventoryMaxIndex; i > (inventoryMaxIndex + capacityChange); i--)
+            {
+                Item item = inventory.GetItem((uint)i);
+                if (item != null)
+                {
+                    uint newItemIndex = inventory.GetFirstAvailableBagIndex();
+                    if (newItemIndex == uint.MaxValue)
+                        throw new InvalidPacketValueException($"Missing BagIndex to move item {item.Guid} to.");
+
+                    ItemMove(new ItemLocation
+                    {
+                        Location = item.Location,
+                        BagIndex = item.BagIndex
+                    },
+                    new ItemLocation
+                    {
+                        Location = InventoryLocation.Inventory,
+                        BagIndex = newItemIndex
+                    },
+                    item,
+                    null);
+                }
+            }
+        }
+
+        /// <summary>
         /// Check if the <see cref="Item"/> is an equipped container
         /// </summary>
-        private bool IsInventoryContainer(Item item)
+        private bool IsEquippedBag(Item item)
         {
             EquippedItem[] containers = new EquippedItem[]
             {EquippedItem.Bag0, EquippedItem.Bag1, EquippedItem.Bag2, EquippedItem.Bag3};
@@ -860,82 +943,26 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
-        /// Returns an array of BagIndices that this bag holds
+        /// Returns whether or not the provided <see cref="ItemLocation"/> is an Equipped Bag slot.
         /// </summary>
-        /// <param name="equippedItem"></param>
-        /// <param name="inventorySlots"></param>
-        private void GetInventorySlotsForContainer(EquippedItem equippedItem, out uint[] inventorySlots)
+        private bool IsEquippedBagLocation(ItemLocation itemLocation)
         {
-            inventorySlots = null;
-
-            List<uint> inventorySlotList = new List<uint>();
-
-            Bag srcBag = GetBag(InventoryLocation.Equipped);
-            if (srcBag == null)
-                throw new InvalidPacketValueException();
-
-            Item equippedContainer = srcBag.GetItem((uint)equippedItem);
-            if (equippedContainer == null)
-                return;
-
-            uint startIndex = GetStartingBagIndexForContainer(equippedItem);
-
-            for (uint i = startIndex; i < startIndex + equippedContainer.Entry.MaxStackCount; i++)
-                inventorySlotList.Add(i);
-
-            inventorySlots = inventorySlotList.ToArray();
+            return IsEquippedBagLocation(itemLocation.Location, itemLocation.BagIndex);
         }
 
         /// <summary>
-        /// Get the starting BagIndex for tthe supplied <see cref="EquippedItem"/>
+        /// Returns whether or not the provided <see cref="InventoryLocation"/> and bagIndex match an Equipped Bag slot.
         /// </summary>
-        private uint GetStartingBagIndexForContainer(EquippedItem container)
+        private bool IsEquippedBagLocation(InventoryLocation inventoryLocation, uint bagIndex)
         {
-            Bag srcBag = GetBag(InventoryLocation.Equipped);
-            if (srcBag == null)
-                throw new InvalidPacketValueException();
+            EquippedItem[] containers = new EquippedItem[]
+            {EquippedItem.Bag0, EquippedItem.Bag1, EquippedItem.Bag2, EquippedItem.Bag3};
 
-            uint startIndex = 16;
-            for (uint i = (uint)EquippedItem.Bag0; i < (uint)container; i++)
-            {
-                Item bag = srcBag.GetItem(i);
-                if (bag != null)
-                    startIndex += bag.Entry.MaxStackCount;
-            }
+            if (inventoryLocation != InventoryLocation.Equipped)
+                return false;
 
-            return startIndex;
+            return containers.Contains((EquippedItem)bagIndex);
         }
-
-        /// <summary>
-        /// Adjusts the BagIndex of items that are affected by an equipped inventory container swap
-        /// </summary>
-        public void AdjustItemsBagIndexInInventory(int adjustmentAmount, uint startIndex)
-        {
-            Bag inventory = GetBag(InventoryLocation.Inventory);
-            if (inventory == null)
-                throw new InvalidPacketValueException();
-
-            List<Item> items = inventory.GetItems();
-
-            for (int i = (int)startIndex; i < items.Count; i++)
-            {
-                if (items[i] == null)
-                    continue;
-                
-                ItemMove(new ItemLocation
-                {
-                    Location = InventoryLocation.Inventory,
-                    BagIndex = items[i].BagIndex
-                },
-                new ItemLocation
-                {
-                    Location = InventoryLocation.Inventory,
-                    BagIndex = (uint)((int)items[i].BagIndex + adjustmentAmount)
-                });
-            }
-        }
-
-        
 
         private Bag GetBag(InventoryLocation location)
         {
