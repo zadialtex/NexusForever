@@ -859,6 +859,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
             // TODO: Mail items it can't bag, instead of erroring? Or, flow into overflow?
             int capacityChange = 0;
+            int removingBag = 0;
             if (srcItem.IsEquippableBag() && IsEquippedBagLocation(to))
             {
                 if (dstItem == null && !IsEquippedBagLocation(from))
@@ -869,12 +870,15 @@ namespace NexusForever.WorldServer.Game.Entity
             else if (srcItem.IsEquippableBag() && IsEquippedBagLocation(from))
             {
                 if (dstItem == null && !IsEquippedBagLocation(to))
+                {
                     capacityChange -= (int)srcItem.Entry.MaxStackCount; // Removing bag (-1 for actual bag)
+                    removingBag = 1;
+                }
                 else if (dstItem != null && dstItem.IsEquippableBag())
                     capacityChange = (int)dstItem.Entry.MaxStackCount - (int)srcItem.Entry.MaxStackCount; // Replacing bag
             }
 
-            if (capacityChange < 0 && inventory.SlotsRemaining < (capacityChange * -1 + 1))
+            if (capacityChange < 0 && inventory.SlotsRemaining < (capacityChange * -1 + removingBag))
                 itemError = ItemError.BagMustBeEmpty;
 
             if (itemError == 0)
