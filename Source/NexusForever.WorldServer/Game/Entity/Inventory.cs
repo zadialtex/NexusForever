@@ -355,7 +355,13 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 uint bagIndex = bag.GetFirstAvailableBagIndex();
                 if (bagIndex == uint.MaxValue)
+                {
+                    player.Session.EnqueueMessageEncrypted(new ServerItemError
+                    {
+                        ErrorCode = ItemError.InventoryFull
+                    });
                     return;
+                }
 
                 var item = new Item(characterId, itemEntry, Math.Min(count, IsStackable(itemEntry) ? itemEntry.MaxStackCount : 1));
                 AddItem(item, InventoryLocation.Inventory, bagIndex);
