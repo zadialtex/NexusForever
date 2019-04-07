@@ -18,6 +18,12 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             session.Heartbeat.OnHeartbeat();
         }
 
+        [MessageHandler(GameMessageOpcode.ClientReplayLevelRequest)]
+        public static void HandleReplayLevel(WorldSession session, ClientReplayLevelRequest request)
+        {
+            session.Player.PlayLevelUpEffect((byte)request.Level);
+        }
+
         /// <summary>
         /// Handled responses to Player Info Requests.
         /// TODO: Put this in the right place, this is used by Mail & Contacts, at minimum. Probably used by Guilds, Circles, etc. too.

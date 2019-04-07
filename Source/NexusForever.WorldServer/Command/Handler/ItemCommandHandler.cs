@@ -12,7 +12,7 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("add", "itemId [quantity] - Add an item to inventory, optionally specifying quantity")]
+        [SubCommandHandler("add", "itemId [quantity] [charges] - Add an item to inventory, optionally specifying quantity and charges.")]
         public Task AddItemSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length <= 0)
@@ -22,7 +22,7 @@ namespace NexusForever.WorldServer.Command.Handler
             if (parameters.Length > 1)
                 amount = uint.Parse(parameters[1]);
 
-            uint charges = 0;
+            uint charges = 1;
             if (parameters.Length > 2)
                 charges = uint.Parse(parameters[2]);
 

@@ -173,6 +173,21 @@ namespace NexusForever.WorldServer.Game.Entity
             // temp
             Stats.Add(Stat.Health, new StatValue(Stat.Health, 800));
 
+            if (SpellManager.GetSpell(47769) == null)
+                SpellManager.AddSpell(47769); // Transmat to Illium
+            if (SpellManager.GetSpell(22919) == null)
+                SpellManager.AddSpell(22919); // Recall house - broken, seems to require an additional unlock
+            if (SpellManager.GetSpell(38934) == null)
+                SpellManager.AddSpell(38934); // some pewpew mount
+            if (SpellManager.GetSpell(62503) == null)
+                SpellManager.AddSpell(62503); // falkron mount
+            if (SpellManager.GetSpell(63431) == null)
+                SpellManager.AddSpell(63431); // zBoard 79 mount
+            if (SpellManager.GetSpell(62563) == null)
+                SpellManager.AddSpell(62563); // pet
+            if (SpellManager.GetSpell(62562) == null)
+                SpellManager.AddSpell(62562); // pet
+
             // temp
             Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
             Properties.Add(Property.MoveSpeedMultiplier, new PropertyValue(Property.MoveSpeedMultiplier, 1f, 1f));
@@ -652,7 +667,8 @@ namespace NexusForever.WorldServer.Game.Entity
             }, true);
 
             // Grant Rewards for level up
-                // Add Skills
+            // Add Skills
+            SpellManager.GrantSpells();
                 // Unlock LAS slots
                 // Unlock AMPs
                 // Add feature access

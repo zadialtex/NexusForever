@@ -65,7 +65,7 @@ namespace NexusForever.Shared.Network.Message
         ServerAbilities                 = 0x01A0,
         ServerAmpList                   = 0x01A3,
         ServerPathUpdateXP              = 0x01AA,
-        ServerExperienceGained          = 0x01AC,
+        ServerPlayerGrantXp             = 0x01AC,
         ServerUnlockVanityPet           = 0x01AE,
         ClientVehicleDisembark          = 0x01AF,
         ServerChatJoin                  = 0x01BC,

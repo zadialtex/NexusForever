@@ -128,6 +128,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         {
                             Entitlement = Entitlement.AurinEngineerUnlock,
                             Count       = 1
+                        },
+                        new ServerAccountEntitlements.AccountEntitlementInfo
+                        {
+                            Entitlement = Entitlement.ExtraDecorSlots,
+                            Count       = 2000
                         }
                     }
                 });

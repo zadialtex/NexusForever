@@ -64,7 +64,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientWhoRequest)]
         public static void HandleWhoRequest(WorldSession session, ClientWhoRequest request)
         {
-            List<WorldSession> allSessions = NetworkManager<WorldSession>.GetAllSessions().ToList();
+            List<WorldSession> allSessions = NetworkManager<WorldSession>.GetSessions().ToList();
             List<ServerWhoResponse.WhoPlayer> players = new List<ServerWhoResponse.WhoPlayer>();
 
             foreach (WorldSession sessionEntry in allSessions)
@@ -97,7 +97,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleChatJoin(WorldSession session, Client018F request)
         {
             SocialManager.JoinChatChannels(session);
-            SocialManager.SendMessage(session, "MOTD: Welcome to Kirmmin's Test Server! !character is a new command - you can add XP and level up (without relogging!). !currency is a new command, /who works, and we now have chat channels & whispers! (Updated 14 Mar 2019)", "", ChatChannel.Realm);
+            SocialManager.SendMessage(session, "MOTD: Welcome to Kirmmin's Test Server! Contacts are now in Alpha testing! !character is a new command - you can add XP and level up (without relogging!).! (Updated 27 Mar 2019)", "", ChatChannel.Realm);
         }
     }
 }
