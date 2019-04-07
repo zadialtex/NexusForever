@@ -116,8 +116,8 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         },
                         new ServerAccountEntitlements.AccountEntitlementInfo
                         {
-                            Entitlement = (Entitlement)20,
-                            Count       = 1
+                            Entitlement = Entitlement.ExtraDecorSlots,
+                            Count       = 2000
                         },
                         new ServerAccountEntitlements.AccountEntitlementInfo
                         {
