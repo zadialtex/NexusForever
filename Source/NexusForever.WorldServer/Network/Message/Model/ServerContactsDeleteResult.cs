@@ -4,7 +4,7 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsDeleteResult, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsDeleteResult)]
     public class ServerContactsDeleteResult : IWritable
     {
         public ulong ContactId { get; set; } = 0;

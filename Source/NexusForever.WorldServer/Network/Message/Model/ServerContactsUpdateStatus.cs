@@ -4,7 +4,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsUpdateStatus, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsUpdateStatus)]
     public class ServerContactsUpdateStatus : IWritable
     {
         public TargetPlayerIdentity PlayerIdentity { get; set; }

@@ -4,7 +4,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientContactsSetNote, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientContactsSetNote)]
     public class ClientContactsSetNote : IReadable
     {
         public TargetPlayerIdentity PlayerIdentity { get; private set; } = new TargetPlayerIdentity();

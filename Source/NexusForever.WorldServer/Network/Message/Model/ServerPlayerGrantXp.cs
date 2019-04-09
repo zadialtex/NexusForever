@@ -4,7 +4,7 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerPlayerGrantXp, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerPlayerGrantXp)]
     public class ServerPlayerGrantXp : IWritable
     {
         public uint TotalXpGained { get; set; }

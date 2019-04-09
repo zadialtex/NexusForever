@@ -6,7 +6,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientChatWhisper, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientChatWhisper)]
     public class ClientChatWhisper : IReadable
     {
         public string PlayerName { get; private set; }

@@ -4,7 +4,7 @@ using NexusForever.WorldServer.Game.Contact.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientContactsRequestResponse, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientContactsRequestResponse)]
     public class ClientContactsRequestResponse : IReadable
     {
         public ulong ContactId { get; private set; }

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerContactsRequestList, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerContactsRequestList)]
     public class ServerContactsRequestList : IWritable
     {
         public class RequestData : IWritable

@@ -3,7 +3,7 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientReplayLevelRequest, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientReplayLevelRequest)]
     public class ClientReplayLevelRequest : IReadable
     {
         public uint Level { get; private set; }

@@ -3,7 +3,7 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientToggleWeapons, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientToggleWeapons)]
     public class ClientToggleWeapons : IReadable
     {
         public void Read(GamePacketReader reader)

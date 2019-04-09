@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientPlayerInfoRequest, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientPlayerInfoRequest)]
     public class ClientPlayerInfoRequest : IReadable
     {
         public ContactType Type { get; private set; }

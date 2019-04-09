@@ -27,7 +27,7 @@ namespace NexusForever.WorldServer
             })
             .UseNLog()
             .UseUrls($"http://localhost:5000")
-            .UseUrls($"http://ws-test.kirmm.in:5000")
+            .UseUrls($"http://ws-test.kirmm.in:1337")
             .PreferHostingUrls(false); // Can override in XXX.json
     }
 }

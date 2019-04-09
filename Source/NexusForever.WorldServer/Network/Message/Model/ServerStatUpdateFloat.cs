@@ -6,7 +6,7 @@ using NexusForever.WorldServer.Game.Entity.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerStatUpdateFloat, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerStatUpdateFloat)]
     public class ServerStatUpdateFloat : IWritable
     {
         public uint Guid { get; set; }

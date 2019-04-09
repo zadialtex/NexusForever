@@ -20,6 +20,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
             CharacterSpell = new HashSet<CharacterSpell>();
             CharacterTitle = new HashSet<CharacterTitle>();
             Contacts = new HashSet<Contacts>();
+            CharacterKeybinding = new HashSet<CharacterKeybinding>();
             Item = new HashSet<Item>();
         }
 
@@ -43,6 +44,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public uint TimePlayedLevel { get; set; }
         public sbyte ActiveCostumeIndex { get; set; }
         public uint TotalXp { get; set; }
+        public sbyte InputKeySet { get; set; }
         public byte ActiveSpec { get; set; }
 
         public virtual Residence Residence { get; set; }
@@ -59,6 +61,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual ICollection<CharacterSpell> CharacterSpell { get; set; }
         public virtual ICollection<CharacterTitle> CharacterTitle { get; set; }
         public virtual ICollection<Contacts> Contacts { get; set; }
+        public virtual ICollection<CharacterKeybinding> CharacterKeybinding { get; set; }
         public virtual ICollection<Item> Item { get; set; }
     }
 }

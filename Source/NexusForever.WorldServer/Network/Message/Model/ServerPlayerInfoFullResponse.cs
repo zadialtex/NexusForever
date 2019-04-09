@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerPlayerInfoFullResponse, MessageDirection.Server)]
+    [Message(GameMessageOpcode.ServerPlayerInfoFullResponse)]
     public class ServerPlayerInfoFullResponse : IWritable
     {
         public ServerPlayerInfoBasicResponse BaseData { get; set; }

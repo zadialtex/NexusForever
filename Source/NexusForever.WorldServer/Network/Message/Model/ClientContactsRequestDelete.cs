@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientContactsRequestDelete, MessageDirection.Client)]
+    [Message(GameMessageOpcode.ClientContactsRequestDelete)]
     public class ClientContactsRequestDelete : IReadable
     {
         public TargetPlayerIdentity PlayerIdentity { get; private set; } = new TargetPlayerIdentity();
