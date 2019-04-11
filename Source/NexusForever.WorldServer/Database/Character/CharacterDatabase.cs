@@ -115,6 +115,18 @@ namespace NexusForever.WorldServer.Database.Character
             }
         }
 
+        public static async Task<Residence> GetResidence(ulong residenceId)
+        {
+            using (var context = new CharacterContext())
+            {
+                return await context.Residence
+                    .Include(r => r.ResidenceDecor)
+                    .Include(r => r.ResidencePlot)
+                    .Include(r => r.Owner)
+                    .SingleOrDefaultAsync(r => r.Id == residenceId);
+            }
+        }
+
         public static async Task<Residence> GetResidence(string name)
         {
             using (var context = new CharacterContext())
@@ -150,6 +162,15 @@ namespace NexusForever.WorldServer.Database.Character
             {
                 contactEntity.Save(context);
                 await context.SaveChangesAsync();
+
+        public static List<Residence> GetPublicResidences()
+        {
+            using (var context = new CharacterContext())
+            {
+                return context.Residence
+                    .Include(r => r.Owner)
+                    .Where(r => r.PrivacyLevel == 0)
+                    .ToList();
             }
         }
     }

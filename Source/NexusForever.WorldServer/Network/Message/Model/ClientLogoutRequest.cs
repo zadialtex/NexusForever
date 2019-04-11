@@ -3,12 +3,14 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-
-    [Message(GameMessageOpcode.ClientLogout)]
-    public class ClientLogout : IReadable
+    [Message(GameMessageOpcode.ClientLogoutRequest)]
+    public class ClientLogoutRequest : IReadable
     {
+        public bool Initiated { get; private set; }
+
         public void Read(GamePacketReader reader)
         {
+            Initiated = reader.ReadBit();
         }
     }
 }
