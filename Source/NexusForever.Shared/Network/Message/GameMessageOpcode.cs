@@ -209,6 +209,7 @@ namespace NexusForever.Shared.Network.Message
         Server0814                      = 0x0814, // spell related
         Server0816                      = 0x0816, // spell related: broadcast parts of 0x07FF?
         Server0817                      = 0x0817, // spell related
+        ClientStorefrontPurchaseCharacter = 0x082A,
         ClientStorefrontRequestCatalog  = 0x082D,
         ClientSummonVanityPet           = 0x082F,
         Server0854                      = 0x0854, // crafting schematic
@@ -239,6 +240,9 @@ namespace NexusForever.Shared.Network.Message
         ServerAccountEntitlements       = 0x0968,
         ServerGenericUnlockList         = 0x0981,
         ServerGenericUnlock             = 0x0982,
-        ServerGenericUnlockResult       = 0x0985
+        ServerGenericUnlockResult       = 0x0985,
+        ServerStoreFinalise             = 0x0987,
+        ServerStoreCategories           = 0x0988,
+        ServerStoreOffers               = 0x098B,
     }
 }

@@ -23,6 +23,13 @@ namespace NexusForever.WorldServer.Database.World.Model
         public virtual DbSet<EntityVendorCategory> EntityVendorCategory { get; set; }
         public virtual DbSet<EntityVendorItem> EntityVendorItem { get; set; }
 
+        public virtual DbSet<StoreCategory> StoreCategory { get; set; }
+        public virtual DbSet<StoreOfferGroup> StoreOfferGroup { get; set; }
+        public virtual DbSet<StoreOfferItem> StoreOfferItem { get; set; }
+        public virtual DbSet<StoreOfferItemData> StoreOfferItemData { get; set; }
+        public virtual DbSet<StoreOfferItemPrice> StoreOfferItemPrice { get; set; }
+        public virtual DbSet<StoreOfferItemCurrency> StoreOfferItemCurrency { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -168,6 +175,245 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .WithMany(p => p.EntityVendorItem)
                     .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__entity_vendor_item_id__entity_id");
+            });
+
+            modelBuilder.Entity<StoreCategory>(entity =>
+            {
+                entity.HasKey(e => new { e.Id });
+
+                entity.ToTable("store_category");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ParentCategoryId)
+                    .HasColumnName("parentId")
+                    .HasDefaultValueSql("'26'");
+
+                entity.Property(e => e.Name)
+                    .HasColumnName("name")
+                    .HasColumnType("varchar(50)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasColumnType("varchar(150)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Visible)
+                    .HasColumnName("visible")
+                    .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<StoreOfferGroup>(entity =>
+            {
+                entity.HasKey(e => new { e.Id });
+
+                entity.ToTable("store_offer_group");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field1)
+                    .HasColumnName("field_1")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Name)
+                    .HasColumnName("name")
+                    .HasColumnType("varchar(50)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasColumnType("varchar(500)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Field2)
+                    .HasColumnName("field_2")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CategoryId1)
+                    .HasColumnName("category_1")
+                    .HasDefaultValueSql("'26'");
+
+                entity.Property(e => e.CategoryId2)
+                    .HasColumnName("category_2")
+                    .HasDefaultValueSql("'26'");
+
+                entity.Property(e => e.CategoryId3)
+                    .HasColumnName("category_3")
+                    .HasDefaultValueSql("'26'");
+
+                entity.Property(e => e.Category1Index)
+                    .HasColumnName("c_index_1")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Category2Index)
+                    .HasColumnName("c_index_2")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Category3Index)
+                    .HasColumnName("c_index_3")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Visible)
+                    .HasColumnName("visible")
+                    .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<StoreOfferItem>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.GroupId });
+
+                entity.ToTable("store_offer_item");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.GroupId)
+                    .HasColumnName("groupId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Name)
+                    .HasColumnName("name")
+                    .HasColumnType("varchar(50)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasColumnType("varchar(500)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.DisplayFlags)
+                    .HasColumnName("displayFlags")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field6)
+                    .HasColumnName("field_6")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field7)
+                    .HasColumnName("field_7")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Visible)
+                    .HasColumnName("visible")
+                    .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<StoreOfferItemData>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.OfferId });
+
+                entity.ToTable("store_offer_item_data");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("AUTO_INCREMENT");
+
+                entity.Property(e => e.OfferId)
+                    .HasColumnName("offerId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ItemId)
+                    .HasColumnName("itemId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Amount)
+                    .HasDefaultValueSql("'1'");
+            });
+
+            modelBuilder.Entity<StoreOfferItemPrice>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.OfferId });
+
+                entity.ToTable("store_offer_item_price");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("AUTO_INCREMENT");
+
+                entity.Property(e => e.OfferId)
+                    .HasColumnName("offerId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field1)
+                    .HasColumnName("field_1")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field2)
+                    .HasColumnName("field_2")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field3)
+                    .HasColumnName("field_3")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field4)
+                    .HasColumnName("field_4")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field5)
+                    .HasColumnName("field_5")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field6)
+                    .HasColumnName("field_6")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Omnibits)
+                    .HasColumnName("omnibits")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field8)
+                    .HasColumnName("field_8")
+                    .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<StoreOfferItemCurrency>(entity =>
+            {
+                entity.HasKey(e => new { e.OfferId, e.CurrencyId });
+
+                entity.ToTable("store_offer_item_currency");
+
+                entity.Property(e => e.OfferId)
+                    .HasColumnName("offerId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CurrencyId)
+                    .HasColumnName("currencyId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field11)
+                    .HasColumnName("field_11")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field12)
+                    .HasColumnName("field_12")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field13)
+                    .HasColumnName("field_13")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Field14)
+                    .HasColumnName("field_14")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Expiry)
+                    .HasColumnName("expiry")
+                    .HasDefaultValueSql("'0'");
             });
         }
     }
