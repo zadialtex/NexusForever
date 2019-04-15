@@ -67,12 +67,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         LastLoggedInDays = NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == character.Id) != null ? 0 : -30f // TODO: Get Last Online from DB & Calculate Time Offline (Hard coded for 30 days currently)
                     });
             }));
-        }
-        
-        [MessageHandler(GameMessageOpcode.ClientReplayLevelRequest)]
-        public static void HandleReplayLevel(WorldSession session, ClientReplayLevelUp request)
-        {
-            session.Player.PlayLevelUpEffect((byte)request.Level);
+            
         }
 
         [MessageHandler(GameMessageOpcode.ClientToggleWeapons)]

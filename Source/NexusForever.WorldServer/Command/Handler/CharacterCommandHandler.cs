@@ -43,7 +43,7 @@ namespace NexusForever.WorldServer.Command.Handler
                 if (context.Session.Player.Level < level && level <= 50)
                 {
                     context.Session.Player.SetLevel(level);
-                    context.SendMessageAsync($"Success! You are now level {level}. You will need to log out for changes to take effect. (Temporary measure)");
+                    context.SendMessageAsync($"Success! You are now level {level}.");
                 }
                 else
                     context.SendMessageAsync("Level must be more than your current level and no higher than level 50.");
