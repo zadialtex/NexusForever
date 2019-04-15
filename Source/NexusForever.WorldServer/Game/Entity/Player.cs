@@ -868,17 +868,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 // Unlock AMPs
                 // Add feature access
 
-            // Play Level up effect
-            PlayLevelUpEffect(newLevel);
-        }
-
-        /// <summary>
-        /// Play the level up effect for the supplied level on this player
-        /// </summary>
-        /// <param name="level">Level to play effect for</param>
-        public void PlayLevelUpEffect(byte level)
-        {
-            CastSpell(53378, level, new SpellParameters());
+            // Level up effect is triggered by a Client request
         }
 
         /// <summary>
