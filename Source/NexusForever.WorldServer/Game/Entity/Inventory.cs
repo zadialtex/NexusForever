@@ -423,8 +423,6 @@ namespace NexusForever.WorldServer.Game.Entity
 
             try
             {
-                RemoveItem(srcItem);
-
                 if (dstItem == null)
                 {
                     // no item at destination, just a simple move
@@ -486,35 +484,6 @@ namespace NexusForever.WorldServer.Game.Entity
                 // TODO: rollback
                 log.Fatal(exception);
             }
-        }
-
-        /// Ensures any containers being moved are empty of items
-        /// </summary>
-        public bool CheckInventoryContainersOnMove(Item srcItem, Item dstItem)
-        {
-            if (IsInventoryContainer(srcItem) || (dstItem != null && IsInventoryContainer(dstItem)))
-            {
-                var containerToCheck = srcItem;
-                if (dstItem != null && IsInventoryContainer(dstItem))
-                    containerToCheck = dstItem;
-
-                GetInventorySlotsForContainer((EquippedItem)containerToCheck.BagIndex, out uint[] inventorySlots);
-                if (inventorySlots != null)
-                {
-                    foreach (uint slot in inventorySlots)
-                    {
-                        Bag bag = GetBag(InventoryLocation.Inventory);
-                        if (bag == null)
-                            throw new InvalidPacketValueException();
-
-                        Item item = bag.GetItem(slot);
-                        if (item != null)
-                            return false;
-                    }
-                }
-            }
-
-            return true;
         }
         
         /// <summary>
