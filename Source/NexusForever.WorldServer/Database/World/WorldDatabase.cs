@@ -13,6 +13,10 @@ namespace NexusForever.WorldServer.Database.World
         {
             using (var context = new WorldContext())
                 return context.Entity.Where(e => e.World == world)
+                    .Include(e => e.EntityVendor)
+                    .Include(e => e.EntityVendorCategory)
+                    .Include(e => e.EntityVendorItem)
+                    .Include(e => e.EntityStat)
                     .AsNoTracking()
                     .ToImmutableList();
         }

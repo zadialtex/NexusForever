@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Entity.Static;
 
 namespace NexusForever.WorldServer.Database.Character.Model
 {
@@ -22,6 +24,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
             Contacts = new HashSet<Contacts>();
             CharacterKeybinding = new HashSet<CharacterKeybinding>();
             Item = new HashSet<Item>();
+            CharacterStat = new HashSet<CharacterStat>();
         }
 
         public ulong Id { get; set; }
@@ -37,6 +40,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public float LocationY { get; set; }
         public float LocationZ { get; set; }
         public ushort WorldId { get; set; }
+        public ushort WorldZoneId { get; set; }
         public ushort Title { get; set; }
         public uint ActivePath { get; set; }
         public DateTime PathActivatedTimestamp { get; set; }
@@ -59,6 +63,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual ICollection<CharacterPetCustomisation> CharacterPetCustomisation { get; set; }
         public virtual ICollection<CharacterPetFlair> CharacterPetFlair { get; set; }
         public virtual ICollection<CharacterSpell> CharacterSpell { get; set; }
+        public virtual ICollection<CharacterStat> CharacterStat { get; set; }
         public virtual ICollection<CharacterTitle> CharacterTitle { get; set; }
         public virtual ICollection<Contacts> Contacts { get; set; }
         public virtual ICollection<CharacterKeybinding> CharacterKeybinding { get; set; }

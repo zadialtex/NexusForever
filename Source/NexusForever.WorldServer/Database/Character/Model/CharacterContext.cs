@@ -38,6 +38,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual DbSet<Residence> Residence { get; set; }
         public virtual DbSet<ResidenceDecor> ResidenceDecor { get; set; }
         public virtual DbSet<ResidencePlot> ResidencePlot { get; set; }
+        public virtual DbSet<CharacterStat> CharacterStat { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -138,6 +139,10 @@ namespace NexusForever.WorldServer.Database.Character.Model
 
                 entity.Property(e => e.WorldId)
                     .HasColumnName("worldId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.WorldZoneId)
+                    .HasColumnName("worldZoneId")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.TimePlayedTotal)
@@ -376,6 +381,76 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasConstraintName("FK__character_customisation_id__character_id");
             });
 
+            modelBuilder.Entity<CharacterKeybinding>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.InputActionId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_keybinding");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.InputActionId)
+                    .HasColumnName("inputActionId")
+                    .HasDefaultValueSql("'0'")
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.DeviceEnum00)
+                    .HasColumnName("deviceEnum00")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DeviceEnum01)
+                    .HasColumnName("deviceEnum01")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DeviceEnum02)
+                    .HasColumnName("deviceEnum02")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Code00)
+                    .HasColumnName("code00")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Code01)
+                    .HasColumnName("code01")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Code02)
+                    .HasColumnName("code02")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MetaKeys00)
+                    .HasColumnName("metaKeys00")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MetaKeys01)
+                    .HasColumnName("metaKeys01")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MetaKeys02)
+                    .HasColumnName("metaKeys02")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EventTypeEnum00)
+                    .HasColumnName("eventTypeEnum00")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EventTypeEnum01)
+                    .HasColumnName("eventTypeEnum01")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EventTypeEnum02)
+                    .HasColumnName("eventTypeEnum02")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.IdNavigation)
+                    .WithMany(p => p.CharacterKeybinding)
+                    .HasForeignKey(d => d.Id)
+                    .HasConstraintName("FK__character_keybinding_id__character_id");
+            });
+
             modelBuilder.Entity<CharacterPath>(entity =>
             {
                 entity.HasKey(e => new { e.Id, e.Path })
@@ -488,6 +563,28 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .WithMany(p => p.CharacterSpell)
                     .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__character_spell_id__character_id");
+            });
+
+            modelBuilder.Entity<CharacterStat>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.Stat })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_stats");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasDefaultValueSql("'0'")
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.IdNavigation)
+                    .WithMany(p => p.CharacterStat)
+                    .HasForeignKey(d => d.Id)
+                    .HasConstraintName("FK__character_stats_stat_id_character_id");
             });
 
             modelBuilder.Entity<CharacterTitle>(entity =>

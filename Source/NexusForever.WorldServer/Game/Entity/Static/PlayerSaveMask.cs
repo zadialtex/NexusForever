@@ -9,11 +9,10 @@ namespace NexusForever.WorldServer.Game.Entity.Static
     public enum PlayerSaveMask
     {
         None        = 0x0000,
-        Level       = 0x0001,
-        Location    = 0x0002,
-        Path        = 0x0004,
-        Costume     = 0x0008,
-        Xp          = 0x0010,
-        InputKeySet = 0x0020,
+        Location    = 0x0001,
+        Path        = 0x0002,
+        Costume     = 0x0004,
+        InputKeySet = 0x0008,
+        Xp          = 0x0010
     }
 }

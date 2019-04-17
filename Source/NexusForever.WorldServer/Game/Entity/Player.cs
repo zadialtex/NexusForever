@@ -28,6 +28,7 @@ using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
+using NexusForever.WorldServer.Game.Spell;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -42,18 +43,6 @@ namespace NexusForever.WorldServer.Game.Entity
         public Race Race { get; }
         public Class Class { get; }
         public List<float> Bones { get; } = new List<float>();
-
-        public byte Level
-        {
-            get => level;
-            set
-            {
-                level = value;
-                saveMask |= PlayerSaveMask.Level;
-            }
-        }
-
-        private byte level;
 
         public uint TotalXp
         {
@@ -158,7 +147,6 @@ namespace NexusForever.WorldServer.Game.Entity
             Sex             = (Sex)model.Sex;
             Race            = (Race)model.Race;
             Class           = (Class)model.Class;
-            Level           = model.Level;
             Path            = (Path)model.ActivePath;
             CostumeIndex    = model.ActiveCostumeIndex;
             InputKeySet     = (InputSets)model.InputKeySet;
@@ -182,12 +170,6 @@ namespace NexusForever.WorldServer.Game.Entity
             KeybindingManager       = new KeybindingManager(this, session.Account, model);
 
             IgnoreList = ContactManager.GetIgnoreList(model);
-
-            Stats.Add(Stat.Level, new StatValue(Stat.Level, level));
-            Stats.Add(Stat.Sheathed, new StatValue(Stat.Sheathed, 1));
-
-            // temp
-            Stats.Add(Stat.Health, new StatValue(Stat.Health, 800));
 
             if (SpellManager.GetSpell(47769) == null)
                 SpellManager.AddSpell(47769); // Transmat to Illium
@@ -222,8 +204,13 @@ namespace NexusForever.WorldServer.Game.Entity
                     DisplayId = a.DisplayId
                 }));
 
-            foreach(CharacterBone bone in model.CharacterBone.OrderBy(bone => bone.BoneIndex))
+            foreach (CharacterBone bone in model.CharacterBone.OrderBy(bone => bone.BoneIndex))
                 Bones.Add(bone.Bone);
+
+            foreach (CharacterStat statModel in model.CharacterStat)
+                stats.Add((Stat)statModel.Stat, new StatValue(statModel));
+
+            SetStat(Stat.Sheathed, 1u);
         }
 
         public override void Update(double lastTick)
@@ -736,12 +723,6 @@ namespace NexusForever.WorldServer.Game.Entity
 
             if (saveMask != PlayerSaveMask.None)
             {
-                if ((saveMask & PlayerSaveMask.Level) != 0)
-                {
-                    model.Level = Level;
-                    entity.Property(p => p.Level).IsModified = true;
-                }
-
                 if ((saveMask & PlayerSaveMask.Location) != 0)
                 {
                     model.LocationX = Position.X;
@@ -755,6 +736,9 @@ namespace NexusForever.WorldServer.Game.Entity
 
                     model.WorldId = (ushort)Map.Entry.Id;
                     entity.Property(p => p.WorldId).IsModified = true;
+
+                    model.WorldZoneId = (ushort)Zone.Id;
+                    entity.Property(p => p.WorldZoneId).IsModified = true;
                 }
 
                 if ((saveMask & PlayerSaveMask.Path) != 0)
@@ -788,6 +772,9 @@ namespace NexusForever.WorldServer.Game.Entity
             entity.Property(p => p.TimePlayedLevel).IsModified = true;
             model.TimePlayedTotal = (uint)TimePlayedTotal;
             entity.Property(p => p.TimePlayedTotal).IsModified = true;
+
+            foreach (StatValue stat in stats.Values)
+                stat.SaveCharacter(CharacterId, context);
 
             Inventory.Save(context);
             CurrencyManager.Save(context);

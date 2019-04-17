@@ -22,6 +22,7 @@ namespace NexusForever.WorldServer.Database.World.Model
         public virtual DbSet<EntityVendor> EntityVendor { get; set; }
         public virtual DbSet<EntityVendorCategory> EntityVendorCategory { get; set; }
         public virtual DbSet<EntityVendorItem> EntityVendorItem { get; set; }
+        public virtual DbSet<EntityStat> EntityStat { get; set; }
 
         public virtual DbSet<StoreCategory> StoreCategory { get; set; }
         public virtual DbSet<StoreOfferGroup> StoreOfferGroup { get; set; }
@@ -414,6 +415,27 @@ namespace NexusForever.WorldServer.Database.World.Model
                 entity.Property(e => e.Expiry)
                     .HasColumnName("expiry")
                     .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<EntityStat>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.Stat });
+
+                entity.ToTable("entity_stats");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasDefaultValueSql("'0'")
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.IdNavigation)
+                    .WithMany(p => p.EntityStat)
+                    .HasForeignKey(d => d.Id)
+                    .HasConstraintName("FK__entity_stats_stat_id_entity_id");
             });
         }
     }

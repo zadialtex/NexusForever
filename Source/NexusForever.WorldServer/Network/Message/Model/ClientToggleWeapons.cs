@@ -6,11 +6,11 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ClientToggleWeapons)]
     public class ClientToggleWeapons : IReadable
     {
+        public bool ToggleState { get; private set; }
+
         public void Read(GamePacketReader reader)
         {
-            ToggleState = reader.ReadByte(1);
+            ToggleState = reader.ReadBit();
         }
-
-        public byte ToggleState { get; private set; }
     }
 }
