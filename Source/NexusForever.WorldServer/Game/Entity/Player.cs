@@ -668,14 +668,6 @@ namespace NexusForever.WorldServer.Game.Entity
             Level = newLevel;
             XpToNextLevel = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == newLevel + 1).MinXpForLevel;
 
-            // Send level up stat update
-            EnqueueToVisible(new ServerStatUpdateInt
-            {
-                Guid = Guid,
-                Stat = Stat.Level,
-                Value = newLevel
-            }, true);
-
             // Grant Rewards for level up
             // Add Skills
             SpellManager.GrantSpells();
