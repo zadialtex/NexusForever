@@ -97,7 +97,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleChatJoin(WorldSession session, Client018F request)
         {
             SocialManager.JoinChatChannels(session);
-            SocialManager.SendMessage(session, "MOTD: Welcome to Kirmmin's Test Server! Contacts are now in Alpha testing! !character is a new command - you can add XP and level up (without relogging!).! (Updated 27 Mar 2019)", "", ChatChannel.Realm);
+            SocialManager.SendMessage(session, "MOTD: Welcome to Kirmmin's Test Server! Server now on new hardware - apologies for all the characters lost. Contacts are now in Alpha testing! !character is a new command - you can add XP and level up (without relogging!).! (Updated 18 Apr 2019)", "", ChatChannel.Realm);
         }
     }
 }

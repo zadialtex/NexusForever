@@ -24,11 +24,9 @@ using NexusForever.WorldServer.Game.Setting;
 using NexusForever.WorldServer.Game.Setting.Static;
 using NexusForever.WorldServer.Game.Social;
 using NexusForever.WorldServer.Game.Spell;
-using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
-using NexusForever.WorldServer.Game.Spell;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -649,7 +647,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public void GrantLevel(byte newLevel, bool setXp = false)
         {
-            byte oldLevel = Level;
+            uint oldLevel = Level;
 
             if (newLevel == oldLevel)
                 return;
@@ -668,8 +666,6 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             Level = newLevel;
-            Stats.Remove(Stat.Level);
-            Stats.Add(Stat.Level, new StatValue(Stat.Level, newLevel));
             XpToNextLevel = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == newLevel + 1).MinXpForLevel;
 
             // Send level up stat update

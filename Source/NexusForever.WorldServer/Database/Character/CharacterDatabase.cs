@@ -163,6 +163,8 @@ namespace NexusForever.WorldServer.Database.Character
             {
                 contactEntity.Save(context);
                 await context.SaveChangesAsync();
+            }
+        }
 
         public static List<Residence> GetPublicResidences()
         {
