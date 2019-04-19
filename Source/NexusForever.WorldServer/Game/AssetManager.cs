@@ -1,18 +1,24 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using NexusForever.Shared;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Database.Character;
+using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Database.World;
 using NexusForever.WorldServer.Database.World.Model;
+using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NLog;
 
 namespace NexusForever.WorldServer.Game
 {
     public sealed class AssetManager : Singleton<AssetManager>
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
         public static ImmutableDictionary<InventoryLocation, uint> InventoryLocationCapacities { get; private set; }
 
         /// <summary>
@@ -35,6 +41,8 @@ namespace NexusForever.WorldServer.Game
         private ulong nextMailId;
 
         private ImmutableDictionary<uint, ImmutableList<CharacterCustomizationEntry>> characterCustomisations;
+        private ImmutableList<PropertyValue> characterBaseProperties;
+        private ImmutableDictionary<Class, ImmutableList<PropertyValue>> characterClassBaseProperties;
 
         private ImmutableDictionary<ItemSlot, ImmutableList<EquippedItem>> equippedItems;
         private ImmutableDictionary<uint, ImmutableList<ItemDisplaySourceEntryEntry>> itemDisplaySourcesEntry;
@@ -52,6 +60,8 @@ namespace NexusForever.WorldServer.Game
             nextMailId      = CharacterDatabase.GetNextMailId() + 1ul;
 
             CacheCharacterCustomisations();
+            CacheCharacterBaseProperties();
+            CacheCharacterClassBaseProperties();
             CacheInventoryEquipSlots();
             CacheInventoryBagCapacities();
             CacheItemDisplaySourceEntries();
@@ -73,6 +83,46 @@ namespace NexusForever.WorldServer.Game
             characterCustomisations = entries.ToImmutableDictionary(e => e.Key, e => e.Value.ToImmutableList());
         }
 
+        private void CacheCharacterBaseProperties()
+        {
+            var entries = ImmutableList.CreateBuilder<PropertyValue>();
+            foreach (PropertyBase propertyModel in CharacterDatabase.GetProperties(0))
+            {
+                var newPropValue = new PropertyValue((Property)propertyModel.Property, propertyModel.Value, propertyModel.Value);
+                entries.Add(newPropValue);
+            }
+
+            characterBaseProperties = entries.ToImmutable();
+        }
+
+        private void CacheCharacterClassBaseProperties()
+        {
+            ImmutableDictionary<Class, ImmutableList<PropertyValue>>.Builder entries = ImmutableDictionary.CreateBuilder<Class, ImmutableList<PropertyValue>>();
+            var classList = GameTableManager.Class.Entries;
+
+            foreach(ClassEntry classEntry in classList)
+            {
+                log.Info($"Looping through {classEntry.Id} - {classEntry.EnumName}");
+                Class @class = (Class)classEntry.Id;
+
+                if (entries.ContainsKey(@class))
+                    continue;
+
+                ImmutableList<PropertyValue>.Builder propertyList = ImmutableList.CreateBuilder<PropertyValue>();
+                foreach (PropertyBase propertyModel in CharacterDatabase.GetProperties((uint)@class))
+                {
+                    log.Info($"Looping through {propertyModel.Type} : {(Property)propertyModel.Property}");
+                    var newPropValue = new PropertyValue((Property)propertyModel.Property, propertyModel.Value, propertyModel.Value);
+                    propertyList.Add(newPropValue);
+                }
+                ImmutableList<PropertyValue> classProperties = propertyList.ToImmutable();
+
+                entries.Add(@class, classProperties);
+            }
+            log.Info($"{entries.Count}, {entries[Class.Warrior].Count}");
+            characterClassBaseProperties = entries.ToImmutable();
+        }
+
         private void CacheInventoryEquipSlots()
         {
             var entries = new Dictionary<ItemSlot, List<EquippedItem>>();
@@ -87,7 +137,6 @@ namespace NexusForever.WorldServer.Game
                     entries[slot].Add(attribute.Slot);
                 }
             }
-
             equippedItems = entries.ToImmutableDictionary(e => e.Key, e => e.Value.ToImmutableList());
         }
 
@@ -142,6 +191,22 @@ namespace NexusForever.WorldServer.Game
         {
             uint key = (value << 24) | (label << 16) | (sex << 8) | race;
             return characterCustomisations.TryGetValue(key, out ImmutableList<CharacterCustomizationEntry> entries) ? entries : null;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="ImmutableList[T]"/> containing all base <see cref="PropertyValue"/> for any character
+        /// </summary>
+        public static ImmutableList<PropertyValue> GetCharacterBaseProperties()
+        {
+            return characterBaseProperties;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="ImmutableList[T]"/> containing all base <see cref="PropertyValue"/> for a character class
+        /// </summary>
+        public static ImmutableList<PropertyValue> GetCharacterClassBaseProperties(Class @class)
+        {
+            return characterClassBaseProperties.TryGetValue(@class, out ImmutableList<PropertyValue> propertyValues) ? propertyValues : null;
         }
 
         /// <summary>

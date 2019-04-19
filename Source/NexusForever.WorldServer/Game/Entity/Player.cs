@@ -28,11 +28,14 @@ using NexusForever.WorldServer.Game.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
+using NLog;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
     public class Player : UnitEntity, ISaveAuth, ISaveCharacter
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
         // TODO: move this to the config file
         private const double SaveDuration = 60d;
 
@@ -179,17 +182,6 @@ namespace NexusForever.WorldServer.Game.Entity
 
             Session.EntitlementManager.OnNewCharacter(model);
 
-            // temp
-            Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
-            Properties.Add(Property.ShieldCapacityMax, new PropertyValue(Property.ShieldCapacityMax, 0f, 450f));
-            Properties.Add(Property.MoveSpeedMultiplier, new PropertyValue(Property.MoveSpeedMultiplier, 1f, 1f));
-            Properties.Add(Property.JumpHeight, new PropertyValue(Property.JumpHeight, 2.5f, 2.5f));
-            Properties.Add(Property.GravityMultiplier, new PropertyValue(Property.GravityMultiplier, 1f, 1f));
-            // sprint
-            Properties.Add(Property.ResourceMax0, new PropertyValue(Property.ResourceMax0, 500f, 500f));
-            // dash
-            Properties.Add(Property.ResourceMax7, new PropertyValue(Property.ResourceMax7, 200f, 200f));
-
             Costume costume = null;
             if (CostumeIndex >= 0)
                 costume = CostumeManager.GetCostume((byte)CostumeIndex);
@@ -208,6 +200,8 @@ namespace NexusForever.WorldServer.Game.Entity
             foreach (CharacterStats statModel in model.CharacterStats)
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
 
+            SetBaseProperties();
+
             SetStat(Stat.Sheathed, 1u);
 
             // temp
@@ -215,6 +209,39 @@ namespace NexusForever.WorldServer.Game.Entity
             // sprint
             SetStat(Stat.Resource0, 500f);
             SetStat(Stat.Shield, 450u);
+        }
+
+        protected override void SetBaseProperties()
+        {
+            var baseProperties = AssetManager.GetCharacterBaseProperties();
+            foreach(PropertyValue propertyValue in baseProperties)
+            {
+                float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
+
+                if (propertyValue.Property == Property.BaseHealth || propertyValue.Property == Property.AssaultRating || propertyValue.Property == Property.SupportRating)
+                    value *= Level;
+
+                SetProperty(propertyValue.Property, value, value);
+            }
+
+            var classProperties = AssetManager.GetCharacterClassBaseProperties(Class);
+            foreach (PropertyValue propertyValue in classProperties)
+            {
+                float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
+
+                SetProperty(propertyValue.Property, value, value);
+            }
+                
+            //Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
+            //Properties.Add(Property.ResourceRegenMultiplier0, new PropertyValue(Property.ResourceRegenMultiplier0, 0.0225f, 0.0225f));
+            //Properties.Add(Property.MoveSpeedMultiplier, new PropertyValue(Property.MoveSpeedMultiplier, 1f, 1f));
+            //Properties.Add(Property.GravityMultiplier, new PropertyValue(Property.GravityMultiplier, 1f, 1f));
+            //// sprint
+            //Properties.Add(Property.ResourceMax0, new PropertyValue(Property.ResourceMax0, 500f, 500f));
+            //// dash
+            //Properties.Add(Property.ResourceMax7, new PropertyValue(Property.ResourceMax7, 200f, 200f));
+
+            base.SetBaseProperties();
         }
 
         public override void Update(double lastTick)

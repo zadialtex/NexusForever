@@ -293,7 +293,9 @@ namespace NexusForever.Shared.GameTable
         [GameData]
         public GameTable<ItemSpecialEntry> ItemSpecial { get; private set; }
 
+        [GameData]
         public GameTable<ItemStatEntry> ItemStat { get; private set; }
+
         public GameTable<LanguageEntry> Language { get; private set; }
         public GameTable<LevelDifferentialAttributeEntry> LevelDifferentialAttribute { get; private set; }
         public GameTable<LevelUpUnlockEntry> LevelUpUnlock { get; private set; }
