@@ -227,5 +227,11 @@ namespace NexusForever.WorldServer.Database.Character
                     .ToList();
             }
         }
+
+        public static List<PropertyBase> GetProperties(uint type)
+        {
+            using (var context = new CharacterContext())
+                return context.PropertyBase.Where(p => p.Type == type).ToList();
+        }
     }
 }

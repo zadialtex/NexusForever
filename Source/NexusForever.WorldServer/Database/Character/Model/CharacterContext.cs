@@ -48,6 +48,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual DbSet<GuildMember> GuildMember { get; set; }
         public virtual DbSet<GuildData> GuildData { get; set; }
         public virtual DbSet<Item> Item { get; set; }
+        public virtual DbSet<PropertyBase> PropertyBase { get; set; }
         public virtual DbSet<Residence> Residence { get; set; }
         public virtual DbSet<ResidenceDecor> ResidenceDecor { get; set; }
         public virtual DbSet<ResidencePlot> ResidencePlot { get; set; }
@@ -1134,6 +1135,32 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasForeignKey(d => d.OwnerId)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__item_ownerId__character_id");
+            });
+
+            modelBuilder.Entity<PropertyBase>(entity =>
+            {
+                entity.HasKey(e => new { e.Type, e.Property })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("property_base");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Property)
+                    .HasColumnName("property")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Note)
+                    .IsRequired()
+                    .HasColumnName("note")
+                    .HasColumnType("varchar(100)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
             });
 
             modelBuilder.Entity<Residence>(entity =>
