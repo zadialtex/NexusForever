@@ -48,11 +48,12 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 path = value;
+                PathActivatedTime = DateTime.Now;
                 saveMask |= PlayerSaveMask.Path;
             }
         }
-
         private Path path;
+        public DateTime PathActivatedTime { get; private set; }
 
         public sbyte CostumeIndex
         {
@@ -137,7 +138,8 @@ namespace NexusForever.WorldServer.Game.Entity
             Sex             = (Sex)model.Sex;
             Race            = (Race)model.Race;
             Class           = (Class)model.Class;
-            Path            = (Path)model.ActivePath;
+            path            = (Path)model.ActivePath;
+            PathActivatedTime = model.PathActivatedTimestamp;
             CostumeIndex    = model.ActiveCostumeIndex;
             InputKeySet     = (InputSets)model.InputKeySet;
             Faction1        = (Faction)model.FactionId;
@@ -675,6 +677,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     model.ActivePath = (uint)Path;
                     entity.Property(p => p.ActivePath).IsModified = true;
+                    model.PathActivatedTimestamp = PathActivatedTime;
+                    entity.Property(p => p.PathActivatedTimestamp).IsModified = true;
                 }
 
                 if ((saveMask & PlayerSaveMask.Costume) != 0)
