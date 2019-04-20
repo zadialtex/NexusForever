@@ -20,7 +20,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private const uint MaxPathLevel = 30u;
 
         private readonly Player player;
-        private readonly PathEntry[] paths = new PathEntry[MaxPathCount];
+        private readonly Dictionary<Path, PathEntry> paths = new Dictionary<Path, PathEntry>();
 
         /// <summary>
         /// Create a new <see cref="PathManager"/> from <see cref="Player"/> database model.
@@ -28,19 +28,18 @@ namespace NexusForever.WorldServer.Game.Entity
         public PathManager(Player owner, Character model)
         {
             player = owner;
-            foreach (CharacterPath pathModel in model.CharacterPath)
-                paths[pathModel.Path] = new PathEntry(pathModel);
+            foreach (CharacterPath pathModel in model.CharacterPath.OrderBy(x => x.Path))
+                paths.Add((Path)pathModel.Path, new PathEntry(pathModel));
 
             Validate();
         }
 
         private void Validate()
         {
-            int pathCount = paths.Count(p => p != null);
-            if (pathCount != MaxPathCount)
+            if (paths.Count != MaxPathCount)
             {
                 // sanity checks to make sure a player always has entries for all paths
-                if (pathCount == 0)
+                if (paths.Count == 0)
                     SetPathEntry(player.Path, PathCreate(player.Path, true));
 
                 for (Path path = Path.Soldier; path <= Path.Explorer; path++)
@@ -173,7 +172,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private uint GetCurrentLevel(Path path)
         {
             return GameTableManager.PathLevel.Entries
-                .Last(x => x.PathXP <= paths[(int)path].TotalXp && x.PathTypeEnum == (uint)path).PathLevel;
+                .Last(x => x.PathXP <= paths[path].TotalXp && x.PathTypeEnum == (uint)path).PathLevel;
         }
 
         /// <summary>
@@ -265,7 +264,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private PathUnlockedMask GetPathUnlockedMask()
         {
             PathUnlockedMask mask = PathUnlockedMask.None;
-            foreach (PathEntry entry in paths)
+            foreach (PathEntry entry in paths.Values)
                 if (entry.Unlocked)
                     mask |= (PathUnlockedMask)(1 << (int)entry.Path);
 
@@ -278,7 +277,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <param name="context"></param>
         public void Save(CharacterContext context)
         {
-            foreach (PathEntry pathEntry in paths)
+            foreach (PathEntry pathEntry in paths.Values)
                 pathEntry.Save(context);
         }
 
@@ -295,7 +294,7 @@ namespace NexusForever.WorldServer.Game.Entity
             player.Session.EnqueueMessageEncrypted(new ServerPathLog
             {
                 ActivePath = player.Path,
-                PathProgress = paths.Select(p => p.TotalXp).ToArray(),
+                PathProgress = paths.Values.Select(p => p.TotalXp).ToArray(),
                 PathUnlockedMask = GetPathUnlockedMask(),
                 ActivateTimer = 0 // TODO: Need to figure out timestamp calculations necessary for this value to update the client appropriately
             });
@@ -352,12 +351,13 @@ namespace NexusForever.WorldServer.Game.Entity
 
         private PathEntry GetPathEntry(Path path)
         {
-            return paths[(int)path];
+            paths.TryGetValue(path, out PathEntry pathEntry);
+            return pathEntry;
         }
 
         private void SetPathEntry(Path path, PathEntry entry)
         {
-            paths[(int)path] = entry;
+            paths[path] = entry;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -367,7 +367,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public IEnumerator<PathEntry> GetEnumerator()
         {
-            return paths.Where(p => p != null).GetEnumerator();
+            return paths.Values.GetEnumerator();
         }
     }
 }
