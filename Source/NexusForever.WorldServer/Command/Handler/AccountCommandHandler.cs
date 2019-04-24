@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using NexusForever.Shared.Database.Auth;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
@@ -8,6 +9,7 @@ using NexusForever.Shared.Game.Events;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
 using NexusForever.WorldServer.Game.Account.Static;
+using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
@@ -20,7 +22,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("create", "email password - Create a new account")]
-        public async Task HandleAccountCreate(CommandContext context, string subCommand, string[] parameters)
+        public async Task HandleAccountCreate(CommandContext context, string subCommand, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length != 2)
             {
@@ -36,7 +38,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("delete", "email - Delete an account")]
-        public async Task HandleAccountDeleteAsync(CommandContext context, string subCommand, string[] parameters)
+        public async Task HandleAccountDeleteAsync(CommandContext context, string subCommand, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length < 1)
             {
