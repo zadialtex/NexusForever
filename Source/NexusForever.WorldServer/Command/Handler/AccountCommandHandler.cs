@@ -13,19 +13,19 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("create", "email password - Create a new account")]
-        public async Task HandleAccountCreate(CommandContext context, string subCommand, string[] parameters)
-        {
-            if (parameters.Length < 2)
-            {
-                await SendHelpAsync(context).ConfigureAwait(false);
-                return;
-            }
+        //[SubCommandHandler("create", "email password - Create a new account")]
+        //public async Task HandleAccountCreate(CommandContext context, string subCommand, string[] parameters)
+        //{
+        //    if (parameters.Length < 2)
+        //    {
+        //        await SendHelpAsync(context).ConfigureAwait(false);
+        //        return;
+        //    }
 
-            AuthDatabase.CreateAccount(parameters[0], parameters[1]);
-            await context.SendMessageAsync($"Account {parameters[0]} created successfully")
-                .ConfigureAwait(false);
-        }
+        //    AuthDatabase.CreateAccount(parameters[0], parameters[1]);
+        //    await context.SendMessageAsync($"Account {parameters[0]} created successfully")
+        //        .ConfigureAwait(false);
+        //}
 
         // [SubCommandHandler("delete", "email - Delete an account")]
         // public async Task HandleAccountDeleteAsync(CommandContext context, string subCommand, string[] parameters)
