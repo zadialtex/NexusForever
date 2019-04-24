@@ -98,6 +98,11 @@ namespace NexusForever.Shared.Network.Message
         ClientCheat                     = 0x03E0,
         ServerRealmBroadcast            = 0x03E1,
         ClientItemGenericUnlock         = 0x0400,
+        ClientGroupInvite               = 0x0416,
+        ClientGroupInviteResponse       = 0x041A,
+        ServerGroupInviteResult         = 0x041D,
+        ServerGroupInviteReceived       = 0x041F,
+        ServerGroupJoin                 = 0x0427,
         Server0497                      = 0x0497, // guild info
         ClientCastSpell                 = 0x04DB,
         ServerHousingResidenceDecor     = 0x04DE,
