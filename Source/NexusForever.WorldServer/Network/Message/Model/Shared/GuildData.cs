@@ -9,24 +9,6 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
 {
     public class GuildData: IWritable
     {
-        public class Rank: IWritable
-        {
-            public string RankName { get; set; } = "";
-            public GuildRankPermission PermissionMask { get; set; } = GuildRankPermission.NoRank;
-            public ulong BankWithdrawalPermissions { get; set; } = 0;
-            public long MoneyWithdrawalLimit { get; set; } = 0;
-            public long RepairLimit { get; set; } = 0;
-
-            public void Write(GamePacketWriter writer)
-            {
-                writer.WriteStringWide(RankName);
-                writer.Write((int)PermissionMask);
-                writer.Write(BankWithdrawalPermissions);
-                writer.Write(MoneyWithdrawalLimit);
-                writer.Write(RepairLimit);
-            }
-        }
-
         public class Info: IWritable
         {
             public string MessageOfTheDay { get; set; }
@@ -72,7 +54,7 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
         public uint Taxes { get; set; }
         public GuildType Type { get; set; } // 4
 
-        public List<Rank> Ranks { get; set; } = new List<Rank>(new Rank[10]);
+        public List<GuildRank> Ranks { get; set; } = new List<GuildRank>(new GuildRank[10]);
 
         public GuildStandard GuildStandard { get; set; } = new GuildStandard();
 
@@ -101,7 +83,7 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
 
             if (Ranks.Count < 10)
                 for (int i = Ranks.Count; i < 10; i++)
-                    Ranks.Add(new Rank());
+                    Ranks.Add(new GuildRank());
             Ranks.ForEach(c => c.Write(writer));
 
             GuildStandard.Write(writer);

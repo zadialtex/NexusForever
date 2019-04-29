@@ -400,7 +400,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientCharacterDelete)]
         public static void HandleCreateDelete(WorldSession session, ClientCharacterDelete characterDelete)
         {
-
+            // TODO: Ensure character is removed from CharacterCache on deletion
         }
 
         [MessageHandler(GameMessageOpcode.ClientCharacterSelect)]

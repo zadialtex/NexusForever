@@ -1,16 +1,10 @@
-﻿using NexusForever.Shared.Network;
-using NexusForever.WorldServer.Database.Character;
-using NexusForever.WorldServer.Game.Entity;
-using NexusForever.WorldServer.Game.Entity.Static;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Guild.Static;
-using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Character = NexusForever.WorldServer.Database.Character.Model.Character;
 using CharacterContext = NexusForever.WorldServer.Database.Character.Model.CharacterContext;
-using MemberModel = NexusForever.WorldServer.Database.Character.Model.GuildMember;
+using GuildMemberModel = NexusForever.WorldServer.Database.Character.Model.GuildMember;
 
 namespace NexusForever.WorldServer.Game.Guild
 {
@@ -20,32 +14,32 @@ namespace NexusForever.WorldServer.Game.Guild
         public ulong CharacterId { get; }
         public Rank Rank { get; private set; }
         public string Note { get; private set; }
-        private Character Character;
-        private Player Player;
-
+        
+        private GuildBase Guild { get; } 
         private MemberSaveMask saveMask;
 
-        public Member(ulong guildId, ulong characterId, Rank rank, string note, Player player = null, Character character = null)
+        public Member(GuildMemberModel model, Rank rank, GuildBase @base)
+        {
+            GuildId = model.Id;
+            CharacterId = model.CharacterId;
+            Rank = rank;
+            Note = model.Note;
+
+            Guild = @base;
+
+            saveMask = MemberSaveMask.None;
+        }
+
+        public Member(ulong guildId, ulong characterId, Rank rank, string note, GuildBase @base)
         {
             GuildId = guildId;
             CharacterId = characterId;
             Rank = rank;
             Note = note;
 
-            if (player != null)
-                Player = player;
-
-            if (character != null)
-                Character = character;
-            else
-                SetCharacter();
+            Guild = @base;
 
             saveMask = MemberSaveMask.Create;
-        }
-
-        public async void SetCharacter()
-        {
-            Character = await CharacterDatabase.GetCharacterById(CharacterId);
         }
 
         public void Save(CharacterContext context)
@@ -54,7 +48,7 @@ namespace NexusForever.WorldServer.Game.Guild
             {
                 if ((saveMask & MemberSaveMask.Create) != 0)
                 {
-                    context.Add(new MemberModel
+                    context.Add(new GuildMemberModel
                     {
                         Id = GuildId,
                         CharacterId = CharacterId,
@@ -62,46 +56,68 @@ namespace NexusForever.WorldServer.Game.Guild
                         Note = Note
                     });
                 }
+                else if ((saveMask & MemberSaveMask.Delete) != 0)
+                {
+                    var model = new GuildMemberModel
+                    {
+                        Id = GuildId,
+                        CharacterId = CharacterId
+                    };
+
+                    context.Entry(model).State = EntityState.Deleted;
+                }
                 else
                 {
                     // residence already exists in database, save only data that has been modified
-                    var model = new MemberModel
+                    var model = new GuildMemberModel
                     {
                         Id = GuildId,
                         CharacterId = CharacterId,
                     };
 
                     // could probably clean this up with reflection, works for the time being
-                    //EntityEntry <GuildModel> entity = context.Attach(model);
-                    //if ((saveMask & GuildSaveMask.Name) != 0)
-                    //{
-                    //    model.Name = Name;
-                    //    entity.Property(p => p.Name).IsModified = true;
-                    //}
+                    EntityEntry<GuildMemberModel> entity = context.Attach(model);
+                    if ((saveMask & MemberSaveMask.Rank) != 0)
+                    {
+                        model.Rank = Rank.Index;
+                        entity.Property(p => p.Rank).IsModified = true;
+                    }
                 }
 
                 saveMask = MemberSaveMask.None;
             }
         }
-        
-        public GuildMember GetGuildMember()
+
+        public void UpdateOnRankChange()
         {
-            if (Character != null || Player != null)
-                return new GuildMember
-                {
-                    Realm = WorldServer.RealmId,
-                    CharacterId = CharacterId,
-                    Rank = Rank.Index,
-                    Name = Character.Name ?? Player.Name,
-                    Sex = (Sex)Character.Sex,
-                    Class = (Class)Character.Class,
-                    Path = (Path)Character.ActivePath,
-                    Level = Convert.ToUInt32(Character.Level) ?? Player.Level,
-                    Note = Note,
-                    LastOnline = NetworkManager<WorldSession>.GetSession(x => x.Player?.CharacterId == CharacterId) != null ? -1f : -0.0007f
-                };
+            saveMask |= MemberSaveMask.Rank;
+        }
+
+        public void Delete()
+        {
+            // Entity won't exist if create flag exists, so we set to None and let GC get rid of it.
+            if ((saveMask & MemberSaveMask.Create) == 0)
+                saveMask = MemberSaveMask.Delete;
             else
-                return null;
+                saveMask = MemberSaveMask.None;
+        }
+
+        public GuildMember BuildGuildMemberPacket()
+        {
+            ICharacter characterInfo = CharacterManager.GetCharacterInfo(CharacterId);
+            return new GuildMember
+            {
+                Realm = WorldServer.RealmId,
+                CharacterId = CharacterId,
+                Rank = Rank.Index,
+                Name = characterInfo.Name,
+                Sex = characterInfo.Sex,
+                Class = characterInfo.Class,
+                Path = characterInfo.Path,
+                Level = characterInfo.Level,
+                Note = Note,
+                LastOnline = characterInfo.GetOnlineStatus()
+            };
         }
     }
 }

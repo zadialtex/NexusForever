@@ -92,20 +92,9 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientGuildOperation)]
         public static void HandleOperation(WorldSession session, ClientGuildOperation clientGuildOperation)
         {
-            log.Info($"{clientGuildOperation.Id}, {clientGuildOperation.Value}, {clientGuildOperation.TextValue}, {clientGuildOperation.Operation}");
+            log.Info($"{clientGuildOperation.RealmId}, {clientGuildOperation.GuildId}, {clientGuildOperation.Id}, {clientGuildOperation.Value}, {clientGuildOperation.TextValue}, {clientGuildOperation.Operation}");
 
-            if(clientGuildOperation.Operation == Game.Guild.Static.GuildOperation.InviteMember)
-            {
-                WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.Name == clientGuildOperation.TextValue);
-                targetSession?.EnqueueMessageEncrypted(new ServerGuildInvite
-                {
-                    PlayerName = "PlayerName",
-                    GuildName = "GuildName",
-                    Taxes = 0,
-                    GuildType = Game.Guild.Static.GuildType.Guild,
-                    Unknown4 = 1
-                });
-            }
+            GuildManager.HandleGuildOperation(session, clientGuildOperation);
         }
     }
 }
