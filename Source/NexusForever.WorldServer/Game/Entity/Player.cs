@@ -16,9 +16,12 @@ using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Game.Contact;
+using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Mail;
+using NexusForever.WorldServer.Game.Guild;
 using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game.Setting;
@@ -33,7 +36,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
-    public class Player : UnitEntity, ISaveAuth, ISaveCharacter
+    public class Player : UnitEntity, ISaveAuth, ISaveCharacter, ICharacter
     {
         // TODO: move this to the config file
         private const double SaveDuration = 60d;
@@ -43,6 +46,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public Sex Sex { get; }
         public Race Race { get; }
         public Class Class { get; }
+        public Faction Faction { get; }
         public List<float> Bones { get; } = new List<float>();
 
         public uint TotalXp
@@ -165,6 +169,12 @@ namespace NexusForever.WorldServer.Game.Entity
         private LogoutManager logoutManager;
         private PendingTeleport pendingTeleport;
 
+        public ulong GuildId = 0;
+        public List<ulong> GuildMemberships = new List<ulong>();
+        public GuildInvite PendingGuildInvite;
+
+        public float GetOnlineStatus() => 0f;
+
         public Player(WorldSession session, Character model)
             : base(EntityType.Player)
         {
@@ -181,6 +191,7 @@ namespace NexusForever.WorldServer.Game.Entity
             PathActivatedTime = model.PathActivatedTimestamp;
             CostumeIndex    = model.ActiveCostumeIndex;
             InputKeySet     = (InputSets)model.InputKeySet;
+            Faction         = (Faction)model.FactionId;
             Faction1        = (Faction)model.FactionId;
             Faction2        = (Faction)model.FactionId;
             innateIndex     = model.InnateIndex;
@@ -245,6 +256,9 @@ namespace NexusForever.WorldServer.Game.Entity
             // sprint
             SetStat(Stat.Resource0, 500f);
             SetStat(Stat.Shield, 450u);
+            
+            CharacterManager.RegisterPlayer(this);
+            GuildManager.OnPlayerLogin(Session, this);
         }
 
         public override void Update(double lastTick)
@@ -311,6 +325,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Sex      = Sex,
                 Bones    = Bones,
                 Title    = TitleManager.ActiveTitleId,
+                GuildIds = GuildMemberships,
                 PvPFlag  = PvPFlag.Disabled
             };
         }
@@ -382,8 +397,8 @@ namespace NexusForever.WorldServer.Game.Entity
         private void SendPacketsAfterAddToMap()
         {
             SendInGameTime();
+            GuildManager.SendInitialPackets(Session);
             PathManager.SendInitialPackets();
-            Session.EnqueueMessageEncrypted(new ServerGuildInit());
 
             BuybackManager.SendBuybackItems(this);
 
@@ -491,6 +506,7 @@ namespace NexusForever.WorldServer.Game.Entity
             });
             
             SocialManager.JoinChatChannels(Session);
+            GuildManager.SendPacketsAfterAddToMap(Session);
         }
 
         public ItemProficiency GetItemProficiences()
@@ -624,6 +640,10 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void CleanUp()
         {
+            // CharacterManager must deregister player first so other events see the user as offline and with relevant data being final
+            CharacterManager.DeregisterPlayer(this);
+
+            GuildManager.OnPlayerLogout(Session, this);
             CleanupManager.Track(Session.Account);
 
             try

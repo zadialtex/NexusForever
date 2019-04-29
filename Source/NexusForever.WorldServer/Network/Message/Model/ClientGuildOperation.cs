@@ -8,7 +8,8 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ClientGuildOperation)]
     public class ClientGuildOperation : IReadable
     {
-        public TargetPlayerIdentity PlayerIdentity { get; private set; } = new TargetPlayerIdentity();
+        public ushort RealmId { get; private set; }
+        public ulong GuildId { get; private set; }
         public uint Id { get; private set; }
         public ulong Value { get; private set; }
         public string TextValue { get; private set; }
@@ -16,7 +17,8 @@ namespace NexusForever.WorldServer.Network.Message.Model
 
         public void Read(GamePacketReader reader)
         {
-            PlayerIdentity.Read(reader);
+            RealmId = reader.ReadUShort(14u);
+            GuildId = reader.ReadULong();
             Id = reader.ReadUInt();
             Value = reader.ReadULong();
             TextValue = reader.ReadWideString();

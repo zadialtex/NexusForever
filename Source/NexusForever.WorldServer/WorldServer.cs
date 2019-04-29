@@ -26,6 +26,7 @@ using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Guild;
+using NexusForever.WorldServer.Game.CharacterCache;
 
 namespace NexusForever.WorldServer
 {
@@ -60,6 +61,7 @@ namespace NexusForever.WorldServer
             EntityCommandManager.Initialise();
             GlobalMovementManager.Initialise();
 
+            CharacterManager.Initialise();
             AssetManager.Initialise();
             PrerequisiteManager.Initialise();
             GlobalSpellManager.Initialise();

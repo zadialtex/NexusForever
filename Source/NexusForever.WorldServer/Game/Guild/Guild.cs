@@ -8,9 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CharacterContext = NexusForever.WorldServer.Database.Character.Model.CharacterContext;
+using GuildBaseModel = NexusForever.WorldServer.Database.Character.Model.Guild;
 using GuildDataModel = NexusForever.WorldServer.Database.Character.Model.GuildData;
-using GuildRankModel = NexusForever.WorldServer.Database.Character.Model.GuildRank;
-using GuildMemberModel = NexusForever.WorldServer.Database.Character.Model.GuildMember;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace NexusForever.WorldServer.Game.Guild
@@ -20,7 +19,53 @@ namespace NexusForever.WorldServer.Game.Guild
         public uint Taxes { get; private set; }
         public GuildStandard GuildStandard { get; private set; }
 
+        public string MessageOfTheDay
+        {
+            get => messageOfTheDay;
+            set
+            {
+                messageOfTheDay = value;
+                saveMask |= GuildSaveMask.MessageOfTheDay;
+            }
+        }
+        private string messageOfTheDay;
+        public string AdditionalInfo
+        {
+            get => additionalInfo;
+            set
+            {
+                additionalInfo = value;
+                saveMask |= GuildSaveMask.AdditionalInfo;
+            }
+        }
+        private string additionalInfo;
+
         private GuildSaveMask saveMask;
+
+        public Guild(GuildDataModel model, GuildBaseModel baseModel) 
+            : base (GuildType.Guild, baseModel)
+        {
+            Taxes = model.Taxes;
+            GuildStandard = new GuildStandard
+            {
+                BackgroundIcon = new GuildStandard.GuildStandardPart
+                {
+                    GuildStandardPartId = model.BackgroundIconPartId
+                },
+                ForegroundIcon = new GuildStandard.GuildStandardPart
+                {
+                    GuildStandardPartId = model.ForegroundIconPartId
+                },
+                ScanLines = new GuildStandard.GuildStandardPart
+                {
+                    GuildStandardPartId = model.ScanLinesPartId
+                }
+            };
+            MessageOfTheDay = model.MessageOfTheDay;
+            AdditionalInfo = model.AdditionalInfo;
+
+            saveMask = GuildSaveMask.None;
+        }
 
         /// <summary>
         /// Create a new <see cref="Guild"/>
@@ -32,15 +77,16 @@ namespace NexusForever.WorldServer.Game.Guild
             LeaderId = leaderSession.Player.CharacterId;
             Taxes = 0;
 
-            Ranks.Add(0, new Rank(leaderRankName, Id, 0, GuildRankPermission.Leader, ulong.MaxValue, long.MaxValue, long.MaxValue));
-            Ranks.Add(1, new Rank(councilRankName, Id, 1, (GuildRankPermission.CouncilChat | GuildRankPermission.MemberChat | GuildRankPermission.Kick | GuildRankPermission.Invite | GuildRankPermission.ChangeMemberRank | GuildRankPermission.Vote), ulong.MaxValue, long.MaxValue, long.MaxValue));
-            Ranks.Add(2, new Rank(memberRankName, Id, 2, GuildRankPermission.MemberChat, 0, 0, 0));
+            // Add Default Ranks & Assign Default Permissions for Guild
+            AddRank(new Rank(leaderRankName, Id, 0, GuildRankPermission.Leader, ulong.MaxValue, long.MaxValue, long.MaxValue));
+            AddRank(new Rank(councilRankName, Id, 1, (GuildRankPermission.CouncilChat | GuildRankPermission.MemberChat | GuildRankPermission.Kick | GuildRankPermission.Invite | GuildRankPermission.ChangeMemberRank | GuildRankPermission.Vote), ulong.MaxValue, long.MaxValue, long.MaxValue));
+            AddRank(new Rank(memberRankName, Id, 2, GuildRankPermission.MemberChat, 0, 0, 0));
 
             GuildStandard = guildStandard;
 
             Player player = leaderSession.Player;
-            Member Leader = new Member(Id, player.CharacterId, Ranks[0], "");
-            Members.Add(Leader.CharacterId, Leader);
+            Member Leader = new Member(Id, player.CharacterId, GetRank(0), "", this);
+            AddMember(Leader);
             OnlineMembers.Add(Leader.CharacterId, leaderSession);
 
             saveMask = GuildSaveMask.Create;
@@ -49,16 +95,18 @@ namespace NexusForever.WorldServer.Game.Guild
 
         public void Save(CharacterContext context)
         {
+            base.Save(context);
+
             if (saveMask != GuildSaveMask.None)
             {
-                base.Save(context);
-
                 if ((saveMask & GuildSaveMask.Create) != 0)
                 {
                     context.Add(new GuildDataModel
                     {
                         Id = Id,
                         Taxes = Taxes,
+                        AdditionalInfo = AdditionalInfo,
+                        MessageOfTheDay = MessageOfTheDay,
                         BackgroundIconPartId = GuildStandard.BackgroundIcon.GuildStandardPartId,
                         ForegroundIconPartId = GuildStandard.ForegroundIcon.GuildStandardPartId,
                         ScanLinesPartId = GuildStandard.ScanLines.GuildStandardPartId
@@ -73,19 +121,29 @@ namespace NexusForever.WorldServer.Game.Guild
                     };
 
                     // could probably clean this up with reflection, works for the time being
-                    //EntityEntry <GuildModel> entity = context.Attach(model);
-                    //if ((saveMask & GuildSaveMask.Name) != 0)
-                    //{
-                    //    model.Name = Name;
-                    //    entity.Property(p => p.Name).IsModified = true;
-                    //}
+                    EntityEntry<GuildDataModel> entity = context.Attach(model);
+                    if ((saveMask & GuildSaveMask.MessageOfTheDay) != 0)
+                    {
+                        model.MessageOfTheDay = MessageOfTheDay;
+                        entity.Property(p => p.MessageOfTheDay).IsModified = true;
+                    }
+                    if ((saveMask & GuildSaveMask.Taxes) != 0)
+                    {
+                        model.Taxes = Taxes;
+                        entity.Property(p => p.Taxes).IsModified = true;
+                    }
+                    if ((saveMask & GuildSaveMask.AdditionalInfo) != 0)
+                    {
+                        model.AdditionalInfo = AdditionalInfo;
+                        entity.Property(p => p.AdditionalInfo).IsModified = true;
+                    }
                 }
 
                 saveMask = GuildSaveMask.None;
             }
         }
 
-        public GuildData BuildServerGuildData()
+        public override GuildData BuildGuildDataPacket()
         {
             return new GuildData
             {
@@ -93,17 +151,23 @@ namespace NexusForever.WorldServer.Game.Guild
                 GuildName = Name,
                 Taxes = Taxes,
                 Type = Type,
-                Ranks = GetRanks().ToList(),
+                Ranks = GetGuildRanksPackets().ToList(),
                 GuildStandard = GuildStandard,
-                TotalMembers = (uint)Members.Count,
+                TotalMembers = (uint)members.Count,
                 UsersOnline = (uint)OnlineMembers.Count,
-                Unknown6 = 1,
-                Unknown7 = 1,
                 GuildInfo =
                 {
-                    AgeInDays = (float)DateTime.Now.Subtract(CreateTime).TotalHours * -1f
+                    MessageOfTheDay = MessageOfTheDay,
+                    AdditionalInfo = AdditionalInfo,
+                    AgeInDays = (float)DateTime.Now.Subtract(CreateTime).TotalDays * -1f
                 }
             };
+        }
+
+        public void SetTaxes(bool taxesEnabled)
+        {
+            Taxes = Convert.ToUInt32(taxesEnabled);
+            saveMask |= GuildSaveMask.Taxes;
         }
     }
 }

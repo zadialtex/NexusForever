@@ -43,6 +43,10 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual DbSet<CharacterZonemapHexgroup> CharacterZonemapHexgroup { get; set; }
         public virtual DbSet<CharacterKeybinding> CharacterKeybinding { get; set; }
         public virtual DbSet<Contacts> Contacts { get; set; }
+        public virtual DbSet<Guild> Guild { get; set; }
+        public virtual DbSet<GuildRank> GuildRank { get; set; }
+        public virtual DbSet<GuildMember> GuildMember { get; set; }
+        public virtual DbSet<GuildData> GuildData { get; set; }
         public virtual DbSet<Item> Item { get; set; }
         public virtual DbSet<Residence> Residence { get; set; }
         public virtual DbSet<ResidenceDecor> ResidenceDecor { get; set; }
@@ -113,6 +117,11 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasColumnName("inputKeySet")
                     .HasColumnType("tinyint(4)")
                     .HasDefaultValueSql("'0'");
+                    
+                entity.Property(e => e.LastOnline)
+                    .HasColumnName("lastOnline")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
 
                 entity.Property(e => e.Level)
                     .HasColumnName("level")
@@ -984,8 +993,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Index)
-                    .HasColumnName("index")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnName("index");
 
                 entity.Property(e => e.Name)
                     .HasColumnName("name");

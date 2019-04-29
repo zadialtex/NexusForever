@@ -28,6 +28,12 @@ namespace NexusForever.WorldServer.Database.Character
                 return context.Character.DefaultIfEmpty().Max(s => s.Id);
         }
 
+        public static async Task<List<Model.Character>> GetAllCharactersAsync()
+        {
+            using (var context = new CharacterContext())
+                return await context.Character.ToListAsync();
+        }
+
         public static async Task<Model.Character> GetCharacterById(ulong characterId)
         {
             using (var context = new CharacterContext())
@@ -199,6 +205,18 @@ namespace NexusForever.WorldServer.Database.Character
             {
                 guild.Save(context);
                 await context.SaveChangesAsync();
+            }
+        }
+
+        public static List<Guild> GetGuilds()
+        {
+            using (var context = new CharacterContext())
+            {
+                return context.Guild
+                    .Include(g => g.GuildRank)
+                    .Include(g => g.GuildMember)
+                    .Include(g => g.GuildData)
+                    .ToList();
             }
         }
     }
