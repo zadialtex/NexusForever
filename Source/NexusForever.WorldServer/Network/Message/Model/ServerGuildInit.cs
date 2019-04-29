@@ -11,7 +11,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
     {
         public uint Unknown0 { get; set; }
         public List<GuildData> Guilds { get; set; } = new List<GuildData>();
-        public List<GuildMember> PlayerMemberships { get; set; } = new List<GuildMember>();
+        public List<GuildMember> PlayerMemberInfo { get; set; } = new List<GuildMember>();
         public List<GuildUnknown> GuildUnknownList { get; set; } = new List<GuildUnknown>();
 
         public void Write(GamePacketWriter writer)
@@ -19,7 +19,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
             writer.Write(Guilds.Count);
             writer.Write(Unknown0);
             Guilds.ForEach(w => w.Write(writer));
-            PlayerMemberships.ForEach(w => w.Write(writer));
+            PlayerMemberInfo.ForEach(w => w.Write(writer));
             GuildUnknownList.ForEach(w => w.Write(writer));
         }
     }

@@ -8,18 +8,23 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerGuildResult)]
     public class ServerGuildResult : IWritable
     {
-        public ushort Realm { get; set; }
-        public ulong CharacterId { get; set; }
-        public uint Unknown0 { get; set; }
-        public string GuildName { get; set; }
+        public ushort RealmId { get; set; }
+        public ulong GuildId { get; set; }
+
+        /// <summary>
+        /// This is used as an ID reference, For example, for Rank index
+        /// </summary>
+        public uint ReferenceId { get; set; }
+
+        public string ReferenceText { get; set; }
         public GuildResult Result { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(Realm, 14u);
-            writer.Write(CharacterId);
-            writer.Write(Unknown0);
-            writer.WriteStringWide(GuildName);
+            writer.Write(RealmId, 14u);
+            writer.Write(GuildId);
+            writer.Write(ReferenceId);
+            writer.WriteStringWide(ReferenceText);
             writer.Write(Result, 8u);
         }
     }

@@ -8,7 +8,11 @@ namespace NexusForever.WorldServer.Game.Guild.Static
     [Flags]
     public enum RankSaveMask
     {
-        None       = 0x0000,
-        Create     = 0x0001,
+        None        = 0x0000,
+        Create      = 0x0001,
+        Delete      = 0x0002,
+        Rename      = 0x0004,
+        Permissions = 0x0008,
+        Index       = 0x00016,
     }
 }

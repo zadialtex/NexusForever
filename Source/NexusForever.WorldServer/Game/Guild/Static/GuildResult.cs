@@ -116,7 +116,7 @@
         UnusableGuildRecruitDescription,
         InvalidGuildInfo,
         NotEnoughCredits,
-        CannotDeleteDefaultRanks,
+        CannotDeleteDefaultRanks                 = 115,
         DuplicateRankName,
         InviteSent,
         BankTabInvalidPermissions,
