@@ -9,16 +9,16 @@ namespace NexusForever.WorldServer.Network.Message.Model
     public class ServerGuildJoin : IWritable
     {
         public GuildData GuildData { get; set; } = new GuildData();
-        public GuildMember PlayerMembership { get; set; } = new GuildMember();
-        public GuildUnknown GuildUnknown { get; set; } = new GuildUnknown();
-        public bool Unknown0 { get; set; } = false;
+        public GuildMember Self { get; set; } = new GuildMember();
+        public GuildPlayerLimits SelfPrivate { get; set; } = new GuildPlayerLimits();
+        public bool Nameplate { get; set; } = false;
 
         public void Write(GamePacketWriter writer)
         {
             GuildData.Write(writer);
-            PlayerMembership.Write(writer);
-            GuildUnknown.Write(writer);
-            writer.Write(Unknown0);
+            Self.Write(writer);
+            SelfPrivate.Write(writer);
+            writer.Write(Nameplate);
         }
     }
 }

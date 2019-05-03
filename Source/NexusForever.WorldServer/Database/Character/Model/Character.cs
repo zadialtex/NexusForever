@@ -59,6 +59,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public string OriginalName { get; set; }
         public ushort BindPoint { get; set; }
         public uint TotalXp { get; set; }
+        public ulong GuildAffiliation { get; set; }
 
         public virtual Residence Residence { get; set; }
         public virtual ICollection<CharacterActionSetAmp> CharacterActionSetAmp { get; set; }

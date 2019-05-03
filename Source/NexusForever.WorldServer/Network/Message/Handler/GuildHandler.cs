@@ -1,4 +1,5 @@
-﻿using NexusForever.Shared.Network.Message;
+﻿using NexusForever.Shared.Network;
+using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Guild;
 using NexusForever.WorldServer.Game.Guild.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -16,17 +17,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientGuildRegister)]
         public static void HandleGuildRegister(WorldSession session, ClientGuildRegister request)
         {
-            log.Info($"{request.UnitId}, {request.GuildType}, {request.GuildName}, {request.MasterTitle}, {request.CouncilTitle}, {request.MemberTitle}, {request.GuildStandard.BackgroundIcon.GuildStandardPartId}, {request.GuildStandard.ForegroundIcon.GuildStandardPartId}, {request.GuildStandard.ScanLines.GuildStandardPartId}, {request.Unknown0}");
-
             GuildManager.RegisterGuild(session, request);
-
-            session.Player.EnqueueToVisible(new ServerGuildNameplateChangeUnit
-            {
-                UnitId = session.Player.Guid,
-                GuildName = request.GuildName,
-                GuildType = request.GuildType
-            }, true);
-
 
             // Do guild holomark visual
             var itemVisualUpdate = new ServerItemVisualUpdate
@@ -86,15 +77,39 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientGuildHolomarkUpdate)]
         public static void HandleHolomarkUpdate(WorldSession session, ClientGuildHolomarkUpdate clientGuildHolomarkUpdate)
         {
-            log.Info($"{clientGuildHolomarkUpdate.Unknown0}, {clientGuildHolomarkUpdate.Unknown1}");
+            // TODO: Need to figure out which packet tells the client the player's holomark preferences at login / map change.
+
+            //log.Info($"{clientGuildHolomarkUpdate.Unknown0}, {clientGuildHolomarkUpdate.Unknown1}, {clientGuildHolomarkUpdate.BackDisabled}, {clientGuildHolomarkUpdate.DistanceNear}");
         }
 
         [MessageHandler(GameMessageOpcode.ClientGuildOperation)]
         public static void HandleOperation(WorldSession session, ClientGuildOperation clientGuildOperation)
         {
-            log.Info($"{clientGuildOperation.RealmId}, {clientGuildOperation.GuildId}, {clientGuildOperation.Id}, {clientGuildOperation.Value}, {clientGuildOperation.TextValue}, {clientGuildOperation.Operation}");
-
             GuildManager.HandleGuildOperation(session, clientGuildOperation);
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientGuildInviteResponse)]
+        public static void HandeInviteResponse(WorldSession session, ClientGuildInviteResponse clientGuildInviteResponse)
+        {
+            if (session.Player.PendingGuildInvite == null)
+                return;
+
+            if (clientGuildInviteResponse.Accepted)
+                GuildManager.JoinGuild(session, session.Player.PendingGuildInvite);
+            else
+            {
+                var targetSession = NetworkManager<WorldSession>.GetSession(i => i.Player?.CharacterId == session.Player.PendingGuildInvite.InviteeId);
+                if (targetSession != null)
+                    targetSession.EnqueueMessageEncrypted(new ServerGuildResult
+                    {
+                        RealmId = WorldServer.RealmId,
+                        GuildId = session.Player.PendingGuildInvite.GuildId,
+                        Result = GuildResult.InviteDeclined,
+                        ReferenceText = session.Player.Name
+                    });
+            }
+
+            session.Player.PendingGuildInvite = null;
         }
     }
 }

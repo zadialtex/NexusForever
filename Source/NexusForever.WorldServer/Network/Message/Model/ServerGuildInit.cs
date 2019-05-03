@@ -9,18 +9,18 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerGuildInit)]
     public class ServerGuildInit : IWritable
     {
-        public uint Unknown0 { get; set; }
+        public uint NameplateIndex { get; set; }
         public List<GuildData> Guilds { get; set; } = new List<GuildData>();
-        public List<GuildMember> PlayerMemberInfo { get; set; } = new List<GuildMember>();
-        public List<GuildUnknown> GuildUnknownList { get; set; } = new List<GuildUnknown>();
+        public List<GuildMember> Self { get; set; } = new List<GuildMember>();
+        public List<GuildPlayerLimits> SelfPrivate { get; set; } = new List<GuildPlayerLimits>();
 
         public void Write(GamePacketWriter writer)
         {
             writer.Write(Guilds.Count);
-            writer.Write(Unknown0);
+            writer.Write(NameplateIndex);
             Guilds.ForEach(w => w.Write(writer));
-            PlayerMemberInfo.ForEach(w => w.Write(writer));
-            GuildUnknownList.ForEach(w => w.Write(writer));
+            Self.ForEach(w => w.Write(writer));
+            SelfPrivate.ForEach(w => w.Write(writer));
         }
     }
 }

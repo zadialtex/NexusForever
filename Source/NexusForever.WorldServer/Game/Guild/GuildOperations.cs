@@ -15,9 +15,12 @@ namespace NexusForever.WorldServer.Game.Guild
     public static partial class GuildManager
     {
         [GuildOperationHandler(GuildOperation.AdditionalInfo)]
-        private static void GuildOperationAdditionalInfo(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationAdditionalInfo(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = (Guild)guilds[operation.GuildId];
+            if (guildBase.Type != GuildType.Guild) // TODO: Add support, if necessary, to other guild types.
+                return;
+
+            Guild guild = (Guild)guildBase;
             var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
 
             GuildResult result = GuildResult.Success;
@@ -39,17 +42,114 @@ namespace NexusForever.WorldServer.Game.Guild
                 SendGuildResult(session, result, guild);
         }
 
+        [GuildOperationHandler(GuildOperation.Disband)]
+        private static void GuildOperationDisband(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
+        {
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
+
+            GuildResult result = GuildResult.Success;
+
+            if (memberRank.Index > 0)
+                result = GuildResult.RankLacksSufficientPermissions;
+
+            if (result == GuildResult.Success)
+            {
+                foreach(WorldSession targetSession in guildBase.OnlineMembers.Values)
+                {
+                    guildBase.RemoveMember(targetSession.Player.CharacterId, out WorldSession memberSession);
+                    HandlePlayerRemove(targetSession, GuildResult.GuildDisbanded, guildBase, referenceText: guildBase.Name);
+                }
+
+                DeleteGuild(guildBase.Id);
+            }
+            else
+                SendGuildResult(session, result, guildBase);
+        }
+
+        [GuildOperationHandler(GuildOperation.EditPlayerNote)]
+        private static void GuildOperationEditPlayerNote(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
+        {
+            var member = guildBase.GetMember(session.Player.CharacterId);
+
+            GuildResult result = GuildResult.Success;
+
+            // TODO: Set GuildResult.InvalidMemberNote when rules for note fail. What rules?
+
+            if (result == GuildResult.Success)
+            {
+                member.SetNote(operation.TextValue);
+                guildBase.AnnounceGuildMemberChange(session.Player.CharacterId);
+            }
+            else
+                SendGuildResult(session, result, guildBase, referenceText: operation.TextValue);
+        }
+        
+
         [GuildOperationHandler(GuildOperation.InitGuildWindow)]
-        private static void GuildOperationInitGuildWindow(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationInitGuildWindow(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
             // Probably want to send roster update
         }
 
-        [GuildOperationHandler(GuildOperation.MemberInvite)]
-        private static void GuildOperationMemberInvite(WorldSession session, ClientGuildOperation operation)
+        [GuildOperationHandler(GuildOperation.MemberDemote)]
+        private static void GuildOperationMemberDemote(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = guilds[operation.GuildId];
-            var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
+            var targetMember = guildBase.GetMember(operation.TextValue);
+
+            GuildResult result = GuildResult.Success;
+
+            if ((memberRank.GuildPermission & GuildRankPermission.ChangeMemberRank) == 0)
+                result = GuildResult.RankLacksSufficientPermissions;
+            else if (targetMember == null)
+                result = GuildResult.CharacterNotInYourGuild;
+            else if (memberRank.Index >= targetMember.Rank.Index)
+                result = GuildResult.CanOnlyDemoteLowerRankedMembers;
+            else if (memberRank.Index == 9)
+                result = GuildResult.MemberIsAlreadyLowestRank;
+
+            if (result == GuildResult.Success)
+            {
+                Rank newRank = guildBase.GetDemotedRank(targetMember.Rank.Index);
+                targetMember.ChangeRank(newRank);
+                guildBase.AnnounceGuildMemberChange(targetMember.CharacterId);
+                guildBase.AnnounceGuildResult(GuildResult.DemotedMember, referenceText: operation.TextValue);
+            }
+            else
+                SendGuildResult(session, result, guildBase, referenceText: operation.TextValue);
+        }
+
+        [GuildOperationHandler(GuildOperation.MemberPromote)]
+        private static void GuildOperationMemberPromote(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
+        {
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
+            var targetMember = guildBase.GetMember(operation.TextValue);
+
+            GuildResult result = GuildResult.Success;
+
+            if ((memberRank.GuildPermission & GuildRankPermission.ChangeMemberRank) == 0)
+                result = GuildResult.RankLacksSufficientPermissions;
+            else if (targetMember == null)
+                result = GuildResult.CharacterNotInYourGuild;
+            else if (memberRank.Index >= targetMember.Rank.Index)
+                result = GuildResult.CannotPromoteMemberAboveYourRank;
+
+            if (result == GuildResult.Success)
+            {
+                Rank newRank = guildBase.GetPromotedRank(targetMember.Rank.Index);
+                targetMember.ChangeRank(newRank);
+                guildBase.AnnounceGuildMemberChange(targetMember.CharacterId);
+                guildBase.AnnounceGuildResult(GuildResult.PromotedMember, referenceText: operation.TextValue);
+            }
+            else
+                SendGuildResult(session, result, guildBase, referenceText: operation.TextValue);
+        }
+
+        [GuildOperationHandler(GuildOperation.MemberInvite)]
+        private static void GuildOperationMemberInvite(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
+        {
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
+            var targetCharacter = CharacterManager.GetCharacterInfo(operation.TextValue);
 
             GuildResult result = GuildResult.Success;
 
@@ -57,36 +157,42 @@ namespace NexusForever.WorldServer.Game.Guild
                 result = GuildResult.RankLacksSufficientPermissions;
             else if (!CharacterManager.IsCharacter(operation.TextValue))
                 result = GuildResult.UnknownCharacter;
-            else if (guild.GetGuildMembersPackets().Count() >= maxGuildSize[guild.Type])
+            else if (guildBase.GetMemberCount() >= maxGuildSize[guildBase.Type])
                 result = GuildResult.CannotInviteGuildFull;
 
-            //var targetPlayer = NetworkManager<WorldSession>.GetSession(i => i.Player?.CharacterId = )
-            var targetPlayer = (Player)CharacterManager.GetCharacterInfo(operation.TextValue);
-            if (targetPlayer.Session == null)
+            if (result != GuildResult.Success)
+            {
+                SendGuildResult(session, result, guildBase, referenceText: operation.TextValue);
+                return;
+            }
+
+            var targetSession = NetworkManager<WorldSession>.GetSession(i => i.Player?.CharacterId == targetCharacter.CharacterId);
+            if (targetSession == null)
                 result = GuildResult.UnknownCharacter;
-            else if (targetPlayer.PendingGuildInvite != null)
+            else if (targetSession.Player.PendingGuildInvite != null)
                 result = GuildResult.CharacterAlreadyHasAGuildInvite;
+            else if (guildBase.Type == GuildType.Guild && targetSession.Player.GuildId > 0)
+                result = GuildResult.CharacterCannotJoinMoreGuilds;
 
             if (result == GuildResult.Success)
             {
-                targetPlayer.PendingGuildInvite = new GuildInvite
+                targetSession.Player.PendingGuildInvite = new GuildInvite
                 {
-                    GuildId = guild.Id,
+                    GuildId = guildBase.Id,
                     InviteeId = session.Player.CharacterId
                 };
-                SendPendingInvite(targetPlayer.Session);
-                SendGuildResult(session, GuildResult.CharacterInvited, guild, referenceText: targetPlayer.Name);
+                SendPendingInvite(targetSession);
+                SendGuildResult(session, GuildResult.CharacterInvited, guildBase, referenceText: targetCharacter.Name);
             }
             else
-                SendGuildResult(session, result, guild, referenceText: operation.TextValue);
+                SendGuildResult(session, result, guildBase, referenceText: targetCharacter != null ? targetCharacter.Name : operation.TextValue);
         }
 
         [GuildOperationHandler(GuildOperation.MemberRemove)]
-        private static void GuildOperationMemberRemove(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationMemberRemove(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = guilds[operation.GuildId];
-            var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
-            var targetMember = guild.GetMember(operation.TextValue);
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
+            var targetMember = guildBase.GetMember(operation.TextValue);
 
             GuildResult result = GuildResult.Success;
 
@@ -99,39 +205,67 @@ namespace NexusForever.WorldServer.Game.Guild
 
             if (result == GuildResult.Success)
             {
-                guild.RemoveMember(targetMember.CharacterId, out WorldSession memberSession);
-                guild.SendToOnlineUsers(new ServerGuildMemberRemove
+                guildBase.RemoveMember(targetMember.CharacterId, out WorldSession memberSession);
+                
+                // Let player know they have been removed and update necessary values
+                if (memberSession != null)
+                    HandlePlayerRemove(memberSession, GuildResult.KickedYou, guildBase);
+
+                // Announce to guild that player has been removed
+                guildBase.SendToOnlineUsers(new ServerGuildMemberRemove
                 {
                     RealmId = WorldServer.RealmId,
-                    GuildId = guild.Id,
+                    GuildId = guildBase.Id,
                     PlayerIdentity = new TargetPlayerIdentity
                     {
                         RealmId = WorldServer.RealmId,
                         CharacterId = targetMember.CharacterId
                     },
                 });
-                guild.AnnounceGuildResult(GuildResult.KickedMember, referenceText: CharacterManager.GetCharacterInfo(targetMember.CharacterId).Name);
-
-                if (memberSession != null)
-                {
-                    SendGuildResult(memberSession, GuildResult.KickedYou, referenceText: session.Player.Name);
-                    memberSession.Player.GuildMemberships.Remove(guild.Id);
-                    memberSession.EnqueueMessageEncrypted(new ServerGuildRemove
-                    {
-                        RealmId = WorldServer.RealmId,
-                        GuildId = guild.Id
-                    });
-                }
-                    
+                guildBase.AnnounceGuildResult(GuildResult.KickedMember, referenceText: CharacterManager.GetCharacterInfo(targetMember.CharacterId).Name);
             }
             else
-                SendGuildResult(session, result, guild, referenceText: operation.TextValue);
+                SendGuildResult(session, result, guildBase, referenceText: operation.TextValue);
+        }
+
+        [GuildOperationHandler(GuildOperation.MemberQuit)]
+        private static void GuildOperationMemberQuit(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
+        {
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
+
+            GuildResult result = GuildResult.Success;
+
+            if (memberRank.Index == 0)
+                result = GuildResult.GuildmasterCannotLeaveGuild;
+
+            if (result == GuildResult.Success)
+            {
+                guildBase.RemoveMember(session.Player.CharacterId, out WorldSession memberSession);
+
+                HandlePlayerRemove(session, GuildResult.YouQuit, guildBase, guildBase.Name);
+
+                // Notify guild members of player quitting
+                guildBase.SendToOnlineUsers(new ServerGuildMemberRemove
+                {
+                    RealmId = WorldServer.RealmId,
+                    GuildId = guildBase.Id,
+                    PlayerIdentity = new TargetPlayerIdentity
+                    {
+                        RealmId = WorldServer.RealmId,
+                        CharacterId = session.Player.CharacterId
+                    },
+                });
+                guildBase.AnnounceGuildResult(GuildResult.MemberQuit, referenceText: session.Player.Name);
+            }
         }
 
         [GuildOperationHandler(GuildOperation.MessageOfTheDay)]
-        private static void GuildOperationMessageOfTheDay(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationMessageOfTheDay(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = (Guild)guilds[operation.GuildId];
+            if (guildBase.Type != GuildType.Guild) // TODO: Add support, if necessary, to other guild types.
+                return;
+
+            Guild guild = (Guild)guildBase;
             var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
 
             GuildResult result = GuildResult.Success;
@@ -154,112 +288,108 @@ namespace NexusForever.WorldServer.Game.Guild
         }
 
         [GuildOperationHandler(GuildOperation.RankAdd)]
-        private static void GuildOperationRankAdd(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationRankAdd(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = guilds[operation.GuildId];
-            var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
             GuildResult result = GuildResult.Success;
 
             if ((memberRank.GuildPermission & GuildRankPermission.CreateAndRemoveRank) == 0)
                 result = GuildResult.RankLacksSufficientPermissions;
-            else if (guild.GetRank((byte)operation.Id) != null)
+            else if (guildBase.GetRank((byte)operation.Rank) != null)
                 result = GuildResult.InvalidRank;
-            else if (guild.RankExists(operation.TextValue))
+            else if (guildBase.RankExists(operation.TextValue))
                 result = GuildResult.DuplicateRankName;
             else if (Regex.IsMatch(operation.TextValue, @"[^A-Za-z0-9\s]")) // Ensure only Alphanumeric characters are used
                 result = GuildResult.InvalidRankName;
 
             if (result == GuildResult.Success)
             {
-                guild.AddRank(new Rank(operation.TextValue, guild.Id, (byte)operation.Id, (GuildRankPermission)operation.Value, 0, 0, 0));
-                guild.SendToOnlineUsers(new ServerGuildRankChange
+                guildBase.AddRank(new Rank(operation.TextValue, guildBase.Id, (byte)operation.Rank, (GuildRankPermission)operation.Data, 0, 0, 0));
+                guildBase.SendToOnlineUsers(new ServerGuildRankChange
                 {
                     RealmId = WorldServer.RealmId,
-                    GuildId = guild.Id,
-                    Ranks = guild.GetGuildRanksPackets().ToList()
+                    GuildId = guildBase.Id,
+                    Ranks = guildBase.GetGuildRanksPackets().ToList()
                 });
-                guild.AnnounceGuildResult(GuildResult.RankCreated, operation.Id, operation.TextValue);
+                guildBase.AnnounceGuildResult(GuildResult.RankCreated, operation.Rank, operation.TextValue);
             }
             else
-                SendGuildResult(session, result, guild, operation.Id, operation.TextValue);
+                SendGuildResult(session, result, guildBase, operation.Rank, operation.TextValue);
         }
 
         [GuildOperationHandler(GuildOperation.RankDelete)]
-        private static void GuildOperationRankDelete(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationRankDelete(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = guilds[operation.GuildId];
-            var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
             GuildResult result = GuildResult.Success;
 
             if ((memberRank.GuildPermission & GuildRankPermission.CreateAndRemoveRank) == 0)
                 result = GuildResult.RankLacksSufficientPermissions;
-            else if (guild.GetRank((byte)operation.Id) == null)
+            else if (guildBase.GetRank((byte)operation.Rank) == null)
                 result = GuildResult.InvalidRank;
-            else if (memberRank.Index >= operation.Id)
+            else if (memberRank.Index >= operation.Rank)
                 result = GuildResult.CanOnlyModifyRanksBelowYours;
-            else if (operation.Id < 2 || operation.Id > 8)
+            else if (operation.Rank < 2 || operation.Rank > 8)
                 result = GuildResult.CannotDeleteDefaultRanks;
-            else if (guild.GetMembersOfRank((byte)operation.Id).Count() > 0)
+            else if (guildBase.GetMembersOfRank((byte)operation.Rank).Count() > 0)
                 result = GuildResult.CanOnlyDeleteEmptyRanks;
 
             if (result == GuildResult.Success)
             {
-                string rankName = guild.GetRank((byte)operation.Id).Name;
-                guild.RemoveRank((byte)operation.Id);
-                guild.AnnounceGuildResult(GuildResult.RankDeleted, operation.Id, rankName);
-                guild.SendToOnlineUsers(new ServerGuildRankChange
+                string rankName = guildBase.GetRank((byte)operation.Rank).Name;
+                guildBase.RemoveRank((byte)operation.Rank);
+                guildBase.AnnounceGuildResult(GuildResult.RankDeleted, operation.Rank, rankName);
+                guildBase.SendToOnlineUsers(new ServerGuildRankChange
                 {
                     RealmId = WorldServer.RealmId,
-                    GuildId = guild.Id,
-                    Ranks = guild.GetGuildRanksPackets().ToList()
+                    GuildId = guildBase.Id,
+                    Ranks = guildBase.GetGuildRanksPackets().ToList()
                 });
             }
             else
-                SendGuildResult(session, result, guild, operation.Id, operation.TextValue);
+                SendGuildResult(session, result, guildBase, operation.Rank, operation.TextValue);
         }
 
         [GuildOperationHandler(GuildOperation.RankRename)]
-        private static void GuildOperationRankRename(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationRankRename(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = guilds[operation.GuildId];
-            var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
+            var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
             GuildResult result = GuildResult.Success;
 
             if ((memberRank.GuildPermission & GuildRankPermission.RenameRank) == 0)
                 result = GuildResult.RankLacksRankRenamePermission;
-            else if (guild.GetRank((byte)operation.Id) == null)
+            else if (guildBase.GetRank((byte)operation.Rank) == null)
                 result = GuildResult.InvalidRank;
-            else if (memberRank.Index >= operation.Id)
+            else if (memberRank.Index >= operation.Rank)
                 result = GuildResult.CanOnlyModifyRanksBelowYours;
-            else if (guild.RankExists(operation.TextValue))
+            else if (guildBase.RankExists(operation.TextValue))
                 result = GuildResult.DuplicateRankName;
             else if (Regex.IsMatch(operation.TextValue, @"[^A-Za-z0-9\s]")) // Ensure only Alphanumeric characters are used
                 result = GuildResult.InvalidRankName;
 
             if (result == GuildResult.Success)
             {
-                guild.GetRank((byte)operation.Id).Rename(operation.TextValue);
-                guild.SendToOnlineUsers(new ServerGuildRankChange
+                guildBase.GetRank((byte)operation.Rank).Rename(operation.TextValue);
+                guildBase.SendToOnlineUsers(new ServerGuildRankChange
                 {
                     RealmId = WorldServer.RealmId,
-                    GuildId = guild.Id,
-                    Ranks = guild.GetGuildRanksPackets().ToList()
+                    GuildId = guildBase.Id,
+                    Ranks = guildBase.GetGuildRanksPackets().ToList()
                 });
-                guild.AnnounceGuildResult(GuildResult.RankRenamed, operation.Id, operation.TextValue);
+                guildBase.AnnounceGuildResult(GuildResult.RankRenamed, operation.Rank, operation.TextValue);
             }
             else
-                SendGuildResult(session, result, guild, operation.Id, operation.TextValue);
+                SendGuildResult(session, result, guildBase, operation.Rank, operation.TextValue);
         }
 
         [GuildOperationHandler(GuildOperation.RankPermissions)]
-        private static void GuildOperationRankPermissions(WorldSession session, ClientGuildOperation operation)
+        private static void GuildOperationRankPermissions(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = guilds[operation.GuildId];
-            Rank rankToModify = guild.GetRank((byte)operation.Id);
-            Rank memberRank = guild.GetMember(session.Player.CharacterId).Rank;
+            Rank rankToModify = guildBase.GetRank((byte)operation.Rank);
+            Rank memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
             GuildResult result = GuildResult.Success;
 
@@ -267,28 +397,70 @@ namespace NexusForever.WorldServer.Game.Guild
                 result = GuildResult.RankLacksRankRenamePermission;
             else if (rankToModify == null)
                 result = GuildResult.InvalidRank;
-            else if (memberRank.Index >= operation.Id)
+            else if (memberRank.Index >= operation.Rank)
                 result = GuildResult.CanOnlyModifyRanksBelowYours;
             
             if (result == GuildResult.Success)
             {
-                rankToModify.SetPermission((GuildRankPermission)operation.Value - 1);
-                guild.SendToOnlineUsers(new ServerGuildRankChange
+                ulong newPermissionMask = operation.Data;
+                if (newPermissionMask % 2 != 0)
+                    newPermissionMask -= 1;
+
+                rankToModify.SetPermission((GuildRankPermission)newPermissionMask);
+                guildBase.SendToOnlineUsers(new ServerGuildRankChange
                 {
                     RealmId = WorldServer.RealmId,
-                    GuildId = guild.Id,
-                    Ranks = guild.GetGuildRanksPackets().ToList()
+                    GuildId = guildBase.Id,
+                    Ranks = guildBase.GetGuildRanksPackets().ToList()
                 });
-                guild.AnnounceGuildResult(GuildResult.RankModified, operation.Id, operation.TextValue);
+                guildBase.AnnounceGuildResult(GuildResult.RankModified, operation.Rank, operation.TextValue);
             }
             else
-                SendGuildResult(session, result, guild);
+                SendGuildResult(session, result, guildBase);
         }
 
-        [GuildOperationHandler(GuildOperation.TaxUpdate)]
-        private static void GuildOperationTaxUpdate(WorldSession session, ClientGuildOperation operation)
+        [GuildOperationHandler(GuildOperation.RosterRequest)]
+        private static void GuildOperationRosterRequest(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            var guild = (Guild)guilds[operation.GuildId];
+            foreach (ulong guildId in session.Player.GuildMemberships)
+            {
+                guilds.TryGetValue(guildId, out GuildBase guild);
+                if (guild != null)
+                {
+                    if (guild.GetMember(session.Player.CharacterId) != null)
+                        SendGuildRoster(session, guilds[guildId].GetGuildMembersPackets().ToList(), guildId);
+                }
+            }
+
+            SendPendingInvite(session);
+        }
+
+        [GuildOperationHandler(GuildOperation.SetNameplateAffiliation)]
+        private static void GuildOperationSetNameplateAffiliation(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
+        {
+            GuildResult result = GuildResult.Success;
+
+            if (result == GuildResult.Success)
+            {
+                session.Player.GuildAffiliation = guildBase.Id;
+                session.Player.EnqueueToVisible(new ServerEntityGuildAffiliation
+                {
+                    UnitId = session.Player.Guid,
+                    GuildName = guildBase.Name,
+                    GuildType = guildBase.Type
+                }, true);
+            }
+            else
+                SendGuildResult(session, result, guildBase);
+        }
+
+        [GuildOperationHandler(GuildOperation.Flags)]
+        private static void GuildOperationTaxUpdate(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
+        {
+            if (guildBase.Type != GuildType.Guild) // TODO: Add support, if necessary, to other guild types.
+                return;
+
+            Guild guild = (Guild)guildBase;
             var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
 
             GuildResult result = GuildResult.Success;
@@ -298,12 +470,12 @@ namespace NexusForever.WorldServer.Game.Guild
 
             if (result == GuildResult.Success)
             {
-                guild.SetTaxes(Convert.ToBoolean(operation.Value));
+                guild.SetTaxes(Convert.ToBoolean(operation.Data));
                 guild.SendToOnlineUsers(new ServerGuildTaxUpdate
                 {
                     RealmId = WorldServer.RealmId,
                     GuildId = guild.Id,
-                    Value = guild.Taxes
+                    Value = guild.Flags
                 });
             }
             else

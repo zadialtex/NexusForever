@@ -172,6 +172,19 @@ namespace NexusForever.WorldServer.Game.Entity
         public ulong GuildId = 0;
         public List<ulong> GuildMemberships = new List<ulong>();
         public GuildInvite PendingGuildInvite;
+        public ulong GuildAffiliation
+        {
+            get => guildAffiliation;
+            set
+            {
+                if (guildAffiliation != value)
+                {
+                    guildAffiliation = value;
+                    saveMask |= PlayerSaveMask.Affiliation;
+                }
+            }
+        }
+        private ulong guildAffiliation;
 
         public float GetOnlineStatus() => 0f;
 
@@ -198,6 +211,7 @@ namespace NexusForever.WorldServer.Game.Entity
             BindPoint       = model.BindPoint;
             TotalXp         = model.TotalXp;
             XpToNextLevel   = GameTableManager.XpPerLevel.Entries.FirstOrDefault(c => c.Id == Level + 1).MinXpForLevel;
+            guildAffiliation = model.GuildAffiliation;
 
             CreateTime      = model.CreateTime;
             TimePlayedTotal = model.TimePlayedTotal;
@@ -315,7 +329,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         protected override IEntityModel BuildEntityModel()
         {
-            return new PlayerEntityModel
+            PlayerEntityModel playerEntityModel = new PlayerEntityModel
             {
                 Id       = CharacterId,
                 RealmId  = WorldServer.RealmId,
@@ -328,6 +342,20 @@ namespace NexusForever.WorldServer.Game.Entity
                 GuildIds = GuildMemberships,
                 PvPFlag  = PvPFlag.Disabled
             };
+
+            if(GuildAffiliation > 0)
+            {
+                GuildBase guild = GuildManager.GetGuild(GuildAffiliation);
+                if (guild.GetMember(CharacterId) != null)
+                {
+                    playerEntityModel.GuildName = guild.Name;
+                    playerEntityModel.GuildType = guild.Type;
+                }
+                else
+                    GuildAffiliation = 0;
+            }
+
+            return playerEntityModel;
         }
 
         public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
@@ -949,6 +977,12 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     model.BindPoint = BindPoint;
                     entity.Property(p => p.BindPoint).IsModified = true;
+                }
+                
+                if ((saveMask & PlayerSaveMask.Affiliation) != 0)
+                {
+                    model.GuildAffiliation = GuildAffiliation;
+                    entity.Property(p => p.GuildAffiliation).IsModified = true;
                 }
 
                 saveMask = PlayerSaveMask.None;

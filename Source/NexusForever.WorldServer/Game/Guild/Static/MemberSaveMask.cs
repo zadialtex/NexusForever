@@ -12,5 +12,6 @@ namespace NexusForever.WorldServer.Game.Guild.Static
         Create      = 0x0001,
         Delete      = 0x0002,
         Rank        = 0x0004,
+        Note        = 0x0008
     }
 }
