@@ -15,10 +15,11 @@ using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Network.Message.Model;
 using System.Threading.Tasks;
 using NexusForever.WorldServer.Game.CharacterCache;
+using Microsoft.EntityFrameworkCore;
 
 namespace NexusForever.WorldServer.Game.Guild
 {
-    public abstract class GuildBase
+    public abstract class GuildBase : IGuild
     {
         public ulong Id { get; }
         public GuildType Type { get; }
@@ -29,13 +30,18 @@ namespace NexusForever.WorldServer.Game.Guild
 
         public GuildBaseSaveMask saveMask { get; protected set; }
 
-        protected Dictionary</*index*/byte, Rank> ranks { get; set; } = new Dictionary<byte, Rank>();
+        protected SortedDictionary</*index*/byte, Rank> ranks { get; set; } = new SortedDictionary<byte, Rank>();
         private HashSet<Rank> deletedRanks { get; } = new HashSet<Rank>();
         protected Dictionary</*characterId*/ulong, Member> members { get; set; } = new Dictionary<ulong, Member>();
         private HashSet<Member> deletedMembers { get; } = new HashSet<Member>();
         public Dictionary</*id*/ulong, WorldSession> OnlineMembers { get; private set; } = new Dictionary<ulong, WorldSession>();
 
-        protected GuildBase(GuildType guildType, GuildBaseModel model)
+        private bool IsPendingDelete = false;
+
+        /// <summary>
+        /// Create a new <see cref="GuildBase"/> using <see cref="GuildBaseModel"/>
+        /// </summary>
+        public GuildBase(GuildType guildType, GuildBaseModel model)
         {
             Id = model.Id;
             Type = (GuildType)model.Type;
@@ -54,6 +60,9 @@ namespace NexusForever.WorldServer.Game.Guild
             saveMask = GuildBaseSaveMask.None;
         }
 
+        /// <summary>
+        /// Create a new <see cref="GuildBase"/> of <see cref="GuildType"/>
+        /// </summary>
         protected GuildBase(GuildType guildType)
         {
             Id = GuildManager.NextGuildId;
@@ -63,7 +72,10 @@ namespace NexusForever.WorldServer.Game.Guild
             saveMask = GuildBaseSaveMask.Create;
         }
 
-        protected void Save(CharacterContext context)
+        /// <summary>
+        /// Save this <see cref="GuildBase"/> to a <see cref="GuildBaseModel"/>
+        /// </summary>
+        public void Save(CharacterContext context)
         {
             if (saveMask != GuildBaseSaveMask.None)
             {
@@ -77,6 +89,15 @@ namespace NexusForever.WorldServer.Game.Guild
                         LeaderId = LeaderId,
                         CreateTime = CreateTime
                     });
+                }
+                else if ((saveMask & GuildBaseSaveMask.Delete) != 0)
+                {
+                    var model = new GuildBaseModel
+                    {
+                        Id = Id
+                    };
+
+                    context.Entry(model).State = EntityState.Deleted;
                 }
                 else
                 {
@@ -98,6 +119,11 @@ namespace NexusForever.WorldServer.Game.Guild
                 saveMask = GuildBaseSaveMask.None;
             }
 
+            // Don't save Ranks or Members if guild is being deleted, throws SQL error.
+            // FK handles deleting members & ranks from DB
+            if (IsPendingDelete)
+                return;
+            
             // Saving of deleted ranks must occur before saving of new or existing ranks so that the primary key is available
             foreach (Rank rank in deletedRanks)
                 rank.Save(context);
@@ -112,6 +138,33 @@ namespace NexusForever.WorldServer.Game.Guild
                 member.Save(context);
         }
 
+        /// <summary>
+        /// Delete this <see cref="GuildBase"/>
+        /// </summary>
+        public void Delete()
+        {
+            // Entity won't exist if create flag exists, so we set to None and let GC get rid of it.
+            if ((saveMask & GuildBaseSaveMask.Create) == 0)
+                saveMask = GuildBaseSaveMask.Delete;
+            else
+                saveMask = GuildBaseSaveMask.None;
+
+            IsPendingDelete = true;
+        }
+
+        /// <summary>
+        /// Clear the recently deleted children from their respective queues
+        /// </summary>
+        /// <returns></returns>
+        public async Task ClearDeleted()
+        {
+            deletedRanks.Clear();
+            deletedMembers.Clear();
+        }
+
+        /// <summary>
+        /// Used to trigger login events for <see cref="Player"/> associated with this <see cref="GuildBase"/>
+        /// </summary>
         public void OnPlayerLogin(WorldSession session, Player player)
         {
             // TODO: Announce to guild?
@@ -121,6 +174,9 @@ namespace NexusForever.WorldServer.Game.Guild
             OnlineMembers.TryAdd(player.CharacterId, session);
         }
 
+        /// <summary>
+        /// Used to trigger logout events for <see cref="Player"/> associated with this <see cref="GuildBase"/>
+        /// </summary>
         public void OnPlayerLogout(WorldSession session, Player player)
         {
             OnlineMembers.Remove(session.Player.CharacterId);
@@ -130,6 +186,9 @@ namespace NexusForever.WorldServer.Game.Guild
             AnnounceGuildResult(GuildResult.MemberOffline, referenceText: player.Name);
         }
 
+        /// <summary>
+        /// Add a <see cref="Rank"/> to this <see cref="GuildBase"/>
+        /// </summary>
         public void AddRank(Rank rank)
         {
             if (ranks.ContainsKey(rank.Index))
@@ -140,6 +199,9 @@ namespace NexusForever.WorldServer.Game.Guild
             ranks.Add(rank.Index, rank);
         }
 
+        /// <summary>
+        /// Remove a <see cref="Rank"/> from this <see cref="GuildBase"/> given its index
+        /// </summary>
         public void RemoveRank(byte rankIndex)
         {
             if (rankIndex > 9)
@@ -150,6 +212,9 @@ namespace NexusForever.WorldServer.Game.Guild
             RemoveRank(ranks[rankIndex]);
         }
 
+        /// <summary>
+        /// Remove the <see cref="Rank"/> from this <see cref="GuildBase"/> and enqueues deletion
+        /// </summary>
         private void RemoveRank(Rank rank)
         {
             rank.Delete();
@@ -157,17 +222,62 @@ namespace NexusForever.WorldServer.Game.Guild
             ranks.Remove(rank.Index);
         }
 
+        /// <summary>
+        /// Returns whether or not a rank exists with the given name
+        /// </summary>
         public bool RankExists(string name)
         {
             return ranks.Values.FirstOrDefault(i => i.Name == name) != null;
         }
 
+        /// <summary>
+        /// Returns the <see cref="Rank"/> using the given index
+        /// </summary>
         public Rank GetRank(byte index)
         {
             ranks.TryGetValue(index, out Rank rank);
             return rank;
         }
 
+        /// <summary>
+        /// Returns the <see cref="Rank"/> that is below the rank at the given index
+        /// </summary>
+        public Rank GetDemotedRank(byte index)
+        {
+            Rank newRank = null;
+            for(byte i = (byte)(index + 1); i < 10; i++)
+            {
+                if (newRank != null)
+                    break;
+
+                if (ranks.ContainsKey(i))
+                    newRank = ranks[i];
+            }
+
+            return newRank;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="Rank"/> that is above the rank at the given index
+        /// </summary>
+        public Rank GetPromotedRank(byte index)
+        {
+            Rank newRank = null;
+            for (sbyte i = (sbyte)(index - 1); i > -1; i--)
+            {
+                if (newRank != null)
+                    break;
+
+                if (ranks.ContainsKey((byte)i))
+                    newRank = ranks[(byte)i];
+            }
+
+            return newRank;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="IEnumerable{T}"/> containing built packets for all <see cref="Rank"/> in this <see cref="GuildBase"/>
+        /// </summary>
         public IEnumerable<GuildRank> GetGuildRanksPackets()
         {
             for (byte i = 0; i < 10; i++)
@@ -180,6 +290,9 @@ namespace NexusForever.WorldServer.Game.Guild
             }
         }
 
+        /// <summary>
+        /// Adds the <see cref="Member"/> to the memberlist for this <see cref="GuildBase"/>
+        /// </summary>
         public void AddMember(Member member)
         {
             if (members.ContainsKey(member.CharacterId))
@@ -188,6 +301,9 @@ namespace NexusForever.WorldServer.Game.Guild
             members.Add(member.CharacterId, member);
         }
 
+        /// <summary>
+        /// Removes the <see cref="Member"/> from the memberlist for this <see cref="GuildBase"/> based on their character ID
+        /// </summary>
         public void RemoveMember(ulong characterId, out WorldSession memberSession)
         {
             if (!members.ContainsKey(characterId))
@@ -196,10 +312,15 @@ namespace NexusForever.WorldServer.Game.Guild
             // Make sure the session is returned if it exists before removing from OnlineMembers
             OnlineMembers.TryGetValue(characterId, out WorldSession targetSession);
             memberSession = targetSession;
+            if (memberSession != null)
+                OnlineMembers.Remove(characterId);
 
             RemoveMember(members[characterId]);
         }
 
+        /// <summary>
+        /// Removes the selected <see cref="Member"/> from this <see cref="GuildBase"/> and enqueues deletion
+        /// </summary>
         private void RemoveMember(Member member)
         {
             member.Delete();
@@ -207,36 +328,94 @@ namespace NexusForever.WorldServer.Game.Guild
             members.Remove(member.CharacterId);
         }
 
+        /// <summary>
+        /// Returns the number of <see cref="Member"/> in this guild
+        /// </summary>
+        public uint GetMemberCount()
+        {
+            return (uint)members.Values.Count;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="Member"/> matching a character name
+        /// </summary>
         public Member GetMember(string characterName)
         {
             return members.Values.FirstOrDefault(i => CharacterManager.GetCharacterInfo(i.CharacterId).Name == characterName);
         }
 
+        /// <summary>
+        /// Returns the <see cref="Member"/> matching a character ID
+        /// </summary>
         public Member GetMember(ulong characterId)
         {
             members.TryGetValue(characterId, out Member member);
             return member;
         }
 
+        /// <summary>
+        /// Returns all <see cref="Member"/> that are of a given <see cref="Rank"/> index
+        /// </summary>
         public IEnumerable<Member> GetMembersOfRank(byte index)
         {
             return members.Values.Where(i => i.Rank.Index == index);
         }
 
+        /// <summary>
+        /// Returns all <see cref="GuildMember"/> packets from the memberlist for this <see cref="GuildBase"/>
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<GuildMember> GetGuildMembersPackets()
         {
             foreach(Member member in members.Values)
                 yield return member.BuildGuildMemberPacket();
         }
 
-        public abstract GuildData BuildGuildDataPacket();
+        /// <summary>
+        /// Returns all <see cref="WorldSession"/> of online members who have a given <see cref="GuildRankPermission"/>
+        /// </summary>
+        public IEnumerable<WorldSession> GetOnlineMembersWithPermission(GuildRankPermission permission)
+        {
+            List<WorldSession> worldSessions = new List<WorldSession>();
+            IEnumerable<ulong> matchingMembers = members.Keys.Intersect(OnlineMembers.Keys);
 
+            foreach(ulong member in matchingMembers)
+            {
+                if ((GetMember(member).Rank.GuildPermission & permission) != 0)
+                    worldSessions.Add(OnlineMembers[member]);
+            }
+
+            return worldSessions.AsEnumerable();
+        }
+
+        /// <summary>
+        /// Emits an <see cref="IWritable"/> packet to all online members
+        /// </summary>
+        /// <param name="writable"></param>
         public void SendToOnlineUsers(IWritable writable)
         {
             foreach (WorldSession targetSession in OnlineMembers.Values)
                 targetSession.EnqueueMessageEncrypted(writable);
         }
 
+        /// <summary>
+        /// Emits an <see cref="IWritable"/> packet to all online guild members who have a <see cref="GuildRankPermission"/>
+        /// </summary>
+        public void SendToOnlineUsers(IWritable writable, GuildRankPermission requiredPermission = GuildRankPermission.None)
+        {
+            foreach (WorldSession targetSession in OnlineMembers.Values)
+            {
+                members.TryGetValue(targetSession.Player.CharacterId, out Member member);
+
+                if ((member.Rank.GuildPermission & requiredPermission) != 0)
+                    targetSession.EnqueueMessageEncrypted(writable);
+            }
+                
+        }
+
+        /// <summary>
+        /// Sends a packet notifying all members of a <see cref="GuildResult"/>
+        /// </summary>
         public void AnnounceGuildResult(GuildResult guildResult, uint referenceId = 0, string referenceText = "")
         {
             ServerGuildResult serverGuildResult = new ServerGuildResult
@@ -251,24 +430,27 @@ namespace NexusForever.WorldServer.Game.Guild
             SendToOnlineUsers(serverGuildResult);
         }
 
-        public void AnnounceGuildMemberChange(ulong characterId, ushort unknown0 = 0, ushort unknown1 = 1)
+        /// <summary>
+        /// Send a packet to all online member containing data for another member based on a character ID
+        /// </summary>
+        /// <param name="characterId"></param>
+        public void AnnounceGuildMemberChange(ulong characterId)
         {
             ServerGuildMemberChange serverGuildMemberChange = new ServerGuildMemberChange
             {
                 RealmId = WorldServer.RealmId,
                 GuildId = Id,
                 GuildMember = members[characterId].BuildGuildMemberPacket(),
-                Unknown0 = unknown0,
-                Unknown1 = unknown1
+                MemberCount = (ushort)members.Count,
+                OnlineMemberCount = (ushort)OnlineMembers.Count
             };
 
             SendToOnlineUsers(serverGuildMemberChange);
         }
 
-        public async Task ClearDeleted()
-        {
-            deletedRanks.Clear();
-            deletedMembers.Clear();
-        }
+        /// <summary>
+        /// Return a <see cref="GuildData"/> packet of this <see cref="GuildBase"/>
+        /// </summary>
+        public abstract GuildData BuildGuildDataPacket();
     }
 }

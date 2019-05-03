@@ -10,10 +10,10 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
     public class GuildRank : IWritable
     {
         public string RankName { get; set; } = "";
-        public GuildRankPermission PermissionMask { get; set; } = GuildRankPermission.NoRank;
+        public GuildRankPermission PermissionMask { get; set; } = GuildRankPermission.Disabled;
         public ulong BankWithdrawalPermissions { get; set; } = 0;
-        public long MoneyWithdrawalLimit { get; set; } = 0;
-        public long RepairLimit { get; set; } = 0;
+        public ulong MoneyWithdrawalLimit { get; set; } = 0;
+        public ulong RepairLimit { get; set; } = 0;
 
         public void Write(GamePacketWriter writer)
         {

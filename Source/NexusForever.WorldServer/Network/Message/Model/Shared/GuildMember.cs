@@ -17,13 +17,13 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
         public Class Class { get; set; }
         public Path Path { get; set; }
         public uint Level { get; set; }
-        public float LastOnline { get; set; }
-        public uint Unknown6 { get; set; }
-        public uint Unknown7 { get; set; }
-        public uint Unknown8 { get; set; }
+        public float LastLogoutTimeDays { get; set; }
+        public uint PvpWins { get; set; }
+        public uint PvpLosses { get; set; }
+        public uint PvpDraws { get; set; }
         public string Note { get; set; }
         public uint Unknown10 { get; set; }
-        public uint Unknown11 { get; set; }
+        public int Unknown11 { get; set; } = -1;
 
         public void Write(GamePacketWriter writer)
         {
@@ -35,10 +35,10 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
             writer.Write(Class, 32u);
             writer.Write(Path, 32u);
             writer.Write(Level);
-            writer.Write(LastOnline);
-            writer.Write(Unknown6);
-            writer.Write(Unknown7);
-            writer.Write(Unknown8);
+            writer.Write(LastLogoutTimeDays);
+            writer.Write(PvpWins);
+            writer.Write(PvpLosses);
+            writer.Write(PvpDraws);
             writer.WriteStringWide(Note);
             writer.Write(Unknown10);
             writer.Write(Unknown11);

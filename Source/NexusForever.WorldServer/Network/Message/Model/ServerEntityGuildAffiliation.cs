@@ -5,8 +5,8 @@ using NexusForever.WorldServer.Game.Guild.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerGuildNameplateSet)]
-    public class ServerGuildNameplateChangeUnit : IWritable
+    [Message(GameMessageOpcode.ServerEntityGuildAffiliation)]
+    public class ServerEntityGuildAffiliation : IWritable
     {
         public uint UnitId { get; set; }
         public string GuildName { get; set; }
