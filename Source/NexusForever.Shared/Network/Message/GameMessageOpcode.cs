@@ -77,6 +77,7 @@ namespace NexusForever.Shared.Network.Message
         ServerChatAccept                = 0x01C2,
         ClientChat                      = 0x01C3,
         ServerChat                      = 0x01C8,
+        ServerChatResult                = 0x01D3,
         Server0237                      = 0x0237, // UI related, opens or closes different UI windows (bank, barber, ect...)
         ClientPing                      = 0x0241,
         ClientEncrypted                 = 0x0244,
@@ -117,7 +118,7 @@ namespace NexusForever.Shared.Network.Message
         ServerGuildMemberChange         = 0x04A3,
         ServerGuildMotdUpdate           = 0x04A5,
         ServerGuildNameplateAdd         = 0x04AC,
-        ServerGuildNameplateSet         = 0x04AE,
+        ServerEntityGuildAffiliation    = 0x04AE,
         ClientGuildOperation            = 0x04B1,
         ServerGuildRankChange           = 0x04C5,
         ServerGuildResult               = 0x04C9,

@@ -98,6 +98,10 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasColumnName("factionId")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.GuildAffiliation)
+                    .HasColumnName("guildAffiliation")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.LastOnline)
                     .HasColumnName("lastOnline")
                     .HasColumnType("datetime")
@@ -741,8 +745,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasColumnName("name");
 
                 entity.Property(e => e.Permission)
-                    .HasColumnName("permission")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnName("permission");
 
                 entity.Property(e => e.BankWithdrawalPermission)
                     .HasColumnName("bankWithdrawPermission")
@@ -778,8 +781,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Rank)
-                    .HasColumnName("rank")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnName("rank");
 
                 entity.Property(e => e.Note)
                     .HasColumnName("note")

@@ -29,13 +29,16 @@ namespace NexusForever.WorldServer.Game.Guild
         public string Name { get; private set; }
         public GuildRankPermission GuildPermission { get; private set; }
         public ulong BankWithdrawalPermissions { get; set; }
-        public long MoneyWithdrawalLimit { get; private set; }
-        public long RepairLimit { get; private set; }
+        public ulong MoneyWithdrawalLimit { get; private set; }
+        public ulong RepairLimit { get; private set; }
 
         public bool PendingDelete => saveMask == RankSaveMask.Delete;
 
         private RankSaveMask saveMask;
 
+        /// <summary>
+        /// Create a new <see cref="Rank"/> using <see cref="GuildRankModel"/>
+        /// </summary>
         public Rank(GuildRankModel model)
         {
             GuildId = model.Id;
@@ -49,7 +52,10 @@ namespace NexusForever.WorldServer.Game.Guild
             saveMask = RankSaveMask.None;
         }
 
-        public Rank(string name, ulong guildId, byte index, GuildRankPermission guildRankPermission, ulong bankWithdrawalPermissions, long moneyWithdrawalLimit, long repairLimit)
+        /// <summary>
+        /// Create a new <see cref="Rank"/> given necessary parameters
+        /// </summary>
+        public Rank(string name, ulong guildId, byte index, GuildRankPermission guildRankPermission, ulong bankWithdrawalPermissions, ulong moneyWithdrawalLimit, ulong repairLimit)
         {
             GuildId = guildId;
             Name = name;
@@ -62,6 +68,9 @@ namespace NexusForever.WorldServer.Game.Guild
             saveMask = RankSaveMask.Create;
         }
 
+        /// <summary>
+        /// Save this <see cref="Rank"/> to a <see cref="GuildRankModel"/>
+        /// </summary>
         public void Save(CharacterContext context)
         {
             if (saveMask != RankSaveMask.None)
@@ -91,14 +100,12 @@ namespace NexusForever.WorldServer.Game.Guild
                 }
                 else
                 {
-                    // residence already exists in database, save only data that has been modified
                     var model = new GuildRankModel
                     {
                         Id = GuildId,
                         Index = Index
                     };
 
-                    // could probably clean this up with reflection, works for the time being
                     EntityEntry<GuildRankModel> entity = context.Attach(model);
                     if ((saveMask & RankSaveMask.Rename) != 0)
                     {
@@ -116,25 +123,39 @@ namespace NexusForever.WorldServer.Game.Guild
             }
         }
 
+        /// <summary>
+        /// Rename this <see cref="Rank"/> and enqueue save
+        /// </summary>
         public void Rename(string name)
         {
             Name = name;
             saveMask |= RankSaveMask.Rename;
         }
 
+        /// <summary>
+        /// Add a <see cref="GuildRankPermission"/> to this <see cref="Rank"/> and enqueue save
+        /// </summary>
         public void AddPermission(GuildRankPermission guildRankPermission)
         {
             GuildPermission |= guildRankPermission;
+            saveMask |= RankSaveMask.Permissions;
         }
 
+        /// <summary>
+        /// Remove a <see cref="GuildRankPermission"/> from this <see cref="Rank"/> and enqueue save
+        /// </summary>
         public void RemovePermission(GuildRankPermission guildRankPermission)
         {
             if((GuildPermission & guildRankPermission) == 0)
             {
                 GuildPermission |= guildRankPermission;
+                saveMask |= RankSaveMask.Permissions;
             }
         }
 
+        /// <summary>
+        /// Set this <see cref="Rank"/> <see cref="GuildRankPermission"/> and enqueue save
+        /// </summary>
         public void SetPermission(GuildRankPermission guildRankPermission)
         {
             GuildPermission = guildRankPermission;
@@ -142,6 +163,9 @@ namespace NexusForever.WorldServer.Game.Guild
             saveMask |= RankSaveMask.Permissions;
         }
 
+        /// <summary>
+        /// Delete this <see cref="Rank"/> and enqueue save
+        /// </summary>
         public void Delete()
         {
             // Entity won't exist if create flag exists, so we set to None and let GC get rid of it.
@@ -151,6 +175,9 @@ namespace NexusForever.WorldServer.Game.Guild
                 saveMask = RankSaveMask.None;
         }
 
+        /// <summary>
+        /// Return a <see cref="GuildRank"/> packet of this <see cref="Rank"/>
+        /// </summary>
         public GuildRank BuildGuildRankPacket()
         {
             return new GuildRank

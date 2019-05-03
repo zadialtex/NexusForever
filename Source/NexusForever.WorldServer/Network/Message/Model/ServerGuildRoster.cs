@@ -7,12 +7,12 @@ namespace NexusForever.WorldServer.Network.Message.Model
 {
 
     [Message(GameMessageOpcode.ServerGuildRoster)]
-    public class ServerGuildMembers : IWritable
+    public class ServerGuildRoster : IWritable
     {
         public ushort GuildRealm { get; set; }
         public ulong GuildId { get; set; }
         public List<GuildMember> GuildMembers { get; set; } = new List<GuildMember>();
-        public bool Unknown0 { get; set; } = true;
+        public bool Done { get; set; } = true;
 
         public void Write(GamePacketWriter writer)
         {
@@ -20,7 +20,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
             writer.Write(GuildId);
             writer.Write(GuildMembers.Count, 32u);
             GuildMembers.ForEach(w => w.Write(writer));
-            writer.Write(Unknown0);
+            writer.Write(Done);
         }
     }
 }

@@ -11,66 +11,75 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
     {
         public class Info: IWritable
         {
+            public class PvPRating: IWritable
+            {
+                public uint Wins { get; set; }
+                public uint Losses { get; set; }
+                public uint Draws { get; set; }
+                public uint Rating { get; set; }
+                public uint PvpSeason { get; set; }
+                public uint KFactor { get; set; }
+
+                public void Write(GamePacketWriter writer)
+                {
+                    writer.Write(Wins);
+                    writer.Write(Losses);
+                    writer.Write(Draws);
+                    writer.Write(Rating);
+                    writer.Write(PvpSeason);
+                    writer.Write(KFactor);
+                }
+            }
+
             public string MessageOfTheDay { get; set; }
-            public string AdditionalInfo { get; set; }
-            public byte Unknown2 { get; set; } // 3
-            public uint Unknown3 { get; set; }
-            public uint Unknown4 { get; set; }
-            public uint Unknown5 { get; set; }
-            public uint Unknown6 { get; set; }
-            public uint Unknown7 { get; set; }
-            public uint Unknown8 { get; set; }
-            public float AgeInDays { get; set; }
+            public string GuildInfo { get; set; }
+            public byte QueueState { get; set; } // 3
+            public PvPRating PvPRatings { get; set; } = new PvPRating();
+            public float GuildCreationDateInDays { get; set; }
 
             public void Write(GamePacketWriter writer)
             {
                 writer.WriteStringWide(MessageOfTheDay);
-                writer.WriteStringWide(AdditionalInfo);
-                writer.Write(Unknown2, 3u);
-                writer.Write(Unknown3);
-                writer.Write(Unknown4);
-                writer.Write(Unknown5);
-                writer.Write(Unknown6);
-                writer.Write(Unknown7);
-                writer.Write(Unknown8);
-                writer.Write(AgeInDays);
+                writer.WriteStringWide(GuildInfo);
+                writer.Write(QueueState, 3u);
+                PvPRatings.Write(writer);
+                writer.Write(GuildCreationDateInDays);
             }
         }
 
-        public class UnknownStructure1: IWritable
+        public class ActivePerk: IWritable
         {
-            public ushort Unknown0 { get; set; } // 14
-            public uint Unknown1 { get; set; }
+            public ushort PerkId { get; set; } // 14
+            public float EndTime { get; set; }
 
             public void Write(GamePacketWriter writer)
             {
-                writer.Write(Unknown0, 14u);
-                writer.Write(Unknown1);
+                writer.Write(PerkId, 14u);
+                writer.Write(EndTime);
             }
         }
 
         public ulong GuildId { get; set; }
         public string GuildName { get; set; }
-        public uint Taxes { get; set; }
+        public uint Flags { get; set; }
         public GuildType Type { get; set; } // 4
 
         public List<GuildRank> Ranks { get; set; } = new List<GuildRank>(new GuildRank[10]);
 
         public GuildStandard GuildStandard { get; set; } = new GuildStandard();
 
-        public uint TotalMembers { get; set; }
-        public uint UsersOnline { get; set; }
-        public uint CurrentInfluence { get; set; }
+        public uint MemberCount { get; set; }
+        public uint OnlineMemberCount { get; set; }
+        public uint Influence { get; set; }
         public uint DailyInfluenceRemaining { get; set; }
-        public ulong BankCurrency { get; set; }
-        public uint Unknown6 { get; set; }
-        public uint Unknown7 { get; set; }
 
+        public ulong Money { get; set; }
+        public uint WarCoins { get; set; }
+        public uint BankTabCount { get; set; }
         public List<string> BankTabNames { get; set; } = new List<string>(new string[10]);
 
-        public byte[] Perks { get; set; } = new byte[16];
-
-        public List<UnknownStructure1> Unknown10 { get; set; } = new List<UnknownStructure1>();
+        public ulong[] Perks { get; set; } = new ulong[2];
+        public List<ActivePerk> ActivePerks { get; set; } = new List<ActivePerk>();
 
         public Info GuildInfo { get; set; } = new Info();
 
@@ -78,7 +87,7 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
         {
             writer.Write(GuildId);
             writer.WriteStringWide(GuildName);
-            writer.Write(Taxes);
+            writer.Write(Flags);
             writer.Write(Type, 4u);
 
             if (Ranks.Count < 10)
@@ -88,24 +97,24 @@ namespace NexusForever.WorldServer.Network.Message.Model.Shared
 
             GuildStandard.Write(writer);
 
-            writer.Write(TotalMembers);
-            writer.Write(UsersOnline);
-            writer.Write(CurrentInfluence);
+            writer.Write(MemberCount);
+            writer.Write(OnlineMemberCount);
+            writer.Write(Influence);
             writer.Write(DailyInfluenceRemaining);
-            writer.Write(BankCurrency);
-            writer.Write(Unknown6);
-            writer.Write(Unknown7);
+            writer.Write(Money);
+            writer.Write(WarCoins);
+            writer.Write(BankTabCount);
 
             foreach (string str in BankTabNames)
                 writer.WriteStringWide(str);
 
-            writer.WriteBytes(Perks);
-            writer.Write(Unknown10.Count);
+            foreach (ulong perk in Perks)
+                writer.Write(perk);
 
-            if (Unknown10.Count <= 0)
-                GuildInfo.Write(writer);
-            else
-                Unknown10.ForEach(c => c.Write(writer));
+            writer.Write(ActivePerks.Count);
+            ActivePerks.ForEach(c => c.Write(writer));
+
+            GuildInfo.Write(writer);
         }
     }
 }
