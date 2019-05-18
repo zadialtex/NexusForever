@@ -18,68 +18,14 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleGuildRegister(WorldSession session, ClientGuildRegister request)
         {
             GuildManager.RegisterGuild(session, request);
-
-            // Do guild holomark visual
-            var itemVisualUpdate = new ServerItemVisualUpdate
-            {
-                Guid = session.Player.Guid
-            };
-
-            foreach (ItemVisual itemVisual in session.Player.GetAppearance())
-                itemVisualUpdate.ItemVisuals.Add(itemVisual);
-
-            itemVisualUpdate.ItemVisuals.Add(new ItemVisual
-            {
-                Slot = Game.Entity.Static.ItemSlot.GuildStandardScanLines,
-                DisplayId = 2961 // request.GuildHolomark.HolomarkPart1.GuildStandardPartId
-            });
-            itemVisualUpdate.ItemVisuals.Add(new ItemVisual
-            {
-                Slot = Game.Entity.Static.ItemSlot.GuildStandardBackgroundIcon,
-                DisplayId = 5506 // request.GuildHolomark.HolomarkPart1.GuildStandardPartId
-            });
-            itemVisualUpdate.ItemVisuals.Add(new ItemVisual
-            {
-                Slot = Game.Entity.Static.ItemSlot.GuildStandardForegroundIcon,
-                DisplayId = 5432 // request.GuildHolomark.HolomarkPart1.GuildStandardPartId
-            });
-            itemVisualUpdate.ItemVisuals.Add(new ItemVisual
-            {
-                Slot = Game.Entity.Static.ItemSlot.GuildStandardChest,
-                DisplayId = 5411 // request.GuildHolomark.HolomarkPart1.GuildStandardPartId
-            });
-            itemVisualUpdate.ItemVisuals.Add(new ItemVisual
-            {
-                Slot = Game.Entity.Static.ItemSlot.GuildStandardBack,
-                DisplayId = 7163
-            });
-            itemVisualUpdate.ItemVisuals.Add(new ItemVisual
-            {
-                Slot = Game.Entity.Static.ItemSlot.GuildStandardShoulderL,
-                DisplayId = 7164
-            });
-            itemVisualUpdate.ItemVisuals.Add(new ItemVisual
-            {
-                Slot = Game.Entity.Static.ItemSlot.GuildStandardShoulderR,
-                DisplayId = 7165
-            });
-            // 7163 - Near Back
-            // 7164 - Near Left
-            // 7165 - Near Right
-            // 5580 - Far Back
-            // 5581 - Far Left
-            // 5582 - Far Right
-
-            if (!session.Player.IsLoading)
-                session.Player.EnqueueToVisible(itemVisualUpdate, true);
         }
 
         [MessageHandler(GameMessageOpcode.ClientGuildHolomarkUpdate)]
         public static void HandleHolomarkUpdate(WorldSession session, ClientGuildHolomarkUpdate clientGuildHolomarkUpdate)
         {
-            // TODO: Need to figure out which packet tells the client the player's holomark preferences at login / map change.
+            //log.Info($"{clientGuildHolomarkUpdate.LeftHidden}, {clientGuildHolomarkUpdate.RightHidden}, {clientGuildHolomarkUpdate.BackHidden}, {clientGuildHolomarkUpdate.DistanceNear}");
 
-            //log.Info($"{clientGuildHolomarkUpdate.Unknown0}, {clientGuildHolomarkUpdate.Unknown1}, {clientGuildHolomarkUpdate.BackDisabled}, {clientGuildHolomarkUpdate.DistanceNear}");
+            GuildManager.HandleGuildHolomarkChange(session, clientGuildHolomarkUpdate);
         }
 
         [MessageHandler(GameMessageOpcode.ClientGuildOperation)]

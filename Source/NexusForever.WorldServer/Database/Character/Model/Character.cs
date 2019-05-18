@@ -51,6 +51,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public sbyte InputKeySet { get; set; }
         public byte ActiveSpec { get; set; }
         public ulong GuildAffiliation { get; set; }
+        public byte GuildHolomarkMask { get; set; }
 
         public virtual Residence Residence { get; set; }
         public virtual ICollection<CharacterActionSetAmp> CharacterActionSetAmp { get; set; }

@@ -20,6 +20,7 @@ using NexusForever.WorldServer.Game.Entity.Network.Command;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Guild;
+using NexusForever.WorldServer.Game.Guild.Static;
 using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Game.Setting;
 using NexusForever.WorldServer.Game.Setting.Static;
@@ -140,6 +141,20 @@ namespace NexusForever.WorldServer.Game.Entity
         }
         private ulong guildAffiliation;
 
+        public GuildHolomark GuildHolomarkMask
+        {
+            get => guildHolomarkMask;
+            set
+            {
+                if (guildHolomarkMask != value)
+                {
+                    guildHolomarkMask = value;
+                    saveMask |= PlayerSaveMask.Holomark;
+                }
+            }
+        }
+        private GuildHolomark guildHolomarkMask;
+
         public float GetOnlineStatus() => 0f;
 
         public Player(WorldSession session, Character model)
@@ -161,6 +176,7 @@ namespace NexusForever.WorldServer.Game.Entity
             Faction1        = (Faction)model.FactionId;
             Faction2        = (Faction)model.FactionId;
             guildAffiliation = model.GuildAffiliation;
+            guildHolomarkMask = (GuildHolomark)model.GuildHolomarkMask;
 
             CreateTime      = model.CreateTime;
             TimePlayedTotal = model.TimePlayedTotal;
@@ -369,6 +385,12 @@ namespace NexusForever.WorldServer.Game.Entity
                     new ServerRewardPropertySet.RewardProperty
                     {
                         Id    = RewardProperty.GuildCreateOrInviteAccess,
+                        Type  = 1,
+                        Value = 1
+                    },
+                    new ServerRewardPropertySet.RewardProperty
+                    {
+                        Id    = RewardProperty.GuildHolomarkUnlimited,
                         Type  = 1,
                         Value = 1
                     }
@@ -648,6 +670,12 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     model.GuildAffiliation = GuildAffiliation;
                     entity.Property(p => p.GuildAffiliation).IsModified = true;
+                }
+
+                if ((saveMask & PlayerSaveMask.Holomark) != 0)
+                {
+                    model.GuildHolomarkMask = Convert.ToByte(GuildHolomarkMask);
+                    entity.Property(p => p.GuildHolomarkMask).IsModified = true;
                 }
 
                 saveMask = PlayerSaveMask.None;

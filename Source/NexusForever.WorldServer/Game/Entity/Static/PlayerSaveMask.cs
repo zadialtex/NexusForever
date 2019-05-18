@@ -13,6 +13,7 @@ namespace NexusForever.WorldServer.Game.Entity.Static
         Path        = 0x0002,
         Costume     = 0x0004,
         InputKeySet = 0x0008,
-        Affiliation = 0x0020
+        Affiliation = 0x0020,
+        Holomark    = 0x0040,
     }
 }

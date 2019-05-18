@@ -102,6 +102,10 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasColumnName("guildAffiliation")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.GuildHolomarkMask)
+                    .HasColumnName("guildHolomarkMask")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.LastOnline)
                     .HasColumnName("lastOnline")
                     .HasColumnType("datetime")

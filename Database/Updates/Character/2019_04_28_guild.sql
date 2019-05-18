@@ -52,4 +52,5 @@ CREATE TABLE IF NOT EXISTS `guild_rank` (
 
 -- Used for setting guild title
 ALTER TABLE `character` 
-    ADD COLUMN `guildAffiliation` bigint(20) unsigned NOT NULL DEFAULT '0' AFTER `timePlayedLevel`;
+    ADD COLUMN `guildAffiliation` bigint(20) unsigned NOT NULL DEFAULT '0' AFTER `timePlayedLevel`,
+    ADD COLUMN `guildHolomarkMask` tinyint(3) unsigned NOT NULL DEFAULT '0' AFTER `guildAffiliation`;

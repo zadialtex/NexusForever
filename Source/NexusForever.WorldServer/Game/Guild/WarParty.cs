@@ -55,6 +55,12 @@ namespace NexusForever.WorldServer.Game.Guild
         /// </summary>
         public void Save(CharacterContext context)
         {
+            if ((base.saveMask & GuildBaseSaveMask.Delete) != 0)
+            {
+                base.Save(context);
+                return;
+            }
+
             base.Save(context);
 
             if (saveMask != GuildSaveMask.None)
