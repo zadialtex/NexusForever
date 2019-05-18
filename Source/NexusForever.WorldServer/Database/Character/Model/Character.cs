@@ -61,6 +61,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public ushort BindPoint { get; set; }
         public uint TotalXp { get; set; }
         public ulong GuildAffiliation { get; set; }
+        public byte GuildHolomarkMask { get; set; }
 
         public virtual Residence Residence { get; set; }
         public virtual ICollection<CharacterAchievement> CharacterAchievement { get; set; }

@@ -1,7 +1,9 @@
-﻿using NexusForever.Shared.Network;
+﻿using NexusForever.Shared.GameTable;
+using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Guild.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -246,12 +248,13 @@ namespace NexusForever.WorldServer.Game.Guild
         public static void RegisterGuild(WorldSession session, ClientGuildRegister clientGuildRegister)
         {
             GuildResult result = GuildResult.Success;
+            result = EnsurePlayerNotAtMaxGuildType(session, clientGuildRegister.GuildType);
 
-            if (clientGuildRegister.GuildType == GuildType.Guild && session.Player.GuildId > 0)
-                result = GuildResult.AtMaxGuildCount;
-
-            if (clientGuildRegister.GuildType == GuildType.Circle && session.Player.GuildMemberships.Where(i => guilds[i].Type == GuildType.Circle).Count() >= 5)
-                result = GuildResult.AtMaxCircleCount;
+            if (result == GuildResult.Success)
+            {
+                if (guilds.FirstOrDefault(i => i.Value.Name.ToLower().Replace(" ", string.Empty) == clientGuildRegister.GuildName.ToLower().Replace(" ", string.Empty)).Key > 0)
+                    result = GuildResult.GuildNameUnavailable;
+            }
 
             if (result == GuildResult.Success)
             {
@@ -293,6 +296,35 @@ namespace NexusForever.WorldServer.Game.Guild
             }
             else
                 SendGuildResult(session, result);
+        }
+
+        /// <summary>
+        /// Confirms the user is eligible to join a guild of a given type, that they have not exceeded the allowed amount of that guild type.
+        /// </summary>
+        private static GuildResult EnsurePlayerNotAtMaxGuildType(WorldSession session, GuildType guildType)
+        {
+            if (guildType == GuildType.Guild && session.Player.GuildId > 0)
+                return GuildResult.AtMaxGuildCount;
+
+            if (guildType == GuildType.Circle && session.Player.GuildMemberships.Where(i => guilds[i].Type == GuildType.Circle).Count() >= 5)
+                return GuildResult.AtMaxCircleCount;
+
+            if (guildType == GuildType.ArenaTeam2v2 && session.Player.GuildMemberships.Where(i => guilds[i].Type == GuildType.ArenaTeam2v2).Count() >= 1)
+                return GuildResult.MaxArenaTeamCount;
+
+            if (guildType == GuildType.ArenaTeam3v3 && session.Player.GuildMemberships.Where(i => guilds[i].Type == GuildType.ArenaTeam3v3).Count() >= 1)
+                return GuildResult.MaxArenaTeamCount;
+
+            if (guildType == GuildType.ArenaTeam5v5 && session.Player.GuildMemberships.Where(i => guilds[i].Type == GuildType.ArenaTeam5v5).Count() >= 1)
+                return GuildResult.MaxArenaTeamCount;
+
+            if (guildType == GuildType.WarParty && session.Player.GuildMemberships.Where(i => guilds[i].Type == GuildType.WarParty).Count() >= 1)
+                return GuildResult.MaxWarPartyCount;
+
+            if (guildType == GuildType.Community && session.Player.GuildMemberships.Where(i => guilds[i].Type == GuildType.Community).Count() >= 1)
+                return GuildResult.AtMaxCommunityCount;
+
+            return GuildResult.Success;
         }
 
         /// <summary>
@@ -362,6 +394,9 @@ namespace NexusForever.WorldServer.Game.Guild
                 result = GuildResult.CannotInviteGuildFull;
 
             if (result == GuildResult.Success)
+                result = EnsurePlayerNotAtMaxGuildType(session, guild.Type);
+
+            if (result == GuildResult.Success)
             {
                 if (guild.Type == GuildType.Guild)
                     session.Player.GuildId = guild.Id;
@@ -417,6 +452,10 @@ namespace NexusForever.WorldServer.Game.Guild
                 player.GuildMemberships.Add(guild.Id);
                 guild.OnPlayerLogin(session, player);
             }
+            if (player.GuildAffiliation > 0)
+                SetGuildHolomark(session, player, GetGuild(player.GuildAffiliation));
+
+            // TODO: Figure out packet which instructs the client the state of the Holomark.
         }
 
         /// <summary>
@@ -443,7 +482,10 @@ namespace NexusForever.WorldServer.Game.Guild
             foreach(ulong guildId in session.Player.GuildMemberships)
             {
                 playerGuilds.Add(guilds[guildId].BuildGuildDataPacket());
-                playerMemberInfo.Add(guilds[guildId].GetMember(session.Player.CharacterId).BuildGuildMemberPacket());
+                var selfPacket = guilds[guildId].GetMember(session.Player.CharacterId).BuildGuildMemberPacket();
+                if (session.Player.GuildAffiliation == guildId)
+                    selfPacket.Unknown10 = 1;
+                playerMemberInfo.Add(selfPacket);
                 playerUnknowns.Add(new GuildPlayerLimits());
             }
 
@@ -467,10 +509,15 @@ namespace NexusForever.WorldServer.Game.Guild
             if (session.Player.GuildAffiliation == 0)
                 session.Player.GuildAffiliation = newGuild.Id;
 
+            if (newGuild.Type == GuildType.Guild)
+                session.Player.GuildHolomarkMask = GuildHolomark.Back;
+
             SendGuildJoin(session, newGuild.BuildGuildDataPacket(), newGuild.GetMember(session.Player.CharacterId).BuildGuildMemberPacket(), new GuildPlayerLimits());
             SendGuildResult(session, result, newGuild, referenceText: newGuild.Name);
             SendGuildAffiliation(session);
             SendGuildRoster(session, newGuild.GetGuildMembersPackets().ToList(), newGuild.Id);
+
+            // TODO: Figure out packet which instructs the client the state of the Holomark.
         }
 
         /// <summary>
@@ -482,7 +529,8 @@ namespace NexusForever.WorldServer.Game.Guild
             {
                 GuildData = guildData,
                 Self = guildMember,
-                SelfPrivate = guildUnknown
+                SelfPrivate = guildUnknown,
+                Nameplate = session.Player.GuildAffiliation == guildData.GuildId
             };
 
             session.EnqueueMessageEncrypted(serverGuildJoin);
@@ -539,13 +587,14 @@ namespace NexusForever.WorldServer.Game.Guild
 
             if (guild.GetMember(session.Player.CharacterId) == null)
                 return;
-            
+
             session.Player.EnqueueToVisible(new ServerEntityGuildAffiliation
             {
                 UnitId = session.Player.Guid,
                 GuildName = guild.Name,
                 GuildType = guild.Type
             }, true);
+            SetGuildHolomark(session, session.Player, guild, true);
         }
 
         /// <summary>
@@ -578,16 +627,16 @@ namespace NexusForever.WorldServer.Game.Guild
         /// <summary>
         /// Handles removing a <see cref="Player"/> from a <see cref="GuildBase"/> and updating the server and client data appropriately
         /// </summary>
-        /// <param name="session"></param>
-        /// <param name="result"></param>
-        /// <param name="guild"></param>
-        /// <param name="referenceText"></param>
         private static void HandlePlayerRemove(WorldSession session, GuildResult result, GuildBase guild, string referenceText = "")
         {
             SendGuildResult(session,result, referenceText: referenceText.Length > 0 ? referenceText : session.Player.Name);
 
             if (session.Player.GuildId == guild.Id)
+            {
                 session.Player.GuildId = 0;
+                session.Player.GuildHolomarkMask = GuildHolomark.None;
+                RemoveGuildHolomark(session, true);
+            }
             session.Player.GuildMemberships.Remove(guild.Id);
             session.EnqueueMessageEncrypted(new ServerGuildRemove
             {
@@ -595,11 +644,145 @@ namespace NexusForever.WorldServer.Game.Guild
                 GuildId = guild.Id
             });
 
-            session.Player.GuildAffiliation = 0;
-            session.Player.EnqueueToVisible(new ServerEntityGuildAffiliation
+            if (session.Player.GuildMemberships.Count > 0)
             {
-                UnitId = session.Player.Guid,
-            }, true);
+                session.Player.GuildAffiliation = session.Player.GuildMemberships[0];
+                SendGuildAffiliation(session);
+            }
+            else
+            {
+                session.Player.GuildAffiliation = 0;
+                session.Player.EnqueueToVisible(new ServerEntityGuildAffiliation
+                {
+                    UnitId = session.Player.Guid
+                }, true);
+            }
+        }
+
+        /// <summary>
+        /// Handles the change of guild holomark flags and applies it to the <see cref="Player"/>
+        /// </summary>
+        public static void HandleGuildHolomarkChange(WorldSession session, ClientGuildHolomarkUpdate clientGuildHolomarkUpdate)
+        {
+            // Player should not be able to do this as part of a guild so just remove any holomarks and return
+            if (session.Player.GuildId == 0 || session.Player.GuildAffiliation == 0 || session.Player.GuildId != session.Player.GuildAffiliation) 
+            {
+                session.Player.GuildHolomarkMask = GuildHolomark.None;
+                RemoveGuildHolomark(session, true);
+                return;
+            }
+
+            if (clientGuildHolomarkUpdate.LeftHidden)
+                session.Player.GuildHolomarkMask &= ~GuildHolomark.Left;
+            else if (!clientGuildHolomarkUpdate.LeftHidden)
+                session.Player.GuildHolomarkMask |= GuildHolomark.Left;
+
+            if (clientGuildHolomarkUpdate.RightHidden)
+                session.Player.GuildHolomarkMask &= ~GuildHolomark.Right;
+            else if (!clientGuildHolomarkUpdate.RightHidden)
+                session.Player.GuildHolomarkMask |= GuildHolomark.Right;
+
+            if (clientGuildHolomarkUpdate.BackHidden)
+                session.Player.GuildHolomarkMask &= ~GuildHolomark.Back;
+            else if (!clientGuildHolomarkUpdate.BackHidden)
+                session.Player.GuildHolomarkMask |= GuildHolomark.Back;
+
+            if (clientGuildHolomarkUpdate.DistanceNear)
+                session.Player.GuildHolomarkMask |= GuildHolomark.Near;
+            else if (!clientGuildHolomarkUpdate.DistanceNear)
+                session.Player.GuildHolomarkMask &= ~GuildHolomark.Near;
+
+            SetGuildHolomark(session, session.Player, guilds[session.Player.GuildId], true);
+        }
+
+        /// <summary>
+        /// Sets the <see cref="Player"/> <see cref="GuildHolomark"/> and updates local clients if necessary
+        /// </summary>
+        public static void SetGuildHolomark(WorldSession session, Player player, GuildBase guildBase, bool isUpdate = false)
+        {
+            GuildResult hasPermission = HasGuildPermission(guildBase, player.CharacterId);
+            if (guildBase == null)
+            {
+                RemoveGuildHolomark(session, isUpdate);
+                return;
+            }
+            if (hasPermission != GuildResult.Success)
+                throw new ArgumentException($"Player does not have permission to use this holomark: {hasPermission}");
+            if (guildBase.Type != GuildType.Guild)
+            {
+                RemoveGuildHolomark(session, isUpdate);
+                return;
+            }
+
+            Guild guild = (Guild)guildBase;
+
+            bool isNear = (player.GuildHolomarkMask & GuildHolomark.Near) != 0;
+            Dictionary<ItemSlot, ushort> guildStandardVisuals = new Dictionary<ItemSlot, ushort>
+            {
+                { ItemSlot.GuildStandardScanLines, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.ScanLines.GuildStandardPartId).ItemDisplayIdStandard },
+                { ItemSlot.GuildStandardBackgroundIcon, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.BackgroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
+                { ItemSlot.GuildStandardForegroundIcon, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.ForegroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
+                { ItemSlot.GuildStandardChest, 5411 },
+                { ItemSlot.GuildStandardBack, isNear ? (ushort)7163 : (ushort)5580 },
+                { ItemSlot.GuildStandardShoulderL, isNear ? (ushort)7164 : (ushort)5581 },
+                { ItemSlot.GuildStandardShoulderR, isNear ? (ushort)7165 : (ushort)5582 }
+            };
+
+            if ((player.GuildHolomarkMask & GuildHolomark.Back) == 0)
+                guildStandardVisuals[ItemSlot.GuildStandardBack] = 0;
+            if ((player.GuildHolomarkMask & GuildHolomark.Left) == 0)
+                guildStandardVisuals[ItemSlot.GuildStandardShoulderL] = 0;
+            if ((player.GuildHolomarkMask & GuildHolomark.Right) == 0)
+                guildStandardVisuals[ItemSlot.GuildStandardShoulderR] = 0;
+
+            foreach (KeyValuePair<ItemSlot, ushort> guildStandardItem in guildStandardVisuals)
+                player.SetAppearance(new ItemVisual { Slot = guildStandardItem.Key, DisplayId = guildStandardItem.Value });
+
+            if (isUpdate)
+            {
+                var itemVisuals = new List<ItemVisual>();
+                foreach (KeyValuePair<ItemSlot, ushort> guildStandardItem in guildStandardVisuals)
+                    itemVisuals.Add(new ItemVisual { Slot = guildStandardItem.Key, DisplayId = guildStandardItem.Value });
+                SendPlayerHolomarkChange(session, itemVisuals);
+            }
+                
+        }
+
+        /// <summary>
+        /// This removes the <see cref="GuildHolomark"/> when a <see cref="Player"/> changes their affiliation
+        /// </summary>
+        private static void RemoveGuildHolomark(WorldSession session, bool isUpdate = false)
+        {
+            if (!isUpdate) // We don't need to do this if we're not sending an update.
+                return;
+
+            Dictionary<ItemSlot, ushort> guildStandardVisuals = new Dictionary<ItemSlot, ushort>();
+            guildStandardVisuals.Add(ItemSlot.GuildStandardBack, 0);
+            guildStandardVisuals.Add(ItemSlot.GuildStandardShoulderL, 0);
+            guildStandardVisuals.Add(ItemSlot.GuildStandardShoulderR, 0);
+
+            foreach (KeyValuePair<ItemSlot, ushort> guildStandardItem in guildStandardVisuals)
+                session.Player.SetAppearance(new ItemVisual { Slot = guildStandardItem.Key, DisplayId = guildStandardItem.Value });
+
+            //var itemVisuals = session.Player.GetAppearance().ToList();
+            var itemVisuals = new List<ItemVisual>();
+            foreach (KeyValuePair<ItemSlot, ushort> guildStandardItem in guildStandardVisuals)
+                itemVisuals.Add(new ItemVisual { Slot = guildStandardItem.Key, DisplayId = guildStandardItem.Value });
+
+            SendPlayerHolomarkChange(session, itemVisuals);
+        }
+
+        /// <summary>
+        /// Sends <see cref="ServerItemVisualUpdate"/> to all local clients with necessary Holomark changes
+        /// </summary>
+        private static void SendPlayerHolomarkChange(WorldSession session, List<ItemVisual> itemVisuals)
+        {
+            if (!session.Player.IsLoading)
+                session.Player.EnqueueToVisible(new ServerItemVisualUpdate
+                {
+                    Guid = session.Player.Guid,
+                    ItemVisuals = itemVisuals
+                }, true);
         }
     }
 }
