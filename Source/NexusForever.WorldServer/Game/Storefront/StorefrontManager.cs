@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using NexusForever.WorldServer.Database.World;
@@ -20,7 +21,6 @@ namespace NexusForever.WorldServer.Game.Storefront
         private static ImmutableList<StoreOfferGroupCategory> StoreOfferGroupCategoryList { get; set; }
         private static ImmutableList<StoreOfferItem> StoreOfferItemList { get; set; }
         private static ImmutableList<StoreOfferItemData> StoreOfferItemDataList { get; set; }
-        private static ImmutableList<StoreOfferItemPrice> StoreOfferItemPriceList { get; set; }
         private static ImmutableList<StoreOfferItemCurrency> StoreOfferItemCurrencyList { get; set; }
 
         public static void Initialise()
@@ -28,7 +28,6 @@ namespace NexusForever.WorldServer.Game.Storefront
             // Need to initialise in reverse to ensure filtering works
             InitialiseStoreOfferItemCurrencies();
             InitialiseStoreOfferItemData();
-            InitialiseStoreOfferItemPrices();
             InitialiseStoreOfferItems();
             InitialiseStoreOfferGroupCategories();
             InitialiseStoreOfferGroups();
@@ -116,7 +115,7 @@ namespace NexusForever.WorldServer.Game.Storefront
         {
             List<StoreOfferItem> StoreOfferItems = WorldDatabase.GetStoreOfferItems()
                 .OrderBy(i => i.Id)
-                .Where(a => StoreOfferItemDataList.Any(x => x.OfferId == a.Id) && StoreOfferItemPriceList.Any(x => x.OfferId == a.Id))
+                .Where(a => StoreOfferItemDataList.Any(x => x.OfferId == a.Id))
                 .ToList();
             foreach (var offerGroup in StoreOfferItems.FindAll(x => x.Visible == false))
                 StoreOfferItems.Remove(offerGroup);
@@ -133,7 +132,8 @@ namespace NexusForever.WorldServer.Game.Storefront
                     Id = x.Id,
                     OfferName = x.Name,
                     OfferDescription = x.Description,
-                    PriceArray = GetPricesForOffer(x.Id),
+                    PriceProtobucks = GetCurrencyValue(x.Id, 11),
+                    PriceOmnibits = GetCurrencyValue(x.Id, 6),
                     DisplayFlags = (DisplayFlag)x.DisplayFlags,
                     Unknown6 = x.Field6,
                     Unknown7 = x.Field7,
@@ -169,33 +169,6 @@ namespace NexusForever.WorldServer.Game.Storefront
             return StoreItemDataToSend;
         }
 
-        private static void InitialiseStoreOfferItemPrices()
-        {
-            List<StoreOfferItemPrice> StoreOfferItemPrices = WorldDatabase.GetStoreOfferItemPrices()
-                .OrderBy(i => i.Id)
-                .ToList();
-
-            StoreOfferItemPriceList = StoreOfferItemPrices.ToImmutableList();
-        }
-
-        public static byte[] GetPricesForOffer(uint offerId)
-        {
-            StoreOfferItemPrice MatchingItemPrices = StoreOfferItemPriceList
-                .FirstOrDefault(x => x.OfferId == offerId);
-
-            return new byte[]
-            {
-                MatchingItemPrices.Field1,
-                MatchingItemPrices.Field2,
-                MatchingItemPrices.Field3,
-                MatchingItemPrices.Field4,
-                MatchingItemPrices.Field5,
-                MatchingItemPrices.Field6,
-                MatchingItemPrices.Omnibits,
-                MatchingItemPrices.Field8
-            };
-        }
-
         private static void InitialiseStoreOfferItemCurrencies()
         {
             List<StoreOfferItemCurrency> StoreOfferItemCurrencies = WorldDatabase.GetStoreOfferItemCurrencies()
@@ -212,15 +185,32 @@ namespace NexusForever.WorldServer.Game.Storefront
                 .Select(x => new ServerStoreOffers.OfferGroup.Offer.OfferCurrencyData()
                 {
                     CurrencyId = x.CurrencyId,
-                    Unknown11 = x.Field11,
+                    Price = x.Price,
                     Unknown12 = x.Field12,
-                    Unknown13 = x.Field13,
+                    DiscountPercent = x.DiscountPercent,
                     Unknown14 = x.Field14,
                     ExpiryTimestamp = 1995405795 // x.Expiry
                 })
                 .ToList();
 
             return StoreCurrencyToSend;
+        }
+
+        private static uint GetCurrencyValue(uint offerId, byte currencyId)
+        {
+            var currencyEntry = StoreOfferItemCurrencyList.FirstOrDefault(x => x.OfferId == offerId && x.CurrencyId == currencyId);
+            if (currencyEntry == null)
+                return 0;
+
+            if (currencyEntry.DiscountPercent == 0f)
+                return (uint)Math.Ceiling(currencyEntry.Price);
+            else
+            {
+                return (uint)Math.Ceiling(currencyEntry.Price); // This is the sale price
+
+                // TODO: Use below formula to send original price to users ineligible for the offer.
+                //return (uint)Math.Ceiling(currencyEntry.Price / ((100f - currencyEntry.DiscountPercent) / 100)); // This gives the full price of the item
+            }
         }
 
         public static void SendLoadSequence(WorldSession session)
