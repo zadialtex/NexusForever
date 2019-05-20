@@ -916,53 +916,6 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .HasDefaultValueSql("'1'");
             });
 
-            modelBuilder.Entity<StoreOfferItemPrice>(entity =>
-            {
-                entity.HasKey(e => new { e.Id, e.OfferId });
-
-                entity.ToTable("store_offer_item_price");
-
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasDefaultValueSql("AUTO_INCREMENT");
-
-                entity.Property(e => e.OfferId)
-                    .HasColumnName("offerId")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Field1)
-                    .HasColumnName("field_1")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Field2)
-                    .HasColumnName("field_2")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Field3)
-                    .HasColumnName("field_3")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Field4)
-                    .HasColumnName("field_4")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Field5)
-                    .HasColumnName("field_5")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Field6)
-                    .HasColumnName("field_6")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Omnibits)
-                    .HasColumnName("omnibits")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Field8)
-                    .HasColumnName("field_8")
-                    .HasDefaultValueSql("'0'");
-            });
-
             modelBuilder.Entity<StoreOfferItemCurrency>(entity =>
             {
                 entity.HasKey(e => new { e.OfferId, e.CurrencyId });
@@ -977,16 +930,16 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .HasColumnName("currencyId")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Field11)
-                    .HasColumnName("field_11")
+                entity.Property(e => e.Price)
+                    .HasColumnName("price")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Field12)
                     .HasColumnName("field_12")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Field13)
-                    .HasColumnName("field_13")
+                entity.Property(e => e.DiscountPercent)
+                    .HasColumnName("discountPercent")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Field14)

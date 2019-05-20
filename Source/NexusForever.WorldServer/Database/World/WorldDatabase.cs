@@ -107,14 +107,6 @@ namespace NexusForever.WorldServer.Database.World
                     .ToImmutableList();
         }
 
-        public static ImmutableList<StoreOfferItemPrice> GetStoreOfferItemPrices()
-        {
-            using (var context = new WorldContext())
-                return context.StoreOfferItemPrice
-                    .AsNoTracking()
-                    .ToImmutableList();
-        }
-
         public static ImmutableList<StoreOfferItemCurrency> GetStoreOfferItemCurrencies()
         {
             using (var context = new WorldContext())
