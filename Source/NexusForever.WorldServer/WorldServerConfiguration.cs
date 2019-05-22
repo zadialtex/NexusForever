@@ -26,6 +26,14 @@ namespace NexusForever.WorldServer
         {
             public bool CrossFactionChat { get; set; } = true;
         }
+        
+        public struct StoreConfig
+        {
+            public float ForcedProtobucksPrice { get; set; }
+            public float ForcedOmnibitsPrice { get; set; }
+            public bool CurrencyProtobucksEnabled { get; set; }
+            public bool CurrencyOmnibitsEnabled { get; set; }
+        }
 
         public NetworkConfig Network { get; set; }
         public DatabaseConfig Database { get; set; }
