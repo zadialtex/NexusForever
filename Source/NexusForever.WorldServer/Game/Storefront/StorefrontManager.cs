@@ -83,7 +83,7 @@ namespace NexusForever.WorldServer.Game.Storefront
             StoreOfferList = offerGroupList.ToImmutableList();           
         }
 
-        public static void SendLoadSequence(WorldSession session)
+        public static void HandleCatalogRequest(WorldSession session)
         {
             SendStoreCategories(session);
             SendStoreOffers(session);
