@@ -43,4 +43,5 @@
     "Rules": {
         "CrossFactionChat":  true
     },
+    "DefaultRole": 4
 }

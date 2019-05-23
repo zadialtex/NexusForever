@@ -2,12 +2,13 @@
 using System.Threading.Tasks;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
+using NexusForever.WorldServer.Game.Account.Static;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
-    [Name("Spell")]
+    [Name("Spell", Permission.None)]
     public class SpellCommandHandler : CommandCategory
     {
         public SpellCommandHandler()
@@ -15,8 +16,8 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("add", "spell4BaseId - Add a spell to the character")]
-        public Task AddSpellSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        [SubCommandHandler("add", "spell4BaseId - Add a spell to the character", Permission.CommandSpellAdd)]
+        public Task AddSpellSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length == 0)
                 return Task.CompletedTask;
@@ -25,8 +26,8 @@ namespace NexusForever.WorldServer.Command.Handler
             return Task.CompletedTask;
         }
 
-        [SubCommandHandler("cast", "spell4BaseId [tier] - Cast a spell, optionally supplying the tier")]
-        public Task CastSpellSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        [SubCommandHandler("cast", "spell4BaseId [tier] - Cast a spell, optionally supplying the tier", Permission.CommandSpellCast)]
+        public Task CastSpellSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length == 0)
                 return Task.CompletedTask;
@@ -40,8 +41,8 @@ namespace NexusForever.WorldServer.Command.Handler
             return Task.CompletedTask;
         }
 
-        [SubCommandHandler("resetcooldown", "[spell4Id] - Reset a single spell cooldown, if no spell if supplyed all cooldowns will be reset")]
-        public Task ResetCooldownSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        [SubCommandHandler("resetcooldown", "[spell4Id] - Reset a single spell cooldown, if no spell if supplyed all cooldowns will be reset", Permission.CommandSpellResetCooldowns)]
+        public Task ResetCooldownSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length > 0)
                 context.Session.Player.SpellManager.SetSpellCooldown(uint.Parse(parameters[0]), 0d);

@@ -43,5 +43,6 @@ namespace NexusForever.WorldServer
         public ushort RealmId { get; set; }
         public uint LengthOfInGameDay { get; set; }
         public RulesConfig Rules { get; set; } = new RulesConfig();
+        public ulong DefaultRole { get; set; } = 1;
     }
 }
