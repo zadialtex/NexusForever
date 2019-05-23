@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using NexusForever.Shared.Configuration;
 using NexusForever.Shared.Database.Auth;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
@@ -13,7 +14,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
-    [Name("Account Management")]
+    [Name("Account Management", Permission.None)]
     public class AccountCommandHandler : CommandCategory
     {
         public AccountCommandHandler()
@@ -21,8 +22,8 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("create", "email password - Create a new account")]
-        public async Task HandleAccountCreate(CommandContext context, string subCommand, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        [SubCommandHandler("create", "email password [extraRoles] - Create a new account", Permission.CommandAccountCreate)]
+        public async Task HandleAccountCreate(CommandContext context, string subCommand, string[] parameters)
         {
             if (parameters.Length != 2)
             {
@@ -30,15 +31,17 @@ namespace NexusForever.WorldServer.Command.Handler
                 return;
             }
 
-            var account = await AuthDatabase.CreateAccount(parameters[0], parameters[1]);
-            if (account != null)
-                await context.SendMessageAsync($"Account {account.Email} created successfully");
-            else
-                await context.SendMessageAsync($"Account {parameters[0]} was unable to be created. Ensure email is unique and does not contain special characters. Please try again.");
+            List<ulong> extraRoles = new List<ulong>();
+            for (int i = 2; i < parameters.Length; i++)
+                extraRoles.Add(ulong.Parse(parameters[i]));
+
+            AuthDatabase.CreateAccount(parameters[0], parameters[1], defaultRole: ConfigurationManager<WorldServerConfiguration>.Config.DefaultRole, extraRoles.ToArray());
+            await context.SendMessageAsync($"Account {parameters[0]} created successfully")
+                .ConfigureAwait(false);
         }
 
-        [SubCommandHandler("delete", "email - Delete an account")]
-        public async Task HandleAccountDeleteAsync(CommandContext context, string subCommand, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        [SubCommandHandler("delete", "email - Delete an account", Permission.CommandAccountDelete)]
+        public async Task HandleAccountDeleteAsync(CommandContext context, string subCommand, string[] parameters)
         {
             if (parameters.Length < 1)
             {

@@ -5,15 +5,11 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
-using NexusForever.WorldServer.Game;
-using NexusForever.WorldServer.Game.Social;
-using NexusForever.WorldServer.Game.Social.Model;
-using NexusForever.WorldServer.Network.Message.Model.Shared;
-using NLog;
+using NexusForever.WorldServer.Game.Account.Static;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
-    [Name("Items")]
+    [Name("Items", Permission.None)]
     public class ItemCommandHandler : CommandCategory
     {
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
@@ -23,8 +19,8 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("add", "itemId [quantity] - Add an item to inventory, optionally specifying quantity")]
-        public Task AddItemSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        [SubCommandHandler("add", "itemId [quantity] - Add an item to inventory, optionally specifying quantity", Permission.CommandItemAdd)]
+        public Task AddItemSubCommand(CommandContext context, string command, string[] parameters)
         {
             List<ChatFormat> ItemLinks = chatLinks?.Where(i => (i.Type == Game.Social.Static.ChatFormatType.ItemItemId || i.Type == Game.Social.Static.ChatFormatType.ItemGuid || i.Type == Game.Social.Static.ChatFormatType.ItemFull)).ToList();
             if (parameters.Length <= 0)
