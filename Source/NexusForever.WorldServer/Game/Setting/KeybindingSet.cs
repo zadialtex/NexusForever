@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NexusForever.Shared.Database;
 using NexusForever.Shared.Database.Auth.Model;
+using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Game.Setting.Static;

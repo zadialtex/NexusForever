@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NexusForever.Shared.Database;
 using NexusForever.Shared.Database.Auth.Model;
+using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 using NexusForever.WorldServer.Game.Entity.Static;
 using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 
