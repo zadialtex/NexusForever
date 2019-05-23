@@ -43,10 +43,4 @@
     "Rules": {
         "CrossFactionChat":  true
     },
-    "Store": {
-        "ForcedProtobucksPrice": 0,
-        "ForcedOmnibitsPrice": 0,
-        "CurrencyProtobucksEnabled": true,
-        "CurrencyOmnibitsEnabled": true
-    }
 }
