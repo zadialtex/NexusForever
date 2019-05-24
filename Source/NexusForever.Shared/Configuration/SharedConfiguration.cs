@@ -8,13 +8,17 @@ namespace NexusForever.Shared.Configuration
     {
         public static IConfiguration Configuration { get; private set; }
 
+        private static string fileLocation { get; set; }
+
         public static void Initialise(string file)
         {
             if (Configuration != null)
                 return;
 
+            fileLocation = file;
+
             var builder = new ConfigurationBuilder()
-                .AddJsonFile(file, false, true)
+                .AddJsonFile(fileLocation, false, true)
                 .AddEnvironmentVariables()
                 .AddCommandLine(Environment.GetCommandLineArgs().Skip(1).ToArray());
 
