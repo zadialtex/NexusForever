@@ -762,6 +762,9 @@ namespace NexusForever.WorldServer.Game.Entity
                 VanityPet pet = GetVisible<VanityPet>(VanityPetGuid.Value);
                 vanityPetId = pet?.Creature.Id;
             }
+            
+            if (VehicleGuid != 0u)
+                Dismount();
 
             var info = new MapInfo(entry, instanceId, residenceId);
             pendingTeleport = new PendingTeleport(info, vector, vanityPetId);
@@ -907,6 +910,23 @@ namespace NexusForever.WorldServer.Game.Entity
             SetXp(newXp);
 
             GrantLevel(newLevel);
+        /// Returns whether this <see cref="Player"/> is allowed to summon or be added to a mount
+        /// </summary>
+        public bool CanMount()
+        {
+            return VehicleGuid == 0u && pendingTeleport == null;
+        }
+
+        /// <summary>
+        /// Dismounts this <see cref="Player"/> from a vehicle that it's attached to
+        /// </summary>
+        public void Dismount()
+        {
+            if (VehicleGuid != 0u)
+            {
+                Vehicle vehicle = GetVisible<Vehicle>(VehicleGuid);
+                vehicle.PassengerRemove(this);
+            }
         }
 
         /// <summary>

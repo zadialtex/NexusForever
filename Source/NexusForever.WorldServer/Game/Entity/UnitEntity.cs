@@ -90,6 +90,17 @@ namespace NexusForever.WorldServer.Game.Entity
                     player.SendSystemMessage($"Unable to cast spell {parameters.SpellInfo.Entry.Id} because it is disabled.");
                 return;
             }
+            
+            if (GetType() == typeof(Player))
+            {
+                Player player = (Player)this;
+                if (parameters.UserInitiatedSpellCast == true)
+                {
+                    // Remove player from their mount if they were casting a new spell
+                    if (player.VehicleGuid != 0u)
+                        player.Dismount();
+                }
+            }
 
             var spell = new Spell.Spell(this, parameters);
             spell.Cast();
