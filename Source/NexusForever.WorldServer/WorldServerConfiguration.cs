@@ -39,5 +39,6 @@ namespace NexusForever.WorldServer
         public uint LengthOfInGameDay { get; set; }
         public RulesConfig Rules { get; set; } = new RulesConfig();
         public ulong DefaultRole { get; set; } = 1;
+        public string MessageOfTheDay { get; set; } = "";
     }
 }

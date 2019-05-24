@@ -202,6 +202,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private GuildHolomark guildHolomarkMask;
 
         public float GetOnlineStatus() => 0f;
+        private bool loggedIn = false;
 
         public Player(WorldSession session, Character model)
             : base(EntityType.Player)
@@ -400,6 +401,9 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.EnqueueMessageEncrypted(new ServerPlayerEnteredWorld());
 
             IsLoading = false;
+
+            if (!loggedIn)
+                OnLogin();
         }
 
         public override void OnRelocate(Vector3 vector)
@@ -710,6 +714,15 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 CleanupManager.Untrack(Session.Account);
             }
+        }
+
+        private void OnLogin()
+        {
+            loggedIn = true;
+
+            var motd = ConfigurationManager<WorldServerConfiguration>.Config.MessageOfTheDay;
+            if (motd.Length > 0)
+                SocialManager.SendMessage(Session, "MOTD: " + motd, channel: ChatChannel.Realm);
         }
 
         /// <summary>
