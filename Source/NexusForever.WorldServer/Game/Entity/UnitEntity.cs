@@ -73,6 +73,17 @@ namespace NexusForever.WorldServer.Game.Entity
             if (parameters == null)
                 throw new ArgumentNullException();
 
+            if (GetType() == typeof(Player))
+            {
+                Player player = (Player)this;
+                if (parameters.UserInitiatedSpellCast == true)
+                {
+                    // Remove player from their mount if they were casting a new spell
+                    if (player.VehicleGuid != 0u)
+                        player.Dismount();
+                }
+            }
+
             var spell = new Spell.Spell(this, parameters);
             spell.Cast();
             pendingSpells.Add(spell);

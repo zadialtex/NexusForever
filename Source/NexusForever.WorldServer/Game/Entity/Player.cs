@@ -531,9 +531,32 @@ namespace NexusForever.WorldServer.Game.Entity
                 // TODO: don't remove player from map if it's the same as destination
             }
 
+            if (VehicleGuid != 0u)
+                Dismount();
+
             var info = new MapInfo(entry, instanceId, residenceId);
             pendingTeleport = new PendingTeleport(info, vector);
             RemoveFromMap();
+        }
+
+        /// <summary>
+        /// Returns whether this <see cref="Player"/> is allowed to summon or be added to a mount
+        /// </summary>
+        public bool CanMount()
+        {
+            return VehicleGuid == 0u && pendingTeleport == null;
+        }
+
+        /// <summary>
+        /// Dismounts this <see cref="Player"/> from a vehicle that it's attached to
+        /// </summary>
+        public void Dismount()
+        {
+            if (VehicleGuid != 0u)
+            {
+                Vehicle vehicle = GetVisible<Vehicle>(VehicleGuid);
+                vehicle.PassengerRemove(this);
+            }
         }
 
         public void Save(AuthContext context)
