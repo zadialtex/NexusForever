@@ -583,6 +583,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 pet?.RemoveFromMap();
                 VanityPetGuid = null;
             }
+            
+            DestroyDependents();
 
             base.OnRemoveFromMap();
 
@@ -914,7 +916,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public bool CanMount()
         {
-            return VehicleGuid == 0u && pendingTeleport == null;
+            return VehicleGuid == 0u && pendingTeleport == null && logoutManager == null;
         }
 
         /// <summary>
@@ -990,6 +992,22 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 Error = error
             });
+        }
+        
+        /// Remove all entities associated with the <see cref="Player"/>
+        /// </summary>
+        private void DestroyDependents()
+        {
+            // TODO: Enqueue re-creation of necessary entities
+            if (VehicleGuid != 0u)
+            {
+                Vehicle vehicle = GetVisible<Vehicle>(VehicleGuid);
+                if(vehicle != null)
+                    vehicle.Destroy();
+                VehicleGuid = 0u;
+            }
+
+            // TODO: Remove pets, scanbots, vanity pets
         }
 
         public void SendSystemMessage(string text)
