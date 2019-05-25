@@ -377,6 +377,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override void OnRemoveFromMap()
         {
+            DestroyDependents();
+
             base.OnRemoveFromMap();
 
             if (pendingTeleport != null)
@@ -531,9 +533,6 @@ namespace NexusForever.WorldServer.Game.Entity
                 // TODO: don't remove player from map if it's the same as destination
             }
 
-            if (VehicleGuid != 0u)
-                Dismount();
-
             var info = new MapInfo(entry, instanceId, residenceId);
             pendingTeleport = new PendingTeleport(info, vector);
             RemoveFromMap();
@@ -544,7 +543,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public bool CanMount()
         {
-            return VehicleGuid == 0u && pendingTeleport == null;
+            return VehicleGuid == 0u && pendingTeleport == null && logoutManager == null;
         }
 
         /// <summary>
@@ -557,6 +556,23 @@ namespace NexusForever.WorldServer.Game.Entity
                 Vehicle vehicle = GetVisible<Vehicle>(VehicleGuid);
                 vehicle.PassengerRemove(this);
             }
+        }
+
+        /// <summary>
+        /// Remove all entities associated with the <see cref="Player"/>
+        /// </summary>
+        private void DestroyDependents()
+        {
+            // TODO: Enqueue re-creation of necessary entities
+            if (VehicleGuid != 0u)
+            {
+                Vehicle vehicle = GetVisible<Vehicle>(VehicleGuid);
+                if(vehicle != null)
+                    vehicle.Destroy();
+                VehicleGuid = 0u;
+            }
+
+            // TODO: Remove pets, scanbots, vanity pets
         }
 
         public void Save(AuthContext context)
