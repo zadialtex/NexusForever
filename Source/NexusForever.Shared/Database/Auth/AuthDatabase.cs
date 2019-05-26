@@ -69,8 +69,8 @@ namespace NexusForever.Shared.Database.Auth
                 if (context.Account.FirstOrDefault(a => a.Email == email) != null) 
                     return null;
 
-                // Ensure only Alphanumeric, '@', and '.', symbols are used in the email
-                if (Regex.IsMatch(email, @"[^A-Za-z0-9@.]"))
+                // Ensure only allowed symbols are used in the email - https://en.wikipedia.org/wiki/Email_address#Local-part
+                if (Regex.IsMatch(email, @"[^A-Za-z0-9@.!#$%&'*+-/=?^_`{|}~]"))
                     return null;
 
                 byte[] s = RandomProvider.GetBytes(16u);
