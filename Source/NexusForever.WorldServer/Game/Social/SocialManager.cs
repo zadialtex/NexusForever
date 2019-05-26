@@ -339,7 +339,7 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="session"></param>
         /// <param name="chat"></param>
         /// <returns></returns>
-        private static IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, IEnumerable<ChatFormat> chatFormats)
+        public static IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, IEnumerable<ChatFormat> chatFormats)
         {
             foreach (ChatFormat format in chatFormats)
             {
