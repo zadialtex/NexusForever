@@ -21,7 +21,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("add", "currencyId amount - Adds currency to character.", Permission.None)]
-        public Task AddSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task AddSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length != 2)
             {
@@ -53,7 +53,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("list", "Lists currency IDs and names", Permission.None)]
-        public Task ListSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task ListSubCommand(CommandContext context, string command, string[] parameters)
         {
             foreach (var entry in GameTableManager.Instance.CurrencyType.Entries)
             {

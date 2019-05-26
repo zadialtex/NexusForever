@@ -92,6 +92,6 @@ namespace NexusForever.WorldServer.Command.Handler
             // TODO
         }
 
-        private delegate Task SubCommandHandler(CommandContext context, string subCommand, string[] parameters);
+        public delegate Task SubCommandHandler(CommandContext context, string subCommand, string[] parameters);
     }
 }

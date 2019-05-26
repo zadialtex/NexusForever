@@ -3,6 +3,7 @@ using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
 using NexusForever.WorldServer.Game.Account.Static;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Network.Message.Handler;
 using NLog;
 
 namespace NexusForever.WorldServer.Command.Handler

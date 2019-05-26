@@ -4,9 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+<<<<<<< HEAD
 using NexusForever.Shared;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+=======
+>>>>>>> Fixes following merging of new branch data
 using NexusForever.Shared.Configuration;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Account;
@@ -175,7 +178,7 @@ namespace NexusForever.WorldServer.Game.Social
                 Name    = session.Player.Name,
                 GM      = RoleManager.HasPermission(session, Permission.GMFlag),
                 Text    = chat.Message,
-                Formats = ParseChatLinks(session, chat).ToList(),
+                Formats = ParseChatLinks(session, chat.Formats).ToList(),
             };
 
             session.Player.Map.Search(
@@ -343,23 +346,9 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="session"></param>
         /// <param name="chat"></param>
         /// <returns></returns>
-        private IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChat chat)
+        private IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, IEnumerable<ChatFormat> chatFormats)
         {
-            foreach (ChatFormat format in chat.Formats)
-            {
-                yield return ParseChatFormat(session, format);
-            }
-        }
-
-        /// <summary>
-        /// Parses chat links from <see cref="ChatFormat"/> delivered by <see cref="ClientChatWhisper"/>
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="chat"></param>
-        /// <returns></returns>
-        private IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChatWhisper chat)
-        {
-            foreach (ChatFormat format in chat.Formats)
+            foreach (ChatFormat format in chatFormats)
             {
                 yield return ParseChatFormat(session, format);
             }
