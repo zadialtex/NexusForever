@@ -363,7 +363,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     return;
                 }
 
-                var item = new Item(characterId, itemEntry, Math.Min(count, IsStackable(itemEntry) ? itemEntry.MaxStackCount : 1));
+                var item = new Item(characterId, itemEntry, Math.Min(count, IsStackable(itemEntry) ? itemEntry.MaxStackCount : 1), initialCharges: charges);
                 AddItem(item, InventoryLocation.Inventory, bagIndex);
 
                 if (!player?.IsLoading ?? false)
