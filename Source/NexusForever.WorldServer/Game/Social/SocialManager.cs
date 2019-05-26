@@ -291,6 +291,7 @@ namespace NexusForever.WorldServer.Game.Social
                     Self = true,
                     CrossFaction = targetSession.Player.Faction1 != session.Player.Faction1,
                     Formats = ParseChatLinks(session, whisper.Formats).ToList(),
+                    GM = RoleManager.HasPermission(session, Permission.GMFlag),
                 });
 
                 // Target Player Message
@@ -301,6 +302,7 @@ namespace NexusForever.WorldServer.Game.Social
                     Text = whisper.Message,
                     CrossFaction = targetSession.Player.Faction1 != session.Player.Faction1,
                     Formats = ParseChatLinks(session, whisper.Formats).ToList(),
+                    GM = RoleManager.HasPermission(session, Permission.GMFlag),
                 });
             }
             else
@@ -325,6 +327,7 @@ namespace NexusForever.WorldServer.Game.Social
                 Name = session.Player.Name,
                 Text = chat.Message,
                 Formats = ParseChatLinks(session, chat.Formats).ToList(),
+                GM = RoleManager.HasPermission(session, Permission.GMFlag),
             };
 
             foreach (WorldSession channelSession in chatChannelSessions[chat.Channel])
