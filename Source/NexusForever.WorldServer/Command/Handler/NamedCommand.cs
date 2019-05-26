@@ -56,7 +56,7 @@ namespace NexusForever.WorldServer.Command.Handler
             bool isConsole = session.Session == null;
 
             if (isConsole || RoleManager.HasPermission(session.Session, RequiredPermission))
-                await HandleCommandAsync(session, command, parameters);
+                await HandleCommandAsync(session, command, parameters, chatLinks);
             else
                 await session.SendMessageAsync($"Your account status is too low for this command: !{command} (Requires permission: {RequiredPermission})");
         }

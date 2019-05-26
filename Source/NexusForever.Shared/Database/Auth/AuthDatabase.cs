@@ -72,12 +72,12 @@ namespace NexusForever.Shared.Database.Auth
             using (var context = new AuthContext())
             {
                 // Ensure account doesn't already exist with the same email
-                if (context.Account.FirstOrDefault(a => a.Email == email) != null) 
-                    return null;
+                if (context.Account.FirstOrDefault(a => a.Email == email) != null)
+                    return;
 
                 // Ensure only Alphanumeric, '@', and '.', symbols are used in the email
                 if (Regex.IsMatch(email, @"[^A-Za-z0-9@.]"))
-                    return null;
+                    return;
 
                 byte[] s = RandomProvider.GetBytes(16u);
                 byte[] v = Srp6Provider.GenerateVerifier(s, email, password);
@@ -108,7 +108,7 @@ namespace NexusForever.Shared.Database.Auth
 
                 context.SaveChanges();
 
-                return await context.Account.FirstOrDefaultAsync(a => a.Email == email);
+                context.Account.FirstOrDefaultAsync(a => a.Email == email);
             }
         }
 

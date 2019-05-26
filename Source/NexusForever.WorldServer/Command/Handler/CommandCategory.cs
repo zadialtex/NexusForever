@@ -82,7 +82,7 @@ namespace NexusForever.WorldServer.Command.Handler
                 bool isConsole = context.Session == null;
 
                 if (isConsole || RoleManager.HasPermission(context.Session, commandCallback.RequiredPermission))
-                    await (commandCallback.Handler?.Invoke(context, parameters[0], parameters.Skip(1).ToArray()) ??
+                    await (commandCallback.Handler?.Invoke(context, parameters[0], parameters.Skip(1).ToArray(), chatLinks) ??
                         Task.CompletedTask);
                 else
                     await context.SendMessageAsync($"Your account status is too low for this subcommand: !{command} {string.Join(' ', parameters)} (Requires permission: {commandCallback.RequiredPermission})");
@@ -93,6 +93,6 @@ namespace NexusForever.WorldServer.Command.Handler
             // TODO
         }
 
-        public delegate Task SubCommandHandler(CommandContext context, string subCommand, string[] parameters);
+        public delegate Task SubCommandHandler(CommandContext context, string subCommand, string[] parameters, IEnumerable<ChatFormat> chatLinks);
     }
 }
