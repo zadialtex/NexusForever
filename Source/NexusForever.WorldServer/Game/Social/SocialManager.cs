@@ -284,7 +284,7 @@ namespace NexusForever.WorldServer.Game.Social
                     Text = whisper.Message,
                     Self = true,
                     CrossFaction = targetSession.Player.Faction1 != session.Player.Faction1,
-                    Formats = ParseChatLinks(session, whisper).ToList(),
+                    Formats = ParseChatLinks(session, whisper.Formats).ToList(),
                 });
 
                 // Target Player Message
@@ -294,7 +294,7 @@ namespace NexusForever.WorldServer.Game.Social
                     Name = session.Player.Name,
                     Text = whisper.Message,
                     CrossFaction = targetSession.Player.Faction1 != session.Player.Faction1,
-                    Formats = ParseChatLinks(session, whisper).ToList(),
+                    Formats = ParseChatLinks(session, whisper.Formats).ToList(),
                 });
             }
             else
@@ -318,7 +318,7 @@ namespace NexusForever.WorldServer.Game.Social
                 Channel = chat.Channel,
                 Name = session.Player.Name,
                 Text = chat.Message,
-                Formats = ParseChatLinks(session, chat).ToList(),
+                Formats = ParseChatLinks(session, chat.Formats).ToList(),
             };
 
             foreach (WorldSession channelSession in chatChannelSessions[chat.Channel])
@@ -337,20 +337,6 @@ namespace NexusForever.WorldServer.Game.Social
         public static IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, List<ChatFormat> chatFormats)
         {
             foreach (ChatFormat format in chatFormats)
-            {
-                yield return ParseChatFormat(session, format);
-            }
-        }
-
-        /// <summary>
-        /// Parses chat links from <see cref="ChatFormat"/> delivered by <see cref="ClientChatWhisper"/>
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="chat"></param>
-        /// <returns></returns>
-        private static IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChatWhisper chat)
-        {
-            foreach (ChatFormat format in chat.Formats)
             {
                 yield return ParseChatFormat(session, format);
             }
