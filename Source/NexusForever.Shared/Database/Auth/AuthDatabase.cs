@@ -76,7 +76,7 @@ namespace NexusForever.Shared.Database.Auth
                     return;
 
                 // Ensure only Alphanumeric, '@', and '.', symbols are used in the email
-                if (Regex.IsMatch(email, @"[^A-Za-z0-9@.]"))
+                if (Regex.IsMatch(email, @"[^A-Za-z0-9@.-_]"))
                     return;
 
                 byte[] s = RandomProvider.GetBytes(16u);
