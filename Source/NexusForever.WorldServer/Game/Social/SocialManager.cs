@@ -290,7 +290,7 @@ namespace NexusForever.WorldServer.Game.Social
                     Text = whisper.Message,
                     Self = true,
                     CrossFaction = targetSession.Player.Faction1 != session.Player.Faction1,
-                    Formats = ParseChatLinks(session, whisper).ToList(),
+                    Formats = ParseChatLinks(session, whisper.Formats).ToList(),
                 });
 
                 // Target Player Message
@@ -300,7 +300,7 @@ namespace NexusForever.WorldServer.Game.Social
                     Name = session.Player.Name,
                     Text = whisper.Message,
                     CrossFaction = targetSession.Player.Faction1 != session.Player.Faction1,
-                    Formats = ParseChatLinks(session, whisper).ToList(),
+                    Formats = ParseChatLinks(session, whisper.Formats).ToList(),
                 });
             }
             else
