@@ -270,11 +270,15 @@ namespace NexusForever.WorldServer.Game.Guild
                             session.Player.GuildId = newGuild.Id;
                             SendPacketsAfterJoin(session, newGuild, GuildResult.YouCreated);
                         }
+                        else
+                            result = GuildResult.UnableToProcess;
                         break;
                     case GuildType.Circle:
                         GuildBase newCircle = CreateCircle(session, clientGuildRegister);
                         if (newCircle != null)
                             SendPacketsAfterJoin(session, newCircle, GuildResult.YouCreated);
+                        else
+                            result = GuildResult.UnableToProcess;
                         break;
                     case GuildType.ArenaTeam2v2:
                     case GuildType.ArenaTeam3v3:
@@ -282,18 +286,27 @@ namespace NexusForever.WorldServer.Game.Guild
                         GuildBase newArenaTeam = CreateArenaTeam(session, clientGuildRegister);
                         if (newArenaTeam != null)
                             SendPacketsAfterJoin(session, newArenaTeam, GuildResult.YouCreated);
+                        else
+                            result = GuildResult.UnableToProcess;
                         break;
                     case GuildType.WarParty:
                         GuildBase newWarParty = CreateWarParty(session, clientGuildRegister);
                         if (newWarParty != null)
                             SendPacketsAfterJoin(session, newWarParty, GuildResult.YouCreated);
+                        else
+                            result = GuildResult.UnableToProcess;
                         break;
                     case GuildType.Community:
                         GuildBase newCommunity = CreateCommunity(session, clientGuildRegister);
                         if (newCommunity != null)
                             SendPacketsAfterJoin(session, newCommunity, GuildResult.YouCreated);
+                        else
+                            result = GuildResult.UnableToProcess;
                         break;
                 }
+
+                if (result != GuildResult.Success)
+                    SendGuildResult(session, result);
             }
             else
                 SendGuildResult(session, result);
@@ -334,8 +347,10 @@ namespace NexusForever.WorldServer.Game.Guild
         private static Guild CreateGuild(WorldSession session, ClientGuildRegister clientGuildRegister)
         {
             var guild = new Guild(session, clientGuildRegister.GuildName, clientGuildRegister.MasterTitle, clientGuildRegister.CouncilTitle, clientGuildRegister.MemberTitle, clientGuildRegister.GuildStandard);
-            guilds.TryAdd(guild.Id, guild);
-            return guild;
+            if (guilds.TryAdd(guild.Id, guild))
+                return guild;
+            else
+                return null;
         }
 
         /// <summary>
