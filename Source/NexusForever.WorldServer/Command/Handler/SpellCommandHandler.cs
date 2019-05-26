@@ -17,7 +17,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("add", "spell4BaseId - Add a spell to the character", Permission.CommandSpellAdd)]
-        public Task AddSpellSubCommand(CommandContext context, string command, string[] parameters)
+        public Task AddSpellSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length == 0)
                 return Task.CompletedTask;
@@ -27,7 +27,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("cast", "spell4BaseId [tier] - Cast a spell, optionally supplying the tier", Permission.CommandSpellCast)]
-        public Task CastSpellSubCommand(CommandContext context, string command, string[] parameters)
+        public Task CastSpellSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length == 0)
                 return Task.CompletedTask;
@@ -42,7 +42,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("resetcooldown", "[spell4Id] - Reset a single spell cooldown, if no spell if supplyed all cooldowns will be reset", Permission.CommandSpellResetCooldowns)]
-        public Task ResetCooldownSubCommand(CommandContext context, string command, string[] parameters)
+        public Task ResetCooldownSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length > 0)
                 context.Session.Player.SpellManager.SetSpellCooldown(uint.Parse(parameters[0]), 0d);

@@ -17,7 +17,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("add", "titleId - Add a title to the character", Permission.CommandTitleAdd)]
-        public Task AddTitleSubCommand(CommandContext context, string command, string[] parameters)
+        public Task AddTitleSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length <= 0)
                 return Task.CompletedTask;
@@ -27,7 +27,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("revoke", "titleId - Revoke a title from the character", Permission.CommandTitleRevoke)]
-        public Task RemoveTitleSubCommand(CommandContext context, string command, string[] parameters)
+        public Task RemoveTitleSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length <= 0)
                 return Task.CompletedTask;
@@ -37,14 +37,14 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("all", "Add all titles to the character", Permission.CommandTitleAll)]
-        public Task AddAllTitlesSubCommand(CommandContext context, string command, string[] parameters)
+        public Task AddAllTitlesSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             context.Session.Player.TitleManager.AddAllTitles();
             return Task.CompletedTask;
         }
 
         [SubCommandHandler("none", "Revoke all titles from the character", Permission.CommandTitleNone)]
-        public Task RemoveAllTitlesSubCommand(CommandContext context, string command, string[] parameters)
+        public Task RemoveAllTitlesSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             context.Session.Player.TitleManager.RevokeAllTitles();
             return Task.CompletedTask;
