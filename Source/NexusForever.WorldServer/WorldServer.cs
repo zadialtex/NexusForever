@@ -99,6 +99,7 @@ namespace NexusForever.WorldServer
                 GlobalQuestManager.Instance.Update(lastTick);
                 ContactManager.Update(lastTick);
                 GuildManager.Update(lastTick);
+                Console.Title = Title + $":: Clients: {NetworkManager<WorldSession>.GetSessions().Count()} | Maps: {MapManager.GetMapCount()}";
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())

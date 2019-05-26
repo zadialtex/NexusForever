@@ -19,6 +19,10 @@ namespace NexusForever.WorldServer.Game.Map
         {
         }
 
+        public int GetMapCount()
+        {
+            return maps.Keys.Count;
+        }
         public void Update(double lastTick)
         {
             if (maps.Count == 0)
