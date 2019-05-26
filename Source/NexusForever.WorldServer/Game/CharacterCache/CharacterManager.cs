@@ -70,8 +70,7 @@ namespace NexusForever.WorldServer.Game.CharacterCache
         /// </summary>
         public static bool IsCharacter(string name)
         {
-            characterNameToId.TryGetValue(name.ToLower(), out ulong value);
-            return value > 0;
+            return characterNameToId.TryGetValue(name.ToLower(), out ulong value);
         }
 
         /// <summary>
@@ -97,8 +96,7 @@ namespace NexusForever.WorldServer.Game.CharacterCache
         /// </summary>
         public static ICharacter GetCharacterInfo(string name)
         {
-            characterNameToId.TryGetValue(name.ToLower(), out ulong characterId);
-            if (characterId > 0)
+            if(characterNameToId.TryGetValue(name.ToLower(), out ulong characterId))
             {
                 characters.TryGetValue(characterId, out ICharacter characterInfo);
                 return characterInfo;

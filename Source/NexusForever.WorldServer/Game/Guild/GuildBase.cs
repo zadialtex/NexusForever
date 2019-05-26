@@ -405,10 +405,11 @@ namespace NexusForever.WorldServer.Game.Guild
         {
             foreach (WorldSession targetSession in OnlineMembers.Values)
             {
-                members.TryGetValue(targetSession.Player.CharacterId, out Member member);
-
-                if ((member.Rank.GuildPermission & requiredPermission) != 0)
-                    targetSession.EnqueueMessageEncrypted(writable);
+                if(members.TryGetValue(targetSession.Player.CharacterId, out Member member))
+                {
+                    if ((member.Rank.GuildPermission & requiredPermission) != 0)
+                        targetSession.EnqueueMessageEncrypted(writable);
+                }
             }
                 
         }

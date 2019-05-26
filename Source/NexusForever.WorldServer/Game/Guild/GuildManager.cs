@@ -2,6 +2,7 @@
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character;
+using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Guild.Static;
@@ -129,13 +130,13 @@ namespace NexusForever.WorldServer.Game.Guild
         /// </summary>
         public static void HandleGuildOperation(WorldSession session, ClientGuildOperation operation)
         {
-            if (guildOperationHandlers.ContainsKey(operation.Operation))
+            if (guildOperationHandlers.TryGetValue(operation.Operation, out GuildOperationHandler handler))
             {
                 GetGuild(operation.GuildId, out GuildBase guild);
                 GuildResult canOperate = HasGuildPermission(guild, session.Player.CharacterId);
 
                 if (canOperate == GuildResult.Success)
-                    guildOperationHandlers[operation.Operation](session, operation, guild);
+                    handler(session, operation, guild);
                 else
                     SendGuildResult(session, canOperate, guild);
             }
@@ -387,8 +388,7 @@ namespace NexusForever.WorldServer.Game.Guild
             if (guildInvite == null)
                 throw new ArgumentNullException("Guild invite is null.");
 
-            guilds.TryGetValue(guildInvite.GuildId, out GuildBase guild);
-            if (guild == null)
+            if(guilds.TryGetValue(guildInvite.GuildId, out GuildBase guild))
                 result = GuildResult.NotAGuild;
             else if (guild.GetMemberCount() >= maxGuildSize[guild.Type])
                 result = GuildResult.CannotInviteGuildFull;
@@ -421,8 +421,7 @@ namespace NexusForever.WorldServer.Game.Guild
         /// <param name="guildId"></param>
         public static void DeleteGuild(ulong guildId)
         {
-            guilds.TryGetValue(guildId, out GuildBase guild);
-            if (guild == null)
+            if(!guilds.TryGetValue(guildId, out GuildBase guild))
                 throw new ArgumentNullException($"Guild not found with ID {guildId}");
 
             guild.Delete();
@@ -465,8 +464,7 @@ namespace NexusForever.WorldServer.Game.Guild
         {
             foreach (ulong guildId in session.Player.GuildMemberships)
             {
-                guilds.TryGetValue(guildId, out GuildBase guild);
-                if (guild != null)
+                if(guilds.TryGetValue(guildId, out GuildBase guild))
                     guild.OnPlayerLogout(session, player);
             }
         }
@@ -617,7 +615,7 @@ namespace NexusForever.WorldServer.Game.Guild
             {
                 GuildName = guild.Name,
                 GuildType = guild.Type,
-                PlayerName = session.Player.Name,
+                PlayerName = CharacterManager.GetCharacterInfo(session.Player.PendingGuildInvite.InviteeId).Name,
                 Taxes = taxes
             };
 
