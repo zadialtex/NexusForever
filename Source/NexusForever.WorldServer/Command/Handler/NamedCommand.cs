@@ -5,11 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
-using NexusForever.WorldServer.Network.Message.Model.Shared;
-using NexusForever.WorldServer.Game.Account.Static;
-using NexusForever.Shared.Configuration;
-using Microsoft.Extensions.Configuration;
-using NexusForever.WorldServer.Game.Account;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
@@ -56,7 +51,7 @@ namespace NexusForever.WorldServer.Command.Handler
             bool isConsole = session.Session == null;
 
             if (isConsole || RoleManager.HasPermission(session.Session, RequiredPermission))
-                await HandleCommandAsync(session, command, parameters, chatLinks);
+                await HandleCommandAsync(session, command, parameters);
             else
                 await session.SendMessageAsync($"Your account status is too low for this command: !{command} (Requires permission: {RequiredPermission})");
         }

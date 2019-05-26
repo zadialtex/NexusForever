@@ -175,7 +175,7 @@ namespace NexusForever.WorldServer.Game.Social
                 Name    = session.Player.Name,
                 GM      = RoleManager.HasPermission(session, Permission.GMFlag),
                 Text    = chat.Message,
-                Formats = ParseChatLinks(session, chat.Formats).ToList(),
+                Formats = ParseChatLinks(session, chat).ToList(),
             };
 
             session.Player.Map.Search(
@@ -343,9 +343,9 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="session"></param>
         /// <param name="chat"></param>
         /// <returns></returns>
-        public IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, List<ChatFormat> chatFormats)
+        private IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChat chat)
         {
-            foreach (ChatFormat format in chatFormats)
+            foreach (ChatFormat format in chat.Formats)
             {
                 yield return ParseChatFormat(session, format);
             }

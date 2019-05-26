@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using NexusForever.Shared.GameTable;
-using NexusForever.Shared.GameTable.Model;
+﻿using System.Threading.Tasks;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
 using NexusForever.WorldServer.Game.Account.Static;
@@ -12,8 +8,6 @@ namespace NexusForever.WorldServer.Command.Handler
     [Name("Items", Permission.None)]
     public class ItemCommandHandler : CommandCategory
     {
-        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
-
         public ItemCommandHandler()
             : base(true, "item")
         {
