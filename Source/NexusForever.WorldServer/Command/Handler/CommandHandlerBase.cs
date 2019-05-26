@@ -14,8 +14,8 @@ namespace NexusForever.WorldServer.Command.Handler
         public abstract int Order { get; }
         public abstract Permission RequiredPermission { get; }
         public abstract IEnumerable<string> GetCommands();
-        public abstract Task HandleAsync(CommandContext session, string text, IEnumerable<ChatFormat> chatLinks);
-        public abstract Task<bool> HandlesAsync(CommandContext session, string input, IEnumerable<ChatFormat> chatLinks);
+        public abstract Task HandleAsync(CommandContext session, string text);
+        public abstract Task<bool> HandlesAsync(CommandContext session, string input);
 
         protected static void ParseCommand(string value, out string command, out string[] parameters)
         {

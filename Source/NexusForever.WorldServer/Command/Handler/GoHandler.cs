@@ -28,7 +28,7 @@ namespace NexusForever.WorldServer.Command.Handler
             if (world != null && world.LocalizedTextIdName != 0)
                 yield return world.LocalizedTextIdName;
         }
-        protected override async Task HandleCommandAsync(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        protected override async Task HandleCommandAsync(CommandContext context, string command, string[] parameters)
         {
             string zoneName = string.Join(" ", parameters);
 
