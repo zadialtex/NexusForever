@@ -36,15 +36,15 @@ namespace NexusForever.WorldServer.Command
 
         public bool HandleCommand(WorldSession session, string commandText, bool isFromChat, IEnumerable<ChatFormat> chatLinks = null)
         {
-            return HandleCommand(new WorldSessionCommandContext(session), commandText, isFromChat, chatLinks);
+            return HandleCommand(new WorldSessionCommandContext(session, chatLinks), commandText, isFromChat);
         }
 
-        public bool HandleCommand(CommandContext context, string commandText, bool isFromChat, IEnumerable<ChatFormat> chatLinks = null)
+        public bool HandleCommand(CommandContext context, string commandText, bool isFromChat)
         {
-            return HandleCommandAsync(context, commandText, isFromChat, chatLinks).GetAwaiter().GetResult();
+            return HandleCommandAsync(context, commandText, isFromChat).GetAwaiter().GetResult();
         }
 
-        public async Task<bool> HandleCommandAsync(CommandContext session, string commandText, bool isFromChat, IEnumerable<ChatFormat> chatLinks = null)
+        public async Task<bool> HandleCommandAsync(CommandContext session, string commandText, bool isFromChat)
         {
             if (isFromChat)
             {
@@ -56,10 +56,10 @@ namespace NexusForever.WorldServer.Command
 
             foreach (ICommandHandler command in GetCommandHandlers())
             {
-                if (!await command.HandlesAsync(session, commandText, chatLinks))
+                if (!await command.HandlesAsync(session, commandText))
                     continue;
 
-                await command.HandleAsync(session, commandText, chatLinks);
+                await command.HandleAsync(session, commandText);
                 return true;
             }
 

@@ -44,7 +44,7 @@ namespace NexusForever.WorldServer.Command.Handler
             return CommandNames;
         }
 
-        public sealed override async Task HandleAsync(CommandContext session, string text, IEnumerable<ChatFormat> chatLinks)
+        public sealed override async Task HandleAsync(CommandContext session, string text)
         {
             ParseCommand(text, out string command, out string[] parameters);
             if (SupportsHelp && parameters.Length != 0 && IsHelpRequest(parameters[0]))
@@ -72,9 +72,9 @@ namespace NexusForever.WorldServer.Command.Handler
             return helpVerbs.Any(i => string.Equals(i, text, StringComparison.OrdinalIgnoreCase));
         }
 
-        protected abstract Task HandleCommandAsync(CommandContext session, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks);
+        protected abstract Task HandleCommandAsync(CommandContext session, string command, string[] parameters);
 
-        public override Task<bool> HandlesAsync(CommandContext session, string input, IEnumerable<ChatFormat> chatLinks)
+        public override Task<bool> HandlesAsync(CommandContext session, string input)
         {
             /*if (RequiresSession && session.Session == null)
                 return false;*/

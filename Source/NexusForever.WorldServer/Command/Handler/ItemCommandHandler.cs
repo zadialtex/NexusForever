@@ -20,9 +20,12 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("add", "itemId [quantity] - Add an item to inventory, optionally specifying quantity", Permission.CommandItemAdd)]
-        public Task AddItemSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task AddItemSubCommand(CommandContext context, string command, string[] parameters)
         {
-            List<ChatFormat> ItemLinks = chatLinks?.Where(i => (i.Type == Game.Social.Static.ChatFormatType.ItemItemId || i.Type == Game.Social.Static.ChatFormatType.ItemGuid || i.Type == Game.Social.Static.ChatFormatType.ItemFull)).ToList();
+            log.Info($"{context.ChatLinks.Count()} chat links");
+            List<ChatFormat> ItemLinks = context.ChatLinks != null ? 
+                context.ChatLinks.Where(i => (i.Type == Game.Social.Static.ChatFormatType.ItemItemId || i.Type == Game.Social.Static.ChatFormatType.ItemGuid || i.Type == Game.Social.Static.ChatFormatType.ItemFull)).ToList() 
+                : new List<ChatFormat>();
             if (parameters.Length <= 0)
                 return Task.CompletedTask;
 
@@ -35,7 +38,7 @@ namespace NexusForever.WorldServer.Command.Handler
                 charges = uint.Parse(parameters[2]);
 
             uint itemId = 0;
-            if(ItemLinks?.Count == 1)
+            if(ItemLinks.Count == 1)
             {
                 ChatFormat itemLink = ItemLinks[0];
                 if (itemLink.Type == Game.Social.Static.ChatFormatType.ItemItemId)
@@ -49,11 +52,13 @@ namespace NexusForever.WorldServer.Command.Handler
                     itemId = context.Session.Player.Inventory.GetItem(formatModel.Guid).Entry.Id;
                 }
             }
+            else if (ItemLinks.Count > 1)
+                return context.SendMessageAsync($"Too many item links included. Please try again using a single item link.");
             else
                 itemId = uint.Parse(parameters[0]);
 
             if (itemId > 0)
-                context.Session.Player.Inventory.ItemCreate(uint.Parse(parameters[0]), amount, 49, charges);
+                context.Session.Player.Inventory.ItemCreate(itemId, amount, 49, charges);
             else
                 context.SendMessageAsync($"Problem trying to create item: {parameters[0]}. Please try again.");
             
@@ -68,7 +73,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("find", "itemName - Search for an item by name.")]
-        public async Task FindItemSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public async Task FindItemSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length <= 0)
                 await Task.CompletedTask;

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
 using NexusForever.WorldServer.Game.Account.Static;
@@ -21,7 +20,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("activate", "pathId - Activate a path for this player.", Permission.CommandPathActivate)]
-        public Task AddPathActivateSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task AddPathActivateSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length <= 0)
                 return Task.CompletedTask;
@@ -46,7 +45,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("unlock", "pathId - Unlock a path for this player.", Permission.CommandPathUnlock)]
-        public Task AddPathUnlockSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task AddPathUnlockSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length <= 0)
             {
@@ -70,7 +69,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("addxp", "xp - Add the XP value to the player's curent Path XP.", Permission.CommandPathAddXp)]
-        public Task AddPathAddXPSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task AddPathAddXPSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length > 0)
             {

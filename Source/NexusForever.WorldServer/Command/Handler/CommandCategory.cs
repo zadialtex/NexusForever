@@ -45,16 +45,15 @@ namespace NexusForever.WorldServer.Command.Handler
 
                 #region Debug
 
-                Debug.Assert(parameterInfo.Length == 4);
+                Debug.Assert(parameterInfo.Length == 3);
                 Debug.Assert(method.ReturnType == typeof(Task));
                 Debug.Assert(typeof(CommandContext) == parameterInfo[0].ParameterType);
                 Debug.Assert(typeof(string) == parameterInfo[1].ParameterType);
                 Debug.Assert(typeof(string[]) == parameterInfo[2].ParameterType);
-                Debug.Assert(typeof(IEnumerable<ChatFormat>) == parameterInfo[3].ParameterType);
 
                 #endregion
 
-                    helpBuilder.Append($"   {attribute.Command} - ");
+                helpBuilder.Append($"   {attribute.Command} - ");
                 if (string.IsNullOrWhiteSpace(attribute.HelpText))
                     helpBuilder.AppendLine("No help available.");
                 else
@@ -69,7 +68,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         protected sealed override async Task HandleCommandAsync(CommandContext context, string command,
-            string[] parameters, IEnumerable<ChatFormat> chatLinks)
+            string[] parameters)
         {
             if (parameters.Length > 0)
             {
@@ -93,6 +92,6 @@ namespace NexusForever.WorldServer.Command.Handler
             // TODO
         }
 
-        public delegate Task SubCommandHandler(CommandContext context, string subCommand, string[] parameters, IEnumerable<ChatFormat> chatLinks);
+        private delegate Task SubCommandHandler(CommandContext context, string subCommand, string[] parameters);
     }
 }

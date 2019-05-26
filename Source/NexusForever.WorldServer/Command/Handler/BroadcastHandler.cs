@@ -18,7 +18,7 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        protected override Task HandleCommandAsync(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        protected override Task HandleCommandAsync(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length <= 2 || parameters[0].Length > 1)
             {
