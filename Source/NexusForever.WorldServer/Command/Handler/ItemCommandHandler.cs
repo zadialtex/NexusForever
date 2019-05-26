@@ -20,7 +20,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("add", "itemId [quantity] - Add an item to inventory, optionally specifying quantity", Permission.CommandItemAdd)]
-        public Task AddItemSubCommand(CommandContext context, string command, string[] parameters)
+        public Task AddItemSubCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             List<ChatFormat> ItemLinks = chatLinks?.Where(i => (i.Type == Game.Social.Static.ChatFormatType.ItemItemId || i.Type == Game.Social.Static.ChatFormatType.ItemGuid || i.Type == Game.Social.Static.ChatFormatType.ItemFull)).ToList();
             if (parameters.Length <= 0)
