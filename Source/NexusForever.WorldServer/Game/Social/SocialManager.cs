@@ -246,7 +246,7 @@ namespace NexusForever.WorldServer.Game.Social
                     ChatId = guild.Id,
                     Name = session.Player.Name,
                     Text = chat.Message,
-                    Formats = ParseChatLinks(session, chat).ToList(),
+                    Formats = ParseChatLinks(session, chat.Formats).ToList(),
                 };
                 guild.SendToOnlineUsers(serverChat, Guild.Static.GuildRankPermission.OfficerChat);
             }
