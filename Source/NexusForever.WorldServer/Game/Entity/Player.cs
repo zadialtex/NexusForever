@@ -416,6 +416,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         protected override void OnZoneUpdate()
         {
+            #if DEBUG
             if (Zone != null)
             {
                 TextTable tt = GameTableManager.GetTextTable(Language.English);
