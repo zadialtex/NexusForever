@@ -15,7 +15,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("unlockflair", "petFlairId - Unlock a pet flair", Permission.CommandPetUnlockFlair)]
-        public Task AddFlairSubCommandHandler(CommandContext context, string command, string[] parameters)
+        public Task AddFlairSubCommandHandler(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length != 1)
                 return Task.CompletedTask;

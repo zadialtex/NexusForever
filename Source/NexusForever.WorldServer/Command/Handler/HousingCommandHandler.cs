@@ -22,7 +22,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("teleport", "[name] - Teleport to a residence, optionally specifying a character", Permission.CommandHouseTeleport)]
-        public Task TeleportSubCommandHandler(CommandContext context, string command, string[] parameters)
+        public Task TeleportSubCommandHandler(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             string name = parameters.Length == 0 ? context.Session.Player.Name : string.Join(" ", parameters);
 
@@ -45,7 +45,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("decoradd", "decorId [quantity] - Add decor by id to your crate, optionally specifying quantity", Permission.CommandHouseDecorAdd)]
-        public Task DecorAddSubCommandHandler(CommandContext context, string command, string[] parameters)
+        public Task DecorAddSubCommandHandler(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length < 1 && parameters.Length > 2)
                 return Task.CompletedTask;
@@ -71,7 +71,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("decorlookup", "name - Returns a list of decor ids that match the supplied name", Permission.CommandHouseDecorLookup)]
-        public Task DecorLookupSubCommandHandler(CommandContext context, string command, string[] parameters)
+        public Task DecorLookupSubCommandHandler(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length != 1)
                 return Task.CompletedTask;

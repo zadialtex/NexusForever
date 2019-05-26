@@ -62,7 +62,7 @@ namespace NexusForever.WorldServer.Command.Handler
             entity.MovementManager.LaunchGenerator(generator, 3f);
         }
 
-        [SubCommandHandler("splineadd", "")]
+        [SubCommandHandler("splineadd", "", Permission.CommandMovementSplineAdd)]
         public async Task DebugSplineAddCommandHandler(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             WorldEntity entity = context.Session.Player.GetVisible<WorldEntity>(context.Session.Player.TargetGuid);
@@ -85,7 +85,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("splineclear", "", Permission.CommandMovementSplineClear)]
-        public async Task DebugSplineClearCommandHandler(CommandContext context, string command, string[] parameters)
+        public async Task DebugSplineClearCommandHandler(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             WorldEntity entity = context.Session.Player.GetVisible<WorldEntity>(context.Session.Player.TargetGuid);
             if (entity == null)
@@ -102,7 +102,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("splinelaunch", "", Permission.CommandMovementSplineLaunch)]
-        public async Task DebugSplineLaunchCommandHandler(CommandContext context, string command, string[] parameters)
+        public async Task DebugSplineLaunchCommandHandler(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
         {
             if (parameters.Length != 0 && parameters.Length != 2)
             {
