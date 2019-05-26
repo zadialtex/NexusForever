@@ -18,7 +18,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("addxp", "amount - Add the amount to your total xp.", Permission.None)]
-        public Task AddXPCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task AddXPCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length > 0)
             {
@@ -37,7 +37,7 @@ namespace NexusForever.WorldServer.Command.Handler
 
         // TODO: Update after "SetStat" packets are available.
         [SubCommandHandler("level", "value - Set your level to the value passed in", Permission.None)]
-        public Task SetLevelCommand(CommandContext context, string command, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public Task SetLevelCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length > 0)
             {

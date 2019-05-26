@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NexusForever.WorldServer.Command.Contexts;
 using NexusForever.WorldServer.Command.Handler;
 using NexusForever.WorldServer.Network;
+using NexusForever.WorldServer.Network.Message.Model.Shared;
 using NLog;
 
 namespace NexusForever.WorldServer.Command
@@ -31,7 +32,7 @@ namespace NexusForever.WorldServer.Command
             return commandHandlers.OrderBy(i => i.Order);
         }
 
-        public static bool HandleCommand(WorldSession session, string commandText, bool isFromChat)
+        public static bool HandleCommand(WorldSession session, string commandText, bool isFromChat, IEnumerable<ChatFormat> chatLinks = null)
         {
             return HandleCommand(new WorldSessionCommandContext(session, chatLinks), commandText, isFromChat);
         }

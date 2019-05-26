@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NexusForever.Shared.Configuration;
 using NexusForever.Shared.Database.Auth;

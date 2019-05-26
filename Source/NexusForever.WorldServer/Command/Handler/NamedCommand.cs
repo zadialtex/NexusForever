@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
+using NexusForever.WorldServer.Game.Account;
+using NexusForever.WorldServer.Game.Account.Static;
 
 namespace NexusForever.WorldServer.Command.Handler
 {

@@ -20,7 +20,7 @@ namespace NexusForever.WorldServer.Command.Handler
         }
 
         [SubCommandHandler("motd", "message - Set the realm's Message of the Day and announce to the realm")]
-        public async Task HandleMotd(CommandContext context, string subCommand, string[] parameters, IEnumerable<ChatFormat> chatLinks)
+        public async Task HandleMotd(CommandContext context, string subCommand, string[] parameters)
         {
             if (parameters.Length < 1)
             {

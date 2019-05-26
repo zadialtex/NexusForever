@@ -1,7 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using NexusForever.Shared.GameTable;
+using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
+using NexusForever.WorldServer.Game;
 using NexusForever.WorldServer.Game.Account.Static;
+using NexusForever.WorldServer.Game.Social;
+using NexusForever.WorldServer.Game.Social.Model;
+using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
@@ -16,7 +24,6 @@ namespace NexusForever.WorldServer.Command.Handler
         [SubCommandHandler("add", "itemId [quantity] - Add an item to inventory, optionally specifying quantity", Permission.CommandItemAdd)]
         public Task AddItemSubCommand(CommandContext context, string command, string[] parameters)
         {
-            log.Info($"{context.ChatLinks.Count()} chat links");
             List<ChatFormat> ItemLinks = context.ChatLinks != null ? 
                 context.ChatLinks.Where(i => (i.Type == Game.Social.Static.ChatFormatType.ItemItemId || i.Type == Game.Social.Static.ChatFormatType.ItemGuid || i.Type == Game.Social.Static.ChatFormatType.ItemFull)).ToList() 
                 : new List<ChatFormat>();
