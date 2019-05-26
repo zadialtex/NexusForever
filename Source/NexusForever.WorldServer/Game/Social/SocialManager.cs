@@ -169,7 +169,7 @@ namespace NexusForever.WorldServer.Game.Social
                 Name    = session.Player.Name,
                 GM      = RoleManager.HasPermission(session, Permission.GMFlag),
                 Text    = chat.Message,
-                Formats = ParseChatLinks(session, chat.Formats).ToList(),
+                Formats = ParseChatLinks(session, chat).ToList(),
             };
 
             session.Player.Map.Search(
@@ -337,9 +337,9 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="session"></param>
         /// <param name="chat"></param>
         /// <returns></returns>
-        public static IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, List<ChatFormat> chatFormats)
+        private static IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChat chat)
         {
-            foreach (ChatFormat format in chatFormats)
+            foreach (ChatFormat format in chat.Formats)
             {
                 yield return ParseChatFormat(session, format);
             }
@@ -355,21 +355,6 @@ namespace NexusForever.WorldServer.Game.Social
         {
             switch (format.FormatModel)
             {
-                case ChatFormatItemId chatFormatItemId:
-                    {
-                        Item2Entry item = GameTableManager.Item.GetEntry(chatFormatItemId.ItemId);
-
-                        return new ChatFormat
-                        {
-                            Type = ChatFormatType.ItemItemId,
-                            StartIndex = format.StartIndex,
-                            StopIndex = format.StopIndex,
-                            FormatModel = new ChatFormatItemId
-                            {
-                                ItemId = item.Id
-                            }
-                        };
-                    }
                 case ChatFormatItemGuid chatFormatItemGuid:
                     {
                         Item item = session.Player.Inventory.GetItem(chatFormatItemGuid.Guid);
