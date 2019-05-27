@@ -35,7 +35,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 }
                 catch (Exception e)
                 {
-                    log.Warn($"{e.Message}: {e.StackTrace}");
+                    log.Error($"{e.Message}: {e.StackTrace}");
                 }
             }
             else
