@@ -32,5 +32,6 @@
         "CrossFactionChat":  true
     },
     "DefaultRole": 4,
-    "MessageOfTheDay": ""
+    "MessageOfTheDay": "",
+    "LengthOfInGameDay": 12600
 }

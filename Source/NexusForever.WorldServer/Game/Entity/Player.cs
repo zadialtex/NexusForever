@@ -416,9 +416,9 @@ namespace NexusForever.WorldServer.Game.Entity
 
         protected override void OnZoneUpdate()
         {
-            #if DEBUG
             if (Zone != null)
             {
+                #if DEBUG
                 TextTable tt = GameTableManager.GetTextTable(Language.English);
 
                 Session.EnqueueMessageEncrypted(new ServerChat
@@ -427,6 +427,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     Channel = ChatChannel.System,
                     Text    = $"New Zone: ({Zone.Id}){tt.GetEntry(Zone.LocalizedTextIdName)}"
                 });
+                #endif
 
                 uint tutorialId = AssetManager.GetTutorialIdForZone(Zone.Id);
                 if (tutorialId > 0)
