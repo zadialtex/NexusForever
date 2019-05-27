@@ -749,11 +749,11 @@ namespace NexusForever.WorldServer.Game.Entity
             Bag bag = GetBag(item.Location);
             Debug.Assert(bag != null);
 
+            bag.RemoveItem(item);
+
             if (player != null && bag.Location == InventoryLocation.Equipped)
                 if (IsVisualItem(item))
                     VisualUpdate(item);
-
-            bag.RemoveItem(item);
         }
 
         /// <summary>
