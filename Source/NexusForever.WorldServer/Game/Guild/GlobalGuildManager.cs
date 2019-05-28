@@ -23,7 +23,7 @@ using GuildModel = NexusForever.WorldServer.Database.Character.Model.Guild;
 
 namespace NexusForever.WorldServer.Game.Guild
 {
-    public static partial class GuildManager
+    public static partial class GlobalGuildManager
     {
         private static ILogger log { get; } = LogManager.GetCurrentClassLogger();
 
@@ -59,7 +59,7 @@ namespace NexusForever.WorldServer.Game.Guild
         private static double timeToSave = SaveDuration;
 
         /// <summary>
-        /// Initialise the <see cref="GuildManager"/>, anmd build cache of all existing guilds
+        /// Initialise the <see cref="GlobalGuildManager"/>, anmd build cache of all existing guilds
         /// </summary>
         public static void Initialise()
         {
@@ -132,7 +132,9 @@ namespace NexusForever.WorldServer.Game.Guild
         {
             if (guildOperationHandlers.TryGetValue(operation.Operation, out GuildOperationHandler handler))
             {
-                GetGuild(operation.GuildId, out GuildBase guild);
+                if (!GetGuild(operation.GuildId, out GuildBase guild))
+                    throw new ArgumentNullException("Guild not found.");
+
                 GuildResult canOperate = HasGuildPermission(guild, session.Player.CharacterId);
 
                 if (canOperate == GuildResult.Success)
@@ -237,10 +239,14 @@ namespace NexusForever.WorldServer.Game.Guild
         /// <summary>
         /// Returns <see cref="GuildBase"/> if one exists with the passed guild ID, as an <see cref="out"/> parameter
         /// </summary>
-        public static void GetGuild(ulong guildId, out GuildBase guild)
+        public static bool GetGuild(ulong guildId, out GuildBase guild)
         {
             guilds.TryGetValue(guildId, out GuildBase guildBase);
             guild = guildBase;
+            if (guild == null)
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -466,8 +472,8 @@ namespace NexusForever.WorldServer.Game.Guild
                 player.GuildMemberships.Add(guild.Id);
                 guild.OnPlayerLogin(session, player);
             }
-            if (player.GuildAffiliation > 0)
-                SetGuildHolomark(session, player, GetGuild(player.GuildAffiliation));
+            
+            ValidateGuildAffiliation(player);
 
             // TODO: Figure out packet which instructs the client the state of the Holomark.
         }
@@ -480,8 +486,28 @@ namespace NexusForever.WorldServer.Game.Guild
             foreach (ulong guildId in session.Player.GuildMemberships)
             {
                 if(guilds.TryGetValue(guildId, out GuildBase guild))
-                    guild.OnPlayerLogout(session, player);
+                    guild.OnPlayerLogout(player);
             }
+        }
+
+        /// <summary>
+        /// Ensures that the <see cref="Player"/> Guild Affiliation is still valid
+        /// </summary>
+        private static void ValidateGuildAffiliation(Player player)
+        {
+            if (player.GuildAffiliation <= 0)
+                return;
+
+            // Check that the player is allowed to be affiliated with this guild
+            if (!player.GuildMemberships.Contains(player.GuildAffiliation))
+                player.GuildAffiliation = player.GuildMemberships.Count > 0 ? player.GuildMemberships[0] : 0;
+
+            // Check that the existing or newly affiliated guild exists
+            if (player.GuildAffiliation > 0 && !GetGuild(player.GuildAffiliation, out GuildBase guild)) // Used to ensure guild still exists on login
+                player.GuildAffiliation = player.GuildMemberships.Count > 0 ? player.GuildMemberships[0] : 0;
+
+            if (player.GuildAffiliation > 0)
+                SetGuildHolomark(player, GetGuild(player.GuildAffiliation));
         }
 
         /// <summary>
@@ -502,7 +528,9 @@ namespace NexusForever.WorldServer.Game.Guild
                 playerUnknowns.Add(new GuildPlayerLimits());
             }
 
-            int index = playerGuilds.FindIndex(a => a.GuildId == session.Player.GuildAffiliation);
+            int index = 0;
+            if (session.Player.GuildAffiliation > 0 && GetGuild(session.Player.GuildAffiliation) != null)
+                index = playerGuilds.FindIndex(a => a.GuildId == session.Player.GuildAffiliation);
             ServerGuildInit serverGuildInit = new ServerGuildInit
             {
                 NameplateIndex = (uint)index,
@@ -607,7 +635,7 @@ namespace NexusForever.WorldServer.Game.Guild
                 GuildName = guild.Name,
                 GuildType = guild.Type
             }, true);
-            SetGuildHolomark(session, session.Player, guild, true);
+            SetGuildHolomark(session.Player, guild, session, true);
         }
 
         /// <summary>
@@ -705,29 +733,24 @@ namespace NexusForever.WorldServer.Game.Guild
             else if (!clientGuildHolomarkUpdate.DistanceNear)
                 session.Player.GuildHolomarkMask &= ~GuildHolomark.Near;
 
-            SetGuildHolomark(session, session.Player, guilds[session.Player.GuildId], true);
+            SetGuildHolomark(session.Player, guilds[session.Player.GuildId], session, true);
         }
 
         /// <summary>
         /// Sets the <see cref="Player"/> <see cref="GuildHolomark"/> and updates local clients if necessary
         /// </summary>
-        public static void SetGuildHolomark(WorldSession session, Player player, GuildBase guildBase, bool isUpdate = false)
+        public static void SetGuildHolomark(Player player, GuildBase guildBase, WorldSession session = null, bool isUpdate = false)
         {
-            GuildResult hasPermission = HasGuildPermission(guildBase, player.CharacterId);
             if (guildBase == null)
-            {
-                RemoveGuildHolomark(session, isUpdate);
-                return;
-            }
+                throw new ArgumentException($"Guild not found.");
+            GuildResult hasPermission = HasGuildPermission(guildBase, player.CharacterId);
             if (hasPermission != GuildResult.Success)
                 throw new ArgumentException($"Player does not have permission to use this holomark: {hasPermission}");
-            if (guildBase.Type != GuildType.Guild)
+            if (!(guildBase is Guild guild))
             {
                 RemoveGuildHolomark(session, isUpdate);
                 return;
             }
-
-            Guild guild = (Guild)guildBase;
 
             bool isNear = (player.GuildHolomarkMask & GuildHolomark.Near) != 0;
             Dictionary<ItemSlot, ushort> guildStandardVisuals = new Dictionary<ItemSlot, ushort>
@@ -735,10 +758,10 @@ namespace NexusForever.WorldServer.Game.Guild
                 { ItemSlot.GuildStandardScanLines, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.ScanLines.GuildStandardPartId).ItemDisplayIdStandard },
                 { ItemSlot.GuildStandardBackgroundIcon, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.BackgroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
                 { ItemSlot.GuildStandardForegroundIcon, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.ForegroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
-                { ItemSlot.GuildStandardChest, 5411 },
-                { ItemSlot.GuildStandardBack, isNear ? (ushort)7163 : (ushort)5580 },
-                { ItemSlot.GuildStandardShoulderL, isNear ? (ushort)7164 : (ushort)5581 },
-                { ItemSlot.GuildStandardShoulderR, isNear ? (ushort)7165 : (ushort)5582 }
+                { ItemSlot.GuildStandardChest, 5411 }, // 5411 is the magic number found in sniffs
+                { ItemSlot.GuildStandardBack, isNear ? (ushort)7163 : (ushort)5580 }, // 7163 = Near, 5580 = Far
+                { ItemSlot.GuildStandardShoulderL, isNear ? (ushort)7164 : (ushort)5581 }, // 7164 = Near, 5581 = Far
+                { ItemSlot.GuildStandardShoulderR, isNear ? (ushort)7165 : (ushort)5582 } // 7165 = Near, 5582 = Far
             };
 
             if ((player.GuildHolomarkMask & GuildHolomark.Back) == 0)
@@ -751,7 +774,7 @@ namespace NexusForever.WorldServer.Game.Guild
             foreach (KeyValuePair<ItemSlot, ushort> guildStandardItem in guildStandardVisuals)
                 player.SetAppearance(new ItemVisual { Slot = guildStandardItem.Key, DisplayId = guildStandardItem.Value });
 
-            if (isUpdate)
+            if (isUpdate && session != null)
             {
                 var itemVisuals = new List<ItemVisual>();
                 foreach (KeyValuePair<ItemSlot, ushort> guildStandardItem in guildStandardVisuals)

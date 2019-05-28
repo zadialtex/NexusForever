@@ -61,7 +61,7 @@ namespace NexusForever.WorldServer
             ServerManager.Initialise();
 
             ResidenceManager.Initialise();
-            GuildManager.Initialise();
+            GlobalGuildManager.Initialise();
 
             // make sure the assigned realm id in the configuration file exists in the database
             RealmId = ConfigurationManager<WorldServerConfiguration>.Config.RealmId;
@@ -78,7 +78,7 @@ namespace NexusForever.WorldServer
                 MapManager.Update(lastTick);
                 ResidenceManager.Update(lastTick);
                 BuybackManager.Update(lastTick);
-                GuildManager.Update(lastTick);
+                GlobalGuildManager.Update(lastTick);
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())

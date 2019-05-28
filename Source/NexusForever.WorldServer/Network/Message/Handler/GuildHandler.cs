@@ -17,7 +17,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientGuildRegister)]
         public static void HandleGuildRegister(WorldSession session, ClientGuildRegister request)
         {
-            GuildManager.RegisterGuild(session, request);
+            GlobalGuildManager.RegisterGuild(session, request);
         }
 
         [MessageHandler(GameMessageOpcode.ClientGuildHolomarkUpdate)]
@@ -25,13 +25,13 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         {
             //log.Info($"{clientGuildHolomarkUpdate.LeftHidden}, {clientGuildHolomarkUpdate.RightHidden}, {clientGuildHolomarkUpdate.BackHidden}, {clientGuildHolomarkUpdate.DistanceNear}");
 
-            GuildManager.HandleGuildHolomarkChange(session, clientGuildHolomarkUpdate);
+            GlobalGuildManager.HandleGuildHolomarkChange(session, clientGuildHolomarkUpdate);
         }
 
         [MessageHandler(GameMessageOpcode.ClientGuildOperation)]
         public static void HandleOperation(WorldSession session, ClientGuildOperation clientGuildOperation)
         {
-            GuildManager.HandleGuildOperation(session, clientGuildOperation);
+            GlobalGuildManager.HandleGuildOperation(session, clientGuildOperation);
         }
 
         [MessageHandler(GameMessageOpcode.ClientGuildInviteResponse)]
@@ -41,7 +41,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 return;
 
             if (clientGuildInviteResponse.Accepted)
-                GuildManager.JoinGuild(session, session.Player.PendingGuildInvite);
+                GlobalGuildManager.JoinGuild(session, session.Player.PendingGuildInvite);
             else
             {
                 var targetSession = NetworkManager<WorldSession>.GetSession(i => i.Player?.CharacterId == session.Player.PendingGuildInvite.InviteeId);

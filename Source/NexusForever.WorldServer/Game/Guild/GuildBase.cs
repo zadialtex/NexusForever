@@ -65,7 +65,7 @@ namespace NexusForever.WorldServer.Game.Guild
         /// </summary>
         protected GuildBase(GuildType guildType)
         {
-            Id = GuildManager.NextGuildId;
+            Id = GlobalGuildManager.NextGuildId;
             Type = guildType;
             CreateTime = DateTime.Now;
 
@@ -177,9 +177,9 @@ namespace NexusForever.WorldServer.Game.Guild
         /// <summary>
         /// Used to trigger logout events for <see cref="Player"/> associated with this <see cref="GuildBase"/>
         /// </summary>
-        public void OnPlayerLogout(WorldSession session, Player player)
+        public void OnPlayerLogout(Player player)
         {
-            OnlineMembers.Remove(session.Player.CharacterId);
+            OnlineMembers.Remove(player.CharacterId);
 
             // TODO: Announce to guild?
             AnnounceGuildMemberChange(player.CharacterId);
@@ -395,7 +395,13 @@ namespace NexusForever.WorldServer.Game.Guild
         public void SendToOnlineUsers(IWritable writable)
         {
             foreach (WorldSession targetSession in OnlineMembers.Values)
+            {
+                if (targetSession.Player == null)
+                    continue;
+
                 targetSession.EnqueueMessageEncrypted(writable);
+            }
+                
         }
 
         /// <summary>

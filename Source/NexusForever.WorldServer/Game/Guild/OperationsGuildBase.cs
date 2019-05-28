@@ -12,18 +12,22 @@ using System.Text.RegularExpressions;
 
 namespace NexusForever.WorldServer.Game.Guild
 {
-    public static partial class GuildManager
+    public static partial class GlobalGuildManager
     {
         [GuildOperationHandler(GuildOperation.Disband)]
         private static void GuildOperationDisband(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if (memberRank.Index > 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if (memberRank.Index > 0)
-                result = GuildResult.RankLacksSufficientPermissions;
+                return GuildResult.Success;
+            }
 
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 foreach(WorldSession targetSession in guildBase.OnlineMembers.Values.ToList())
@@ -43,10 +47,14 @@ namespace NexusForever.WorldServer.Game.Guild
         {
             var member = guildBase.GetMember(session.Player.CharacterId);
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                // TODO: Set GuildResult.InvalidMemberNote when rules for note fail. What rules?
 
-            // TODO: Set GuildResult.InvalidMemberNote when rules for note fail. What rules?
+                return GuildResult.Success;
+            }
 
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 member.SetNote(operation.TextValue);
@@ -69,17 +77,24 @@ namespace NexusForever.WorldServer.Game.Guild
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
             var targetMember = guildBase.GetMember(operation.TextValue);
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.ChangeMemberRank) == 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.ChangeMemberRank) == 0)
-                result = GuildResult.RankLacksSufficientPermissions;
-            else if (targetMember == null)
-                result = GuildResult.CharacterNotInYourGuild;
-            else if (memberRank.Index >= targetMember.Rank.Index)
-                result = GuildResult.CanOnlyDemoteLowerRankedMembers;
-            else if (memberRank.Index == 9)
-                result = GuildResult.MemberIsAlreadyLowestRank;
+                if (targetMember == null)
+                    return GuildResult.CharacterNotInYourGuild;
 
+                if (memberRank.Index >= targetMember.Rank.Index)
+                    return GuildResult.CanOnlyDemoteLowerRankedMembers;
+
+                if (memberRank.Index == 9)
+                    return GuildResult.MemberIsAlreadyLowestRank;
+
+                return GuildResult.Success;
+            }
+
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 Rank newRank = guildBase.GetDemotedRank(targetMember.Rank.Index);
@@ -97,15 +112,21 @@ namespace NexusForever.WorldServer.Game.Guild
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
             var targetMember = guildBase.GetMember(operation.TextValue);
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.ChangeMemberRank) == 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.ChangeMemberRank) == 0)
-                result = GuildResult.RankLacksSufficientPermissions;
-            else if (targetMember == null)
-                result = GuildResult.CharacterNotInYourGuild;
-            else if (memberRank.Index >= targetMember.Rank.Index)
-                result = GuildResult.CannotPromoteMemberAboveYourRank;
+                if (targetMember == null)
+                    return GuildResult.CharacterNotInYourGuild;
 
+                if (memberRank.Index >= targetMember.Rank.Index)
+                    return GuildResult.CannotPromoteMemberAboveYourRank;
+
+                return GuildResult.Success;
+            }
+
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 Rank newRank = guildBase.GetPromotedRank(targetMember.Rank.Index);
@@ -123,15 +144,21 @@ namespace NexusForever.WorldServer.Game.Guild
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
             var targetCharacter = CharacterManager.GetCharacterInfo(operation.TextValue);
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.Invite) == 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.Invite) == 0)
-                result = GuildResult.RankLacksSufficientPermissions;
-            else if (!CharacterManager.IsCharacter(operation.TextValue))
-                result = GuildResult.UnknownCharacter;
-            else if (guildBase.GetMemberCount() >= maxGuildSize[guildBase.Type])
-                result = GuildResult.CannotInviteGuildFull;
+                if (!CharacterManager.IsCharacter(operation.TextValue))
+                    return GuildResult.UnknownCharacter;
 
+                if (guildBase.GetMemberCount() >= maxGuildSize[guildBase.Type])
+                    return GuildResult.CannotInviteGuildFull;
+
+                return GuildResult.Success;
+            }
+            
+            GuildResult result = GetResult();
             if (result != GuildResult.Success)
             {
                 SendGuildResult(session, result, guildBase, referenceText: operation.TextValue);
@@ -139,13 +166,21 @@ namespace NexusForever.WorldServer.Game.Guild
             }
 
             var targetSession = NetworkManager<WorldSession>.GetSession(i => i.Player?.CharacterId == targetCharacter.CharacterId);
-            if (targetSession == null)
-                result = GuildResult.UnknownCharacter;
-            else if (targetSession.Player.PendingGuildInvite != null)
-                result = GuildResult.CharacterAlreadyHasAGuildInvite;
-            else if (guildBase.Type == GuildType.Guild && targetSession.Player.GuildId > 0)
-                result = GuildResult.CharacterCannotJoinMoreGuilds;
+            GuildResult GetCharacterResult()
+            {
+                if (targetSession == null)
+                    return GuildResult.UnknownCharacter;
 
+                if (targetSession.Player.PendingGuildInvite != null)
+                    return GuildResult.CharacterAlreadyHasAGuildInvite;
+
+                if (guildBase.Type == GuildType.Guild && targetSession.Player.GuildId > 0)
+                    return GuildResult.CharacterCannotJoinMoreGuilds;
+
+                return GuildResult.Success;
+            }
+
+            result = GetCharacterResult();
             if (result == GuildResult.Success)
             {
                 targetSession.Player.PendingGuildInvite = new GuildInvite
@@ -166,15 +201,21 @@ namespace NexusForever.WorldServer.Game.Guild
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
             var targetMember = guildBase.GetMember(operation.TextValue);
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.Kick) == 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.Kick) == 0)
-                result = GuildResult.RankLacksSufficientPermissions;
-            else if (targetMember == null)
-                result = GuildResult.CharacterNotInYourGuild;
-            else if (memberRank.Index >= targetMember.Rank.Index)
-                result = GuildResult.CannotKickHigherOrEqualRankedMember;
+                if (targetMember == null)
+                    return GuildResult.CharacterNotInYourGuild;
 
+                if (memberRank.Index >= targetMember.Rank.Index)
+                    return GuildResult.CannotKickHigherOrEqualRankedMember;
+
+                return GuildResult.Success;
+            }
+
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 guildBase.RemoveMember(targetMember.CharacterId, out WorldSession memberSession);
@@ -204,12 +245,16 @@ namespace NexusForever.WorldServer.Game.Guild
         private static void GuildOperationMemberQuit(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
+            
+            GuildResult GetResult()
+            {
+                if (memberRank.Index == 0)
+                    return GuildResult.GuildmasterCannotLeaveGuild;
 
-            GuildResult result = GuildResult.Success;
+                return GuildResult.Success;
+            }
 
-            if (memberRank.Index == 0)
-                result = GuildResult.GuildmasterCannotLeaveGuild;
-
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 guildBase.RemoveMember(session.Player.CharacterId, out WorldSession memberSession);
@@ -236,17 +281,24 @@ namespace NexusForever.WorldServer.Game.Guild
         {
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.CreateAndRemoveRank) == 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.CreateAndRemoveRank) == 0)
-                result = GuildResult.RankLacksSufficientPermissions;
-            else if (guildBase.GetRank((byte)operation.Rank) != null)
-                result = GuildResult.InvalidRank;
-            else if (guildBase.RankExists(operation.TextValue))
-                result = GuildResult.DuplicateRankName;
-            else if (Regex.IsMatch(operation.TextValue, @"[^A-Za-z0-9\s]")) // Ensure only Alphanumeric characters are used
-                result = GuildResult.InvalidRankName;
+                if (guildBase.GetRank((byte)operation.Rank) != null)
+                    return GuildResult.InvalidRank;
 
+                if (guildBase.RankExists(operation.TextValue))
+                    return GuildResult.DuplicateRankName;
+
+                if (Regex.IsMatch(operation.TextValue, @"[^A-Za-z0-9\s]")) // Ensure only Alphanumeric characters are used
+                    return GuildResult.InvalidRankName;
+
+                return GuildResult.Success;
+            }
+
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 guildBase.AddRank(new Rank(operation.TextValue, guildBase.Id, (byte)operation.Rank, (GuildRankPermission)operation.Data, 0, 0, 0));
@@ -267,19 +319,27 @@ namespace NexusForever.WorldServer.Game.Guild
         {
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.CreateAndRemoveRank) == 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.CreateAndRemoveRank) == 0)
-                result = GuildResult.RankLacksSufficientPermissions;
-            else if (guildBase.GetRank((byte)operation.Rank) == null)
-                result = GuildResult.InvalidRank;
-            else if (memberRank.Index >= operation.Rank)
-                result = GuildResult.CanOnlyModifyRanksBelowYours;
-            else if (operation.Rank < 2 || operation.Rank > 8)
-                result = GuildResult.CannotDeleteDefaultRanks;
-            else if (guildBase.GetMembersOfRank((byte)operation.Rank).Count() > 0)
-                result = GuildResult.CanOnlyDeleteEmptyRanks;
+                if (guildBase.GetRank((byte)operation.Rank) == null)
+                    return GuildResult.InvalidRank;
 
+                if (memberRank.Index >= operation.Rank)
+                    return GuildResult.CanOnlyModifyRanksBelowYours;
+
+                if (operation.Rank < 2 || operation.Rank > 8)
+                    return GuildResult.CannotDeleteDefaultRanks;
+
+                if (guildBase.GetMembersOfRank((byte)operation.Rank).Count() > 0)
+                    return GuildResult.CanOnlyDeleteEmptyRanks;
+
+                return GuildResult.Success;
+            }
+
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 string rankName = guildBase.GetRank((byte)operation.Rank).Name;
@@ -301,19 +361,27 @@ namespace NexusForever.WorldServer.Game.Guild
         {
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.RenameRank) == 0)
+                    return GuildResult.RankLacksRankRenamePermission;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.RenameRank) == 0)
-                result = GuildResult.RankLacksRankRenamePermission;
-            else if (guildBase.GetRank((byte)operation.Rank) == null)
-                result = GuildResult.InvalidRank;
-            else if (memberRank.Index >= operation.Rank)
-                result = GuildResult.CanOnlyModifyRanksBelowYours;
-            else if (guildBase.RankExists(operation.TextValue))
-                result = GuildResult.DuplicateRankName;
-            else if (Regex.IsMatch(operation.TextValue, @"[^A-Za-z0-9\s]")) // Ensure only Alphanumeric characters are used
-                result = GuildResult.InvalidRankName;
+                if (guildBase.GetRank((byte)operation.Rank) == null)
+                    return GuildResult.InvalidRank;
 
+                if (memberRank.Index >= operation.Rank)
+                    return GuildResult.CanOnlyModifyRanksBelowYours;
+
+                if (guildBase.RankExists(operation.TextValue))
+                    return GuildResult.DuplicateRankName;
+
+                if (Regex.IsMatch(operation.TextValue, @"[^A-Za-z0-9\s]")) // Ensure only Alphanumeric characters are used
+                    return GuildResult.InvalidRankName;
+
+                return GuildResult.Success;
+            }
+
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 guildBase.GetRank((byte)operation.Rank).Rename(operation.TextValue);
@@ -335,15 +403,21 @@ namespace NexusForever.WorldServer.Game.Guild
             Rank rankToModify = guildBase.GetRank((byte)operation.Rank);
             Rank memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.EditLowerRankPermissions) == 0)
+                    return GuildResult.RankLacksRankRenamePermission;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.EditLowerRankPermissions) == 0)
-                result = GuildResult.RankLacksRankRenamePermission;
-            else if (rankToModify == null)
-                result = GuildResult.InvalidRank;
-            else if (memberRank.Index >= operation.Rank)
-                result = GuildResult.CanOnlyModifyRanksBelowYours;
-            
+                if (rankToModify == null)
+                    return GuildResult.InvalidRank;
+
+                if (memberRank.Index >= operation.Rank)
+                    return GuildResult.CanOnlyModifyRanksBelowYours;
+
+                return GuildResult.Success;
+            }
+
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 ulong newPermissionMask = operation.Data;
@@ -382,8 +456,12 @@ namespace NexusForever.WorldServer.Game.Guild
         [GuildOperationHandler(GuildOperation.SetNameplateAffiliation)]
         private static void GuildOperationSetNameplateAffiliation(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                return GuildResult.Success;
+            }
 
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 session.Player.GuildAffiliation = guildBase.Id;

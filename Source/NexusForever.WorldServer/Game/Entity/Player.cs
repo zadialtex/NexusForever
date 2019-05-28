@@ -231,7 +231,7 @@ namespace NexusForever.WorldServer.Game.Entity
             SetStat(Stat.Shield, 450u);
             
             CharacterManager.RegisterPlayer(this);
-            GuildManager.OnPlayerLogin(Session, this);
+            GlobalGuildManager.OnPlayerLogin(Session, this);
         }
 
         public override void Update(double lastTick)
@@ -296,7 +296,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
             if(GuildAffiliation > 0)
             {
-                GuildBase guild = GuildManager.GetGuild(GuildAffiliation);
+                GuildBase guild = GlobalGuildManager.GetGuild(GuildAffiliation);
                 if (guild.GetMember(CharacterId) != null)
                 {
                     playerEntityModel.GuildName = guild.Name;
@@ -356,7 +356,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         private void SendPacketsAfterAddToMap()
         {
-            GuildManager.SendInitialPackets(Session);
+            GlobalGuildManager.SendInitialPackets(Session);
             PathManager.SendInitialPackets();
 
             BuybackManager.SendBuybackItems(this);
@@ -568,7 +568,7 @@ namespace NexusForever.WorldServer.Game.Entity
             // CharacterManager must deregister player first so other events see the user as offline and with relevant data being final
             CharacterManager.DeregisterPlayer(this);
 
-            GuildManager.OnPlayerLogout(Session, this);
+            GlobalGuildManager.OnPlayerLogout(Session, this);
             CleanupManager.Track(Session.Account);
 
             Session.EnqueueEvent(new TaskEvent(AuthDatabase.Save(Save),

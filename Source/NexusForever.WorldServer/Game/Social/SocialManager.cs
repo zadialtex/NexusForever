@@ -149,7 +149,7 @@ namespace NexusForever.WorldServer.Game.Social
             if (chat.ChatId == 0 || !session.Player.GuildMemberships.Contains(chat.ChatId))
                 result = ChatResult.NotInGuild;
 
-            GuildBase guild = GuildManager.GetGuild(chat.ChatId);
+            GuildBase guild = GlobalGuildManager.GetGuild(chat.ChatId);
             if (guild == null)
                 result = ChatResult.NotInGuild;
 
@@ -182,7 +182,7 @@ namespace NexusForever.WorldServer.Game.Social
             if (chat.ChatId == 0 || !session.Player.GuildMemberships.Contains(chat.ChatId))
                 result = ChatResult.NotInGuild;
 
-            GuildBase guild = GuildManager.GetGuild(chat.ChatId);
+            GuildBase guild = GlobalGuildManager.GetGuild(chat.ChatId);
             if (guild == null)
                 result = ChatResult.NotInGuild;
 

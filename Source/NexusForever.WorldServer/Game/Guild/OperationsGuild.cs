@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace NexusForever.WorldServer.Game.Guild
 {
-    public static partial class GuildManager
+    public static partial class GlobalGuildManager
     {
         [GuildOperationHandler(GuildOperation.AdditionalInfo)]
         private static void GuildOperationAdditionalInfo(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
@@ -23,11 +23,15 @@ namespace NexusForever.WorldServer.Game.Guild
             Guild guild = (Guild)guildBase;
             var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if (memberRank.Index > 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if (memberRank.Index > 0)
-                result = GuildResult.RankLacksSufficientPermissions;
+                return GuildResult.Success;
+            }
 
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 guild.AdditionalInfo = operation.TextValue;
@@ -51,11 +55,15 @@ namespace NexusForever.WorldServer.Game.Guild
             Guild guild = (Guild)guildBase;
             var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if ((memberRank.GuildPermission & GuildRankPermission.MessageOfTheDay) == 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if ((memberRank.GuildPermission & GuildRankPermission.MessageOfTheDay) == 0)
-                result = GuildResult.RankLacksSufficientPermissions;
+                return GuildResult.Success;
+            }
 
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 guild.MessageOfTheDay = operation.TextValue;
@@ -79,11 +87,15 @@ namespace NexusForever.WorldServer.Game.Guild
             Guild guild = (Guild)guildBase;
             var memberRank = guild.GetMember(session.Player.CharacterId).Rank;
 
-            GuildResult result = GuildResult.Success;
+            GuildResult GetResult()
+            {
+                if (memberRank.Index > 0)
+                    return GuildResult.RankLacksSufficientPermissions;
 
-            if (memberRank.Index > 0)
-                result = GuildResult.RankLacksSufficientPermissions;
+                return GuildResult.Success;
+            }
 
+            GuildResult result = GetResult();
             if (result == GuildResult.Success)
             {
                 guild.SetTaxes(Convert.ToBoolean(operation.Data));
