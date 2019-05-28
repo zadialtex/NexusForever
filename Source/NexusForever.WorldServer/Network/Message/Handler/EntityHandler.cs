@@ -124,5 +124,28 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     break;
             }
         }
+        
+        [MessageHandler(GameMessageOpcode.ClientActivateUnitDeferred)]
+        public static void HandleActivateUnitDeferred(WorldSession session, ClientActivateUnitDeferred request)
+        {
+            WorldEntity entity = session.Player.GetVisible<WorldEntity>(request.ActivateUnitId);
+            if (entity == null)
+                throw new InvalidPacketValueException();
+
+            entity.OnActivateCast(session.Player, request);
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientInteractionResult)]
+        public static void HandleSpellDeferredResult(WorldSession session, ClientSpellInteractionResult result)
+        {
+            if (session.Player.PendingClientInteractionEvent == null)
+                return;
+
+            if (result.Result == 0)
+                session.Player.PendingClientInteractionEvent.TriggerFail();
+
+            if (result.Result == 1)
+                session.Player.PendingClientInteractionEvent.TriggerSuccess();    
+        }
     }
 }

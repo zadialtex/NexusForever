@@ -54,6 +54,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public uint TimePlayedLevel { get; set; }
         public DateTime? DeleteTime { get; set; }
         public string OriginalName { get; set; }
+        public ushort BindPoint { get; set; }
 
         public virtual Residence Residence { get; set; }
         public virtual ICollection<CharacterActionSetAmp> CharacterActionSetAmp { get; set; }
