@@ -363,7 +363,7 @@ namespace NexusForever.WorldServer.Game.Entity
             if(GuildAffiliation > 0)
             {
                 GuildBase guild = GuildManager.GetGuild(GuildAffiliation);
-                if (guild.GetMember(CharacterId) != null)
+                if (guild != null && guild.GetMember(CharacterId) != null)
                 {
                     playerEntityModel.GuildName = guild.Name;
                     playerEntityModel.GuildType = guild.Type;

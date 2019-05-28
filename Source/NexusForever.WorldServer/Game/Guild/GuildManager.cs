@@ -453,7 +453,12 @@ namespace NexusForever.WorldServer.Game.Guild
                 guild.OnPlayerLogin(session, player);
             }
             if (player.GuildAffiliation > 0)
-                SetGuildHolomark(session, player, GetGuild(player.GuildAffiliation));
+            {
+                if (GetGuild(player.GuildAffiliation) == null) // Used to ensure guild still exists on login
+                    player.GuildAffiliation = player.GuildMemberships.Count > 0 ? player.GuildMemberships[0] : 0;
+                if (player.GuildAffiliation > 0)
+                    SetGuildHolomark(session, player, GetGuild(player.GuildAffiliation));
+            }
 
             // TODO: Figure out packet which instructs the client the state of the Holomark.
         }
@@ -489,7 +494,12 @@ namespace NexusForever.WorldServer.Game.Guild
                 playerUnknowns.Add(new GuildPlayerLimits());
             }
 
-            int index = playerGuilds.FindIndex(a => a.GuildId == session.Player.GuildAffiliation);
+            int index = 0;
+            if (session.Player.GuildAffiliation > 0 && GetGuild(session.Player.GuildAffiliation) == null) // Used to ensure guild still exists on login
+                session.Player.GuildAffiliation = session.Player.GuildMemberships.Count > 0 ? session.Player.GuildMemberships[0] : 0;
+            if (playerGuilds.Count > 0)
+                index = playerGuilds.FindIndex(a => a.GuildId == session.Player.GuildAffiliation);
+
             ServerGuildInit serverGuildInit = new ServerGuildInit
             {
                 NameplateIndex = (uint)index,
