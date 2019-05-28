@@ -83,6 +83,10 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasColumnName("activeSpec")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.BindPoint)
+                    .HasColumnName("bindPoint")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.Class)
                     .HasColumnName("class")
                     .HasDefaultValueSql("'0'");
