@@ -22,6 +22,7 @@ namespace NexusForever.WorldServer.Game.Spell
         private readonly UnitEntity caster;
         private readonly SpellParameters parameters;
         private SpellStatus status;
+        private CastMethod CastMethod { get; set; } = CastMethod.Normal;
 
         private readonly List<SpellTargetInfo> targets = new List<SpellTargetInfo>();
 
@@ -33,6 +34,7 @@ namespace NexusForever.WorldServer.Game.Spell
             this.parameters = parameters;
             CastingId       = GlobalSpellManager.Instance.NextCastingId;
             status          = SpellStatus.Initiating;
+            CastMethod      = (CastMethod)parameters.SpellInfo.BaseInfo.Entry.CastMethod;
 
             if (parameters.RootSpellInfo == null)
                 parameters.RootSpellInfo = parameters.SpellInfo;
@@ -76,11 +78,18 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (parameters.SpellInfo.GlobalCooldown != null)
                     player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
 
-            SendSpellStart();
+            if (CastMethod == CastMethod.ClientSideInteraction)
+            {
+                SendSpellStartClientInteraction();
+            }
+            else
+            {
+                SendSpellStart();
 
-            // enqueue spell to be executed after cast time
-            events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute));
-            status = SpellStatus.Casting;
+                // enqueue spell to be executed after cast time
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute));
+                status = SpellStatus.Casting;
+            }
 
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started casting.");
         }
@@ -171,7 +180,7 @@ namespace NexusForever.WorldServer.Game.Spell
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} cast was cancelled.");
         }
 
-        private void Execute()
+        public void Execute()
         {
             status = SpellStatus.Executing;
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started executing.");
@@ -258,6 +267,21 @@ namespace NexusForever.WorldServer.Game.Spell
                 FieldPosition          = new Position(caster.Position),
                 UserInitiatedSpellCast = parameters.UserInitiatedSpellCast
             }, true);
+        }
+
+        private void SendSpellStartClientInteraction()
+        {
+            // Shoule we actually emit client interaction events to everyone? - Logs suggest that we only see this packet firing when the client interacts with -something- and is likely only sent to them
+            if(caster is Player player)
+            {
+                player.Session.EnqueueMessageEncrypted(new ServerSpellStartClientInteraction
+                {
+                    ClientUniqueId = parameters.ClientUniqueId,
+                    CastingId = CastingId,
+                    CasterId = parameters.PrimaryTargetId
+                });
+            }
+            
         }
 
         private void SendSpellFinish()
