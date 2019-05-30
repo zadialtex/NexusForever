@@ -1,8 +1,10 @@
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.WorldServer.Game.CSI;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Network.Message.Model;
 using NLog;
 using System.Linq;
@@ -43,21 +45,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override ServerEntityCreate BuildCreatePacket()
         {
-            ServerEntityCreate bindPointEntity = new ServerEntityCreate
-            {
-                Guid = Guid,
-                Type = Type,
-                EntityModel = BuildEntityModel(),
-                CreateFlags = (byte)CreateFlags,
-                Stats = stats.Values.ToList(),
-                Commands = MovementManager.ToList(),
-                VisibleItems = itemVisuals.Values.ToList(),
-                Properties = Properties.Values.ToList(),
-                Faction1 = Faction1,
-                Faction2 = Faction2,
-                DisplayInfo = 22371, // DisplayInfo,
-                OutfitInfo = OutfitInfo,
-            };
+            ServerEntityCreate bindPointEntity = base.BuildCreatePacket();
 
             // Proof of Concept for map props being "used/controlled" by entities
             if (CreatureId == 13559) // Tremor Ridge, Algoric, Transmat Terminal entity
@@ -101,7 +89,7 @@ namespace NexusForever.WorldServer.Game.Entity
             base.OnActivateSuccess(activator);
         }
 
-        public override void OnActivateCast(Player activator, ClientActivateUnitDeferred request)
+        public override void OnActivateCast(Player activator, uint interactionId)
         {
             if (BindPointEntry == null)
                 log.Error($"BindPoint not found: {Entry.BindPointId}");
@@ -111,7 +99,12 @@ namespace NexusForever.WorldServer.Game.Entity
 
                 // TODO: cast "8566, Bind to Transmatter Terminal (Previously Eldan Stone) - DO NOT DELETE - SYSTEM SPELL - Tier 1" by 0x07FD
                 // This might also be GameFormula Entry #472?
-                activator.PendingClientInteractionEvent = new ClientInteractionEvent(activator, this, request.ClientUniqueId, 8566);
+                SpellParameters parameters = new SpellParameters
+                {
+                    PrimaryTargetId = Guid,
+                    ClientSideInteraction = new ClientSideInteraction(activator, this, interactionId)
+                };
+                activator.CastSpell(8566, parameters);
             }
         }
     }

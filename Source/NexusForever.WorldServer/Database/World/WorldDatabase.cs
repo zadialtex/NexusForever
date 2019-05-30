@@ -30,10 +30,10 @@ namespace NexusForever.WorldServer.Database.World
                     .ToImmutableList();
         }
 
-        public static async Task<Entity> GetEntity(uint creatureId)
+        public static Entity GetEntity(uint creatureId)
         {
             using (var context = new WorldContext())
-                return await context.Entity.FirstOrDefaultAsync(e => e.Creature == creatureId);
+                return context.Entity.SingleOrDefault(e => e.Creature == creatureId);
         }
 
         public static void UpdateEntities(IEnumerable<Entity> models)
