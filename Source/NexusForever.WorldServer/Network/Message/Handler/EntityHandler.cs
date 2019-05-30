@@ -3,6 +3,7 @@ using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Command;
+using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Network.Message.Model;
 using NLog;
 using System;
@@ -125,27 +126,30 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             }
         }
         
-        [MessageHandler(GameMessageOpcode.ClientActivateUnitDeferred)]
-        public static void HandleActivateUnitDeferred(WorldSession session, ClientActivateUnitDeferred request)
+        [MessageHandler(GameMessageOpcode.ClientActivateUnitInteraction)]
+        public static void HandleActivateUnitDeferred(WorldSession session, ClientActivateUnitInteraction request)
         {
             WorldEntity entity = session.Player.GetVisible<WorldEntity>(request.ActivateUnitId);
             if (entity == null)
                 throw new InvalidPacketValueException();
 
-            entity.OnActivateCast(session.Player, request);
+            entity.OnActivateCast(session.Player, request.ClientUniqueId);
         }
 
         [MessageHandler(GameMessageOpcode.ClientInteractionResult)]
         public static void HandleSpellDeferredResult(WorldSession session, ClientSpellInteractionResult result)
         {
-            if (session.Player.PendingClientInteractionEvent == null)
-                return;
+            Spell spell = session.Player.GetPendingSpell(result.CastingId);
+            if (spell == null)
+                throw new ArgumentNullException($"Spell cast {result.CastingId} not found.");
+            if (!spell.IsClientSideInteraction)
+                throw new ArgumentNullException($"Spell missing a ClientSideInteraction.");
 
             if (result.Result == 0)
-                session.Player.PendingClientInteractionEvent.TriggerFail();
+                spell.FailClientInteraction();
 
             if (result.Result == 1)
-                session.Player.PendingClientInteractionEvent.TriggerSuccess();    
+                spell.SucceedClientInteraction();
         }
     }
 }

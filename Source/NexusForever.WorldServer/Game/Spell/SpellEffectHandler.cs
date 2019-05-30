@@ -5,12 +5,10 @@ using NexusForever.Shared.Game.Events;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network;
-using NexusForever.WorldServer.Database.World;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
-using EntityModel = NexusForever.WorldServer.Database.World.Model.Entity;
 
 namespace NexusForever.WorldServer.Game.Spell
 {
@@ -96,27 +94,11 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (player.BindPoint == 0) // Must have bindpoint set
                     return;
 
-                Creature2Entry creatureEntity = GameTableManager.Creature2.Entries.FirstOrDefault(x => x.BindPointId == player.BindPoint);
-                if (creatureEntity == null)
-                    return;
+                Location bindPointLocation = AssetManager.GetBindPoint(player.BindPoint);
+                Vector3 offset = new Vector3(2f, 1.5f, 2f); // TODO: Should use new Vector3(0f, 1.5f, 0f); when map props are being used
 
-                player.Session.EnqueueEvent(new TaskGenericEvent<EntityModel>(WorldDatabase.GetEntity(creatureEntity.Id),
-                    bindPointEntity =>
-                {
-                    if (bindPointEntity == null)
-                        throw new InvalidPacketValueException();
-
-                    WorldEntry worldEntry = GameTableManager.World.GetEntry(bindPointEntity.World);
-                    if (worldEntry == null)
-                        throw new InvalidPacketValueException();
-
-                    Vector3 bindPointPosition = new Vector3(bindPointEntity.X, bindPointEntity.Y, bindPointEntity.Z);
-                    Vector3 offset = new Vector3(1.1f, 1.1f, 1.1f);
-
-                    player.Rotation = new Vector3(bindPointEntity.Rx, bindPointEntity.Ry, bindPointEntity.Rz);
-                    player.TeleportTo(worldEntry, Vector3.Add(bindPointPosition, offset));
-                }));
-
+                player.Rotation = bindPointLocation.Rotation;
+                player.TeleportTo(bindPointLocation.World, Vector3.Add(bindPointLocation.Position, offset));
                 return;
             }
 

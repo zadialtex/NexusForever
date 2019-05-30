@@ -57,7 +57,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         protected readonly Dictionary<Stat, StatValue> stats = new Dictionary<Stat, StatValue>();
 
-        protected readonly Dictionary<ItemSlot, ItemVisual> itemVisuals = new Dictionary<ItemSlot, ItemVisual>();
+        private readonly Dictionary<ItemSlot, ItemVisual> itemVisuals = new Dictionary<ItemSlot, ItemVisual>();
 
         /// <summary>
         /// Create a new <see cref="WorldEntity"/> with supplied <see cref="EntityType"/>.
@@ -150,15 +150,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Invoked when <see cref="WorldEntity"/> is cast activated.
         /// </summary>
-        public virtual void OnActivateCast(Player activator)
-        {
-            // deliberately empty
-        }
-
-        /// <summary>
-        /// Invoked when <see cref="WorldEntity"/> is cast activated.
-        /// </summary>
-        public virtual void OnActivateCast(Player activator, ClientActivateUnitDeferred request)
+        public virtual void OnActivateCast(Player activator, uint interactionId)
         {
             // deliberately empty
         }

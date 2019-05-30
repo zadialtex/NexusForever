@@ -18,11 +18,11 @@ namespace NexusForever.WorldServer.Game.Spell
         public uint CastingId { get; }
         public bool IsCasting => status == SpellStatus.Casting;
         public bool IsFinished => status == SpellStatus.Finished;
+        public bool IsClientSideInteraction => parameters.ClientSideInteraction != null;
 
         private readonly UnitEntity caster;
         private readonly SpellParameters parameters;
         private SpellStatus status;
-        private CastMethod CastMethod { get; set; } = CastMethod.Normal;
 
         private readonly List<SpellTargetInfo> targets = new List<SpellTargetInfo>();
 
@@ -34,7 +34,6 @@ namespace NexusForever.WorldServer.Game.Spell
             this.parameters = parameters;
             CastingId       = GlobalSpellManager.NextCastingId;
             status          = SpellStatus.Initiating;
-            CastMethod      = (CastMethod)parameters.SpellInfo.BaseInfo.Entry.CastMethod;
 
             if (parameters.RootSpellInfo == null)
                 parameters.RootSpellInfo = parameters.SpellInfo;
@@ -78,18 +77,24 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (parameters.SpellInfo.GlobalCooldown != null)
                     player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
 
-            if (CastMethod == CastMethod.ClientSideInteraction)
+            double castTime = parameters.CastTimeOverride > 0 ? parameters.CastTimeOverride / 1000d : parameters.SpellInfo.Entry.CastTime / 1000d;
+            if (parameters.ClientSideInteraction != null)
             {
                 SendSpellStartClientInteraction();
+
+                if ((CastMethod)parameters.SpellInfo.BaseInfo.Entry.CastMethod != CastMethod.ClientSideInteraction)
+                    events.EnqueueEvent(new SpellEvent(castTime, SucceedClientInteraction));
+                else if (parameters.ClientSideInteraction.Entry.Duration > 0)
+                    events.EnqueueEvent(new SpellEvent(parameters.ClientSideInteraction.Entry.Duration / 1000d, FailClientInteraction));
             }
             else
             {
                 SendSpellStart();
 
-                // enqueue spell to be executed after cast time
-                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute));
-                status = SpellStatus.Casting;
+                events.EnqueueEvent(new SpellEvent(castTime, Execute));
             }
+
+            status = SpellStatus.Casting;
 
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started casting.");
         }
@@ -180,7 +185,7 @@ namespace NexusForever.WorldServer.Game.Spell
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} cast was cancelled.");
         }
 
-        public void Execute()
+        private void Execute()
         {
             status = SpellStatus.Executing;
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started executing.");
@@ -239,6 +244,30 @@ namespace NexusForever.WorldServer.Game.Spell
             return parameters.SpellInfo.Entry.CastTime > 0;
         }
 
+        /// <summary>
+        /// Used when a <see cref="ClientInteraction"/> succeeds
+        /// </summary>
+        public void SucceedClientInteraction()
+        {
+            if (parameters.ClientSideInteraction == null)
+                throw new ArgumentException("This can only be used by a Client Interaction Event.");
+
+            parameters.ClientSideInteraction.TriggerSuccess();
+
+            Execute();
+        }
+
+        /// <summary>
+        /// Used when a <see cref="ClientInteraction"/> fails
+        /// </summary>
+        public void FailClientInteraction()
+        {
+            if (parameters.ClientSideInteraction == null)
+                throw new ArgumentException("This can only be used by a Client Interaction Event.");
+
+            parameters.ClientSideInteraction.TriggerFail();
+        }
+
         private void SendSpellCastResult(CastResult castResult)
         {
             if (castResult == CastResult.Ok)
@@ -276,7 +305,7 @@ namespace NexusForever.WorldServer.Game.Spell
             {
                 player.Session.EnqueueMessageEncrypted(new ServerSpellStartClientInteraction
                 {
-                    ClientUniqueId = parameters.ClientUniqueId,
+                    ClientUniqueId = parameters.ClientSideInteraction.ClientUniqueId,
                     CastingId = CastingId,
                     CasterId = parameters.PrimaryTargetId
                 });
