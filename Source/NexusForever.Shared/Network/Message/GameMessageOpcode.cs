@@ -10,7 +10,7 @@ namespace NexusForever.Shared.Network.Message
         ServerAuthEncrypted             = 0x0076,
         ServerLogoutUpdate              = 0x0092,
         ClientActivateUnitCast          = 0x0097, // not sure about the name - almost the same as 0x00B3, but also initiates 0x07FD
-        ClientActivateUnitDeferred      = 0x0098,
+        ClientActivateUnitInteraction   = 0x0098,
         Client009A                      = 0x009A, // client spell cast request, very similiar to 0x04DB, but for non-abilities -> mount, teleport, etc.
         ServerChangeWorld               = 0x00AD,
         ServerAchievementInit           = 0x00AE,

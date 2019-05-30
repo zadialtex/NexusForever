@@ -140,7 +140,6 @@ namespace NexusForever.WorldServer.Game.Entity
         public CharacterAchievementManager AchievementManager { get; }
 
         public VendorInfo SelectedVendorInfo { get; set; } // TODO unset this when too far away from vendor
-        public ClientInteractionEvent PendingClientInteractionEvent { get; set; }
 
         private UpdateTimer saveTimer = new UpdateTimer(SaveDuration);
         private PlayerSaveMask saveMask;

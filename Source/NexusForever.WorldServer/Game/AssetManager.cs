@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Database.World;
 using NexusForever.WorldServer.Database.World.Model;
+using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 
 namespace NexusForever.WorldServer.Game
@@ -37,6 +40,7 @@ namespace NexusForever.WorldServer.Game
 
         private static ImmutableDictionary<ItemSlot, ImmutableList<EquippedItem>> equippedItems;
         private static ImmutableDictionary<uint, ImmutableList<ItemDisplaySourceEntryEntry>> itemDisplaySourcesEntry;
+        private static ImmutableDictionary<ushort, Location> bindPointLocations;
 
         private static ImmutableDictionary</*zoneId*/uint, /*tutorialId*/uint> zoneTutorials;
 
@@ -51,11 +55,12 @@ namespace NexusForever.WorldServer.Game
             CacheInventoryBagCapacities();
             CacheItemDisplaySourceEntries();
             CacheTutorials();
+            CacheBindPointPositions();
         }
 
         private static void CacheCharacterCustomisations()
         {
-            var entries = new Dictionary<uint, List<CharacterCustomizationEntry>>();
+            var entries = ImmutableDictionary.CreateBuilder<uint, List<CharacterCustomizationEntry>>();
             foreach (CharacterCustomizationEntry entry in GameTableManager.CharacterCustomization.Entries)
             {
                 uint primaryKey = (entry.Value00 << 24) | (entry.CharacterCustomizationLabelId00 << 16) | (entry.Gender << 8) | entry.RaceId;
@@ -70,7 +75,7 @@ namespace NexusForever.WorldServer.Game
 
         private static void CacheInventoryEquipSlots()
         {
-            var entries = new Dictionary<ItemSlot, List<EquippedItem>>();
+            var entries = ImmutableDictionary.CreateBuilder<ItemSlot, List<EquippedItem>>();
             foreach (FieldInfo field in typeof(ItemSlot).GetFields())
             {
                 foreach (EquippedItemAttribute attribute in field.GetCustomAttributes<EquippedItemAttribute>())
@@ -88,7 +93,7 @@ namespace NexusForever.WorldServer.Game
 
         public static void CacheInventoryBagCapacities()
         {
-            var entries = new Dictionary<InventoryLocation, uint>();
+            var entries = ImmutableDictionary.CreateBuilder<InventoryLocation, uint>();
             foreach (FieldInfo field in typeof(InventoryLocation).GetFields())
             {
                 foreach (InventoryLocationAttribute attribute in field.GetCustomAttributes<InventoryLocationAttribute>())
@@ -98,12 +103,12 @@ namespace NexusForever.WorldServer.Game
                 }
             }
 
-            InventoryLocationCapacities = entries.ToImmutableDictionary();
+            InventoryLocationCapacities = entries.ToImmutable();
         }
 
         private static void CacheItemDisplaySourceEntries()
         {
-            var entries = new Dictionary<uint, List<ItemDisplaySourceEntryEntry>>();
+            var entries = ImmutableDictionary.CreateBuilder<uint, List<ItemDisplaySourceEntryEntry>>();
             foreach (ItemDisplaySourceEntryEntry entry in GameTableManager.ItemDisplaySourceEntry.Entries)
             {
                 if (!entries.ContainsKey(entry.ItemSourceId))
@@ -128,6 +133,33 @@ namespace NexusForever.WorldServer.Game
             }
 
             zoneTutorials = zoneEntries.ToImmutable();
+        }
+        
+        private static void CacheBindPointPositions()
+        {
+            var entries = ImmutableDictionary.CreateBuilder<ushort, Location>();
+            foreach(BindPointEntry entry in GameTableManager.BindPoint.Entries)
+            {
+                ushort entryId = (ushort)entry.Id;
+                Creature2Entry creatureEntity = GameTableManager.Creature2.Entries.SingleOrDefault(x => x.BindPointId == entryId);
+                if (creatureEntity == null)
+                    continue;
+
+                var entityEntry = WorldDatabase.GetEntity(creatureEntity.Id);
+                if (entityEntry == null)
+                    continue;
+
+                WorldEntry worldEntry = GameTableManager.World.GetEntry(entityEntry.World);
+                if (worldEntry == null)
+                    continue;
+
+                Location bindPointLocation = new Location(worldEntry, new Vector3(entityEntry.X, entityEntry.Y, entityEntry.Z), new Vector3(entityEntry.Rx, entityEntry.Ry, entityEntry.Rz));
+
+                if (!entries.ContainsKey(entryId))
+                    entries.Add(entryId, bindPointLocation);
+            }
+
+            bindPointLocations = entries.ToImmutable();
         }
 
         /// <summary>
@@ -161,6 +193,14 @@ namespace NexusForever.WorldServer.Game
         public static uint GetTutorialIdForZone(uint zoneId)
         {
             return zoneTutorials.TryGetValue(zoneId, out uint tutorialId) ? tutorialId : 0;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="Location"/> for a <see cref="BindPoint"/>
+        /// </summary>
+        public static Location GetBindPoint(ushort bindpointId)
+        {
+            return bindPointLocations.TryGetValue(bindpointId, out Location bindPoint) ? bindPoint : null;
         }
     }
 }
