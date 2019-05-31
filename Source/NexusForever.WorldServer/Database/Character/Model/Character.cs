@@ -82,7 +82,6 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual ICollection<CharacterStats> CharacterStats { get; set; }
         public virtual ICollection<CharacterTitle> CharacterTitle { get; set; }
         public virtual ICollection<CharacterZonemapHexgroup> CharacterZonemapHexgroup { get; set; }
-        public virtual ICollection<CharacterKeybinding> CharacterKeybinding { get; set; }
         public virtual ICollection<Contacts> Contacts { get; set; }
         public virtual ICollection<Item> Item { get; set; }
     }

@@ -562,7 +562,7 @@ namespace NexusForever.WorldServer.Game.Entity
             });
             
             SocialManager.JoinChatChannels(Session);
-            GuildManager.SendPacketsAfterAddToMap(Session);
+            GuildManager.SendInitialPackets(Session);
         }
 
         public ItemProficiency GetItemProficiences()
@@ -912,6 +912,8 @@ namespace NexusForever.WorldServer.Game.Entity
             SetXp(newXp);
 
             GrantLevel(newLevel);
+        }
+
         /// Returns whether this <see cref="Player"/> is allowed to summon or be added to a mount
         /// </summary>
         public bool CanMount()

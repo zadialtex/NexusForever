@@ -185,7 +185,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Create a new <see cref="Item"/> from an <see cref="Item2Entry"/> template.
         /// </summary>
-        public Item(ulong owner, Item2Entry entry, uint count = 1u, uint initialCharges = 1u)
+        public Item(ulong? owner, Item2Entry entry, uint count = 1u, uint initialCharges = 1u)
         {
             Guid        = AssetManager.NextItemId;
             characterId = owner;
@@ -202,7 +202,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Create a new <see cref="Item"/> from a <see cref="Spell4BaseEntry"/> template.
         /// </summary>
-        public Item(ulong owner, Spell4BaseEntry entry, uint count = 1u)
+        public Item(ulong? owner, Spell4BaseEntry entry, uint count = 1u)
         {
             Guid        = AssetManager.NextItemId;
             characterId = owner;

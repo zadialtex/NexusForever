@@ -51,23 +51,6 @@ namespace NexusForever.WorldServer.Game.Spell
             });
         }
 
-        [SpellEffectHandler(SpellEffectType.Disguise)]
-        private void HandleEffectDisguise(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
-        {
-            if (!(target is Player player))
-                return;
-
-            Creature2Entry creature2 = GameTableManager.Creature2.GetEntry(info.Entry.DataBits02);
-            if (creature2 == null)
-                return;
-
-            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Creature2DisplayGroupEntry.Entries.FirstOrDefault(d => d.Creature2DisplayGroupId == creature2.Creature2DisplayGroupId);
-            if (displayGroupEntry == null)
-                return;
-
-            player.SetDisplayInfo(displayGroupEntry.Creature2DisplayInfoId);
-        }
-
         [SpellEffectHandler(SpellEffectType.SummonMount)]
         private void HandleEffectSummonMount(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
