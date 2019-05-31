@@ -104,7 +104,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
             foreach (Item item in bag)
             {
-                if (!IsVisualItem(item))
+                if (!IsVisualItem((EquippedItem)item.BagIndex))
                     continue;
 
                 Item2TypeEntry itemTypeEntry = GameTableManager.ItemType.GetEntry(item.Entry.Item2TypeId);
@@ -732,7 +732,7 @@ namespace NexusForever.WorldServer.Game.Entity
             bag.AddItem(item);
 
             if (player != null && bag.Location == InventoryLocation.Equipped)
-                if (IsVisualItem(item))
+                if (IsVisualItem((EquippedItem)item.BagIndex))
                     VisualUpdate(item);
         }
 
@@ -748,11 +748,11 @@ namespace NexusForever.WorldServer.Game.Entity
 
             Bag bag = GetBag(item.Location);
             Debug.Assert(bag != null);
-
+            
             bag.RemoveItem(item);
 
             if (player != null && bag.Location == InventoryLocation.Equipped)
-                if (IsVisualItem(item))
+                if (IsVisualItem((EquippedItem)item.PreviousBagIndex)) // Using previous bag index because the item will've already been moved
                     VisualUpdate(item);
         }
 
@@ -810,12 +810,12 @@ namespace NexusForever.WorldServer.Game.Entity
 
         /// Check if the current <see cref="Item"/> is in a visual slot
         /// </summary>
-        private bool IsVisualItem(Item item)
+        private bool IsVisualItem(EquippedItem item)
         {
             EquippedItem[] visualItems = new EquippedItem[]
             {EquippedItem.Chest, EquippedItem.Head, EquippedItem.Legs, EquippedItem.Hands, EquippedItem.WeaponPrimary, EquippedItem.Shoulder, EquippedItem.Feet};
 
-            return visualItems.Contains((EquippedItem)item.BagIndex);
+            return visualItems.Contains(item);
         }
 
         /// <summary>
