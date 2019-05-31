@@ -7,7 +7,6 @@ using NexusForever.WorldServer.Database.Character.Model;
 using ItemEntity = NexusForever.WorldServer.Game.Entity.Item;
 using ResidenceEntity = NexusForever.WorldServer.Game.Housing.Residence;
 using ContactEntity = NexusForever.WorldServer.Game.Contact.Contact;
-using GuildEntity = NexusForever.WorldServer.Game.Guild.Guild;
 using GuildEntity = NexusForever.WorldServer.Game.Guild.GuildBase;
 using IGuild = NexusForever.WorldServer.Game.Guild.IGuild;
 

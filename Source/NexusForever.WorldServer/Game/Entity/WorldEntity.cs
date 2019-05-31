@@ -318,17 +318,6 @@ namespace NexusForever.WorldServer.Game.Entity
             return itemVisuals.Values;
         }
 
-        public void SetDisplayInfo(uint displayInfo)
-        {
-            DisplayInfo = displayInfo;
-
-            EnqueueToVisible(new ServerEntityVisualUpdate
-            {
-                UnitId = Guid,
-                DisplayInfo = DisplayInfo
-            }, true);
-        }
-
         /// <summary>
         /// Update the display info for the <see cref="WorldEntity"/>, this overrides any other appearance changes.
         /// </summary>

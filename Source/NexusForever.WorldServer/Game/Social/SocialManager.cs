@@ -219,7 +219,8 @@ namespace NexusForever.WorldServer.Game.Social
                     ChatId = guild.Id,
                     Name = session.Player.Name,
                     Text = chat.Message,
-                    Formats = ParseChatLinks(session, chat).ToList(),
+                    GM = RoleManager.HasPermission(session, Permission.GMFlag),
+                    Formats = ParseChatLinks(session, chat.Formats).ToList(),
                 };
                 guild.SendToOnlineUsers(serverChat, Guild.Static.GuildRankPermission.MemberChat);
             }
@@ -251,6 +252,7 @@ namespace NexusForever.WorldServer.Game.Social
                     Channel = chat.Channel,
                     ChatId = guild.Id,
                     Name = session.Player.Name,
+                    GM = RoleManager.HasPermission(session, Permission.GMFlag),
                     Text = chat.Message,
                     Formats = ParseChatLinks(session, chat.Formats).ToList(),
                 };

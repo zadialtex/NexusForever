@@ -21,16 +21,16 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             bool hasEnoughTokens = true; // TODO: Check user has enough tokens
 
             if (needToUseTokens && !clientPathActivate.UseTokens)
-                errorCode = GenericError.PathChange_OnCooldown;
+                errorCode = GenericError.PathChangeOnCooldown;
 
             if (needToUseTokens && clientPathActivate.UseTokens && !hasEnoughTokens)
-                errorCode = GenericError.PathChange_InsufficientFunds;
+                errorCode = GenericError.PathChangeInsufficientFunds;
 
             if (!player.PathManager.IsPathUnlocked(clientPathActivate.Path))
-                errorCode = GenericError.PathChange_NotUnlocked;
+                errorCode = GenericError.PathChangeNotUnlocked;
 
             if (player.PathManager.IsPathActive(clientPathActivate.Path))
-                errorCode = GenericError.PathChange_Requested;
+                errorCode = GenericError.PathChangeRequested;
 
             if (errorCode == GenericError.Ok)
             {
@@ -53,10 +53,10 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             bool hasEnoughTokens = true; // TODO: Check user has enough tokens
 
             if (!hasEnoughTokens)
-                errorCode = GenericError.Path_InsufficientFunds;
+                errorCode = GenericError.PathInsufficientFunds;
 
             if (player.PathManager.IsPathUnlocked(clientPathUnlock.Path))
-                errorCode = GenericError.Path_AlreadyUnlocked;
+                errorCode = GenericError.PathAlreadyUnlocked;
 
             if (errorCode == GenericError.Ok)
             {

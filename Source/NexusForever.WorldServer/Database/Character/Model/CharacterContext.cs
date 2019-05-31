@@ -42,7 +42,6 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual DbSet<CharacterStats> CharacterStats { get; set; }
         public virtual DbSet<CharacterTitle> CharacterTitle { get; set; }
         public virtual DbSet<CharacterZonemapHexgroup> CharacterZonemapHexgroup { get; set; }
-        public virtual DbSet<CharacterKeybinding> CharacterKeybinding { get; set; }
         public virtual DbSet<Contacts> Contacts { get; set; }
         public virtual DbSet<Guild> Guild { get; set; }
         public virtual DbSet<GuildRank> GuildRank { get; set; }

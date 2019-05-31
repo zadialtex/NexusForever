@@ -29,11 +29,11 @@ namespace NexusForever.WorldServer.Game.Spell
             if (!(target is Player player))
                 return;
 
-            Creature2Entry creature2 = GameTableManager.Creature2.GetEntry(info.Entry.DataBits02);
+            Creature2Entry creature2 = GameTableManager.Instance.Creature2.GetEntry(info.Entry.DataBits02);
             if (creature2 == null)
                 return;
 
-            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Creature2DisplayGroupEntry.Entries.FirstOrDefault(d => d.Creature2DisplayGroupId == creature2.Creature2DisplayGroupId);
+            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Instance.Creature2DisplayGroupEntry.Entries.FirstOrDefault(d => d.Creature2DisplayGroupId == creature2.Creature2DisplayGroupId);
             if (displayGroupEntry == null)
                 return;
 
@@ -49,23 +49,6 @@ namespace NexusForever.WorldServer.Game.Spell
                 RootSpellInfo          = parameters.RootSpellInfo,
                 UserInitiatedSpellCast = false
             });
-        }
-
-        [SpellEffectHandler(SpellEffectType.Disguise)]
-        private void HandleEffectDisguise(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
-        {
-            if (!(target is Player player))
-                return;
-
-            Creature2Entry creature2 = GameTableManager.Instance.Creature2.GetEntry(info.Entry.DataBits02);
-            if (creature2 == null)
-                return;
-
-            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Instance.Creature2DisplayGroupEntry.Entries.FirstOrDefault(d => d.Creature2DisplayGroupId == creature2.Creature2DisplayGroupId);
-            if (displayGroupEntry == null)
-                return;
-
-            player.SetDisplayInfo(displayGroupEntry.Creature2DisplayInfoId);
         }
 
         [SpellEffectHandler(SpellEffectType.SummonMount)]
