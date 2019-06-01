@@ -8,6 +8,7 @@ using NexusForever.Shared.Configuration;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Account;
 using NexusForever.WorldServer.Game.Account.Static;
+using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Map.Search;
 using NexusForever.WorldServer.Game.Guild;
@@ -265,9 +266,16 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="whisper"></param>
         public static void HandleWhisperChat(WorldSession session, ClientChatWhisper whisper)
         {
-            WorldSession targetSession = NetworkManager<WorldSession>.GetSession(s => s.Player?.Name == whisper.PlayerName);
-            if (targetSession != null)
+            if(!CharacterManager.IsCharacter(whisper.PlayerName))
             {
+                SendMessage(session, $"Player \"{whisper.PlayerName}\" not found.", "", ChatChannel.System);
+                return;
+            }
+
+            ICharacter characterInfo = CharacterManager.GetCharacterInfo(whisper.PlayerName);
+            if (characterInfo is Player player)
+            {
+                var targetSession = player.Session;
                 if (targetSession == session)
                 {
                     SendMessage(session, $"You cannot send a message to yourself.", "", ChatChannel.System);
@@ -276,7 +284,7 @@ namespace NexusForever.WorldServer.Game.Social
 
                 if (targetSession.Player.Faction1 != session.Player.Faction1 && !CrossFactionChat)
                 {
-                    SendMessage(session, $"Player \"{whisper.PlayerName}\" not found.", "", ChatChannel.System);
+                    SendMessage(session, $"Player \"{characterInfo.Name}\" not found.", "", ChatChannel.System);
                     return;
                 }
 
@@ -284,7 +292,7 @@ namespace NexusForever.WorldServer.Game.Social
                 session.EnqueueMessageEncrypted(new ServerChat
                 {
                     Channel = ChatChannel.Whisper,
-                    Name = whisper.PlayerName,
+                    Name = characterInfo.Name,
                     Text = whisper.Message,
                     Self = true,
                     CrossFaction = targetSession.Player.Faction1 != session.Player.Faction1,
@@ -305,7 +313,7 @@ namespace NexusForever.WorldServer.Game.Social
             }
             else
             {
-                SendMessage(session, $"Player \"{whisper.PlayerName}\" not found.", "", ChatChannel.System);
+                SendMessage(session, $"Player \"{characterInfo.Name}\" not found.", "", ChatChannel.System);
             }
         }
 
