@@ -95,7 +95,7 @@ namespace NexusForever.WorldServer.Game.Spell
                     return;
 
                 Location bindPointLocation = AssetManager.GetBindPoint(player.BindPoint);
-                Vector3 offset = new Vector3(2f, 1.5f, 2f); // TODO: Should use new Vector3(0f, 1.5f, 0f); when map props are being used
+                Vector3 offset = new Vector3(0f, 1.5f, 0f); // TODO: Should use new Vector3(0f, 1.5f, 0f); when map props are being used
 
                 player.Rotation = bindPointLocation.Rotation;
                 player.TeleportTo(bindPointLocation.World, Vector3.Add(bindPointLocation.Position, offset));
