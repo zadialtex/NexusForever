@@ -46,18 +46,6 @@ namespace NexusForever.WorldServer.Game.Entity
         public override ServerEntityCreate BuildCreatePacket()
         {
             ServerEntityCreate bindPointEntity = base.BuildCreatePacket();
-
-            // Proof of Concept for map props being "used/controlled" by entities
-            if (CreatureId == 13559) // Tremor Ridge, Algoric, Transmat Terminal entity
-            {
-                bindPointEntity.UnknownB0 = new ServerEntityCreate.UnknownStructureB0
-                {
-                    Type = 1,
-                    ActivePropId = 320934, // 320934 = Tremor Ridge, Algoroc, Transmat Terminal Prop
-                    Unknown2 = 0
-                };
-            }
-
             return bindPointEntity;
         }
 
