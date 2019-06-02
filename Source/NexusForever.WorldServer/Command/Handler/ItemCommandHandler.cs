@@ -81,7 +81,7 @@ namespace NexusForever.WorldServer.Command.Handler
                 yield return item.LocalizedTextIdName;
         }
 
-        [SubCommandHandler("find", "itemName - Search for an item by name.")]
+        [SubCommandHandler("find", "itemName - Search for an item by name.", Permission.None)]
         public async Task FindItemSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length <= 0)
