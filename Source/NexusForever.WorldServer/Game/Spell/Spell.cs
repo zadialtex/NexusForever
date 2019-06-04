@@ -92,28 +92,23 @@ namespace NexusForever.WorldServer.Game.Spell
                 else if (parameters.ClientSideInteraction.Entry.Duration > 0)
                     events.EnqueueEvent(new SpellEvent(parameters.ClientSideInteraction.Entry.Duration / 1000d, FailClientInteraction));
             }
-            else
+            if (parameters.SpellInfo.BaseInfo.Entry.CastMethod == 1) // Handle channeling
             {
-                SendSpellStart();
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, Execute)); // Execute after initial delay
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, () => { events.CancelEvents(); })); // End Spell Cast
 
-                if (parameters.SpellInfo.BaseInfo.Entry.CastMethod == 1) // Handle channeling
-                {
-                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, Execute)); // Execute after initial delay
-                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, () => { events.CancelEvents(); })); // End Spell Cast
-
-                    uint numberOfPulses = (parameters.SpellInfo.Entry.ChannelMaxTime - parameters.SpellInfo.Entry.ChannelInitialDelay) / parameters.SpellInfo.Entry.ChannelPulseTime; // Calculate number of "ticks" in this spell cast
-
-                    // Add ticks at each pulse
-                    for (int i = 1; i <= numberOfPulses; i++)
-                        events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelPulseTime * (i + 1) / 1000d, () =>
-                        {
-                            SelectTargets();
-                            ExecuteEffects();
-                        }));
-                }
-                else
-                    events.EnqueueEvent(new SpellEvent(castTime, Execute)); // enqueue spell to be executed after cast time
+                uint numberOfPulses = (parameters.SpellInfo.Entry.ChannelMaxTime - parameters.SpellInfo.Entry.ChannelInitialDelay) / parameters.SpellInfo.Entry.ChannelPulseTime; // Calculate number of "ticks" in this spell cast
+                
+                // Add ticks at each pulse
+                for (int i = 1; i <= numberOfPulses; i++)
+                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelPulseTime * i / 1000d, () =>
+                    {
+                        SelectTargets();
+                        ExecuteEffects();
+                    }));
             }
+            else
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute)); // enqueue spell to be executed after cast time
 
             status = SpellStatus.Casting;
             
