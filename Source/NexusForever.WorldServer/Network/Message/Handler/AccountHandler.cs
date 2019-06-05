@@ -83,6 +83,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             // 0x097F - Account Tier (Basic/Signature)
 
             // 0x0966 - SetAccountCurrencyAmounts
+            session.AccountCurrencyManager.SendCharacterListPacket();
 
             // 0x096F - Weekly Omnibit progress
 
