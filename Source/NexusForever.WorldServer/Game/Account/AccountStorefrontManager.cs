@@ -1,6 +1,8 @@
 ﻿using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.WorldServer.Game.Account.Static;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Mail.Static;
 using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Game.Storefront.Static;
@@ -10,6 +12,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 
@@ -20,7 +23,8 @@ namespace NexusForever.WorldServer.Game.Account
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         private readonly WorldSession session;
-        private readonly Dictionary<uint, string> Transactions = new Dictionary<uint, string>();
+        private readonly Dictionary<string, Transaction> Transactions = new Dictionary<string, Transaction>();
+        private readonly List<Transaction> pendingTransactions = new List<Transaction>();
 
         public AccountStorefrontManager(WorldSession session, AccountModel model)
         {
@@ -31,7 +35,7 @@ namespace NexusForever.WorldServer.Game.Account
         {
             OfferItem offerItem = GlobalStorefrontManager.GetStoreOfferItem(offerId);
             OfferItemPrice offerItemPrice;
-            List<AccountItemEntry> accountItems = new List<AccountItemEntry>();
+            List<OfferItemData> accountItems = new List<OfferItemData>();
 
             StoreError GetResult()
             {
@@ -45,13 +49,17 @@ namespace NexusForever.WorldServer.Game.Account
                 if (offerItemPrice == null)
                     return StoreError.InvalidPrice;
 
-                foreach(OfferItemData itemData in offerItem.GetOfferItems())
+                accountItems = offerItem.GetOfferItems().ToList();
+                foreach (OfferItemData itemData in offerItem.GetOfferItems())
                 {
-                    AccountItemEntry accountItem = GameTableManager.AccountItem.GetEntry(itemData.ItemId);
-                    if (accountItem == null)
+                    if (itemData.Entry == null)
                         return StoreError.GenericFail;
 
-                    accountItems.Add(accountItem);
+                    if (itemData.Entry.Item2Id == 0 && itemData.Entry.AccountCurrencyEnum == 0)
+                        return StoreError.InvalidOffer;
+
+                    //if (itemData.Entry.EntitlementIdPurchase > 0 && !session.AccountEntitlements.HasEntitlement(itemData.Entry.EntitlementIdPurchase))
+                    //    return StoreError.MissingEntitlement;
                 }
 
                 if (expectedPrice != offerItemPrice.GetCurrencyValue())
@@ -93,13 +101,11 @@ namespace NexusForever.WorldServer.Game.Account
                 //});
                 for (int i = 0; i < accountItems.Count; i++)
                 {
-                    if (session.Player.Inventory.IsInventoryFull())
-                    {
-                        uint[] itemToSend = new uint[] { accountItems[i].Item2Id };
-                        session.Player.MailManager.SendMail(26454, DeliveryTime.Instant, 461265, 461266, itemToSend);
-                    }
-                    else
-                        session.Player.Inventory.ItemCreate(accountItems[i].Item2Id, 1, 44, 1);
+                    if (accountItems[i].Entry.Item2Id > 0)
+                        HandleItemPurchase(accountItems[i]);
+
+                    if (accountItems[i].Entry.AccountCurrencyAmount > 0)
+                        HandleCurrencyPurchase(accountItems[i]);
                 }
             }
             else
@@ -107,6 +113,29 @@ namespace NexusForever.WorldServer.Game.Account
                 {
                     Error = storeError
                 });
+        }
+
+        public void GenerateTransaction(ulong transactionKey, TransactionEvent transactionEvent, AccountCurrencyType accountCurrencyType = AccountCurrencyType.None, ulong startingValue = 0, ulong finishedCurrency = 0)
+        {
+            Transaction newTransaction = new Transaction(transactionKey, transactionEvent, session.Player != null ? session.Player.CharacterId : 0ul, accountCurrencyType, startingValue, finishedCurrency);
+
+            pendingTransactions.Add(newTransaction);
+        }
+
+        private void HandleItemPurchase(OfferItemData offerItemData)
+        {
+            if (session.Player.Inventory.IsInventoryFull())
+            {
+                uint[] itemToSend = new uint[] { offerItemData.Entry.Item2Id };
+                session.Player.MailManager.SendMail(26454, DeliveryTime.Instant, 461265, 461266, itemToSend);
+            }
+            else
+                session.Player.Inventory.ItemCreate(offerItemData.Entry.Item2Id, offerItemData.Amount, 44, 1);
+        }
+
+        private void HandleCurrencyPurchase(OfferItemData offerItemData)
+        {
+            session.AccountCurrencyManager.CurrencyAddAmount((AccountCurrencyType)offerItemData.Entry.AccountCurrencyEnum, offerItemData.Entry.AccountCurrencyAmount * offerItemData.Amount, 1);
         }
     }
 }

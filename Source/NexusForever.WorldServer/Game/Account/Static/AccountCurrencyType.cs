@@ -6,6 +6,7 @@ namespace NexusForever.WorldServer.Game.Account.Static
 {
     public enum AccountCurrencyType
     {
+        None                    = 0,
         Credd                   = 1,
         RealmTransfer           = 2,
         CharacterRename         = 3,

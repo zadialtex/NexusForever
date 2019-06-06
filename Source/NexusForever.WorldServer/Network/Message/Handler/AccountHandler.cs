@@ -21,9 +21,9 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             // 0x096D - Account inventory
             session.EnqueueMessageEncrypted(new ServerAccountItems
             {
-                AccountItems = new System.Collections.Generic.List<Model.Shared.AccountItem>
+                AccountItems = new System.Collections.Generic.List<Model.Shared.AccountInventoryItem>
                 {
-                    new Model.Shared.AccountItem
+                    new Model.Shared.AccountInventoryItem
                     {
                         Id = 1,
                         ItemId = 793,
@@ -35,7 +35,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         //    CharacterId = 2
                         //}
                     },
-                    new Model.Shared.AccountItem
+                    new Model.Shared.AccountInventoryItem
                     {
                         Id = 12757397,
                         ItemId = 29,
@@ -48,12 +48,12 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     //    ItemId = 29,
                     //    Unknown0 = 1234,
                     //},
-                    new Model.Shared.AccountItem
+                    new Model.Shared.AccountInventoryItem
                     {
                         Id = 234459813,
                         ItemId = 19
                     },
-                    new Model.Shared.AccountItem
+                    new Model.Shared.AccountInventoryItem
                     {
                         Id = 59824862,
                         ItemId = 2212,
@@ -65,7 +65,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                             CharacterId = 1
                         }
                     },
-                    new Model.Shared.AccountItem
+                    new Model.Shared.AccountInventoryItem
                     {
                         Id = 59824863,
                         ItemId = 2132,

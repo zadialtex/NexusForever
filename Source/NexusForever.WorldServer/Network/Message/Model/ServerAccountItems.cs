@@ -8,7 +8,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerAccountItems)]
     public class ServerAccountItems : IWritable
     {
-        public List<AccountItem> AccountItems { get; set; } = new List<AccountItem>();
+        public List<AccountInventoryItem> AccountItems { get; set; } = new List<AccountInventoryItem>();
 
         public void Write(GamePacketWriter writer)
         {

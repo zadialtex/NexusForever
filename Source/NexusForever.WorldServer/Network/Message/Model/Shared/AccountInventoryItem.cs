@@ -3,7 +3,7 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model.Shared
 {
-    public class AccountItem : IWritable
+    public class AccountInventoryItem : IWritable
     {
         public ulong Id { get; set; }
         public uint ItemId { get; set; }

@@ -1,4 +1,6 @@
-﻿using NexusForever.WorldServer.Database.World.Model;
+﻿using NexusForever.Shared.GameTable;
+using NexusForever.Shared.GameTable.Model;
+using NexusForever.WorldServer.Database.World.Model;
 using NexusForever.WorldServer.Network.Message.Model;
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,8 @@ namespace NexusForever.WorldServer.Game.Storefront
         public ushort ItemId { get; set; }
         public uint Amount { get; set; }
 
+        public AccountItemEntry Entry { get; private set; }
+
         public OfferItemData(StoreOfferItemData model)
         {
             Id = model.Id;
@@ -21,6 +25,10 @@ namespace NexusForever.WorldServer.Game.Storefront
             Type = model.Type;
             ItemId = model.ItemId;
             Amount = model.Amount;
+
+            Entry = GameTableManager.AccountItem.GetEntry(ItemId);
+            if (Entry == null)
+                throw new ArgumentNullException("Item was not found in AccountItem table.");
         }
 
         public ServerStoreOffers.OfferGroup.Offer.OfferItemData BuildNetworkPacket()
