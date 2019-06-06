@@ -30,10 +30,10 @@ namespace NexusForever.WorldServer.Game.Storefront
 
         public float GetCurrencyValue()
         {
-            if (CurrencyId == 11 && StorefrontManager.ForcedProtobucksPrice> 0)
-                return StorefrontManager.ForcedProtobucksPrice;
-            if (CurrencyId == 6 && StorefrontManager.ForcedOmnibitsPrice > 0)
-                return StorefrontManager.ForcedOmnibitsPrice;
+            if (CurrencyId == 11 && GlobalStorefrontManager.ForcedProtobucksPrice > 0)
+                return GlobalStorefrontManager.ForcedProtobucksPrice;
+            if (CurrencyId == 6 && GlobalStorefrontManager.ForcedOmnibitsPrice > 0)
+                return GlobalStorefrontManager.ForcedOmnibitsPrice;
 
             if (DiscountValue == 0f)
                 return (float)Math.Ceiling(Price);
@@ -49,9 +49,9 @@ namespace NexusForever.WorldServer.Game.Storefront
             {
                 CurrencyId = CurrencyId,
                 Price = Price,
-                DiscountType = (CurrencyId == 11 && StorefrontManager.ForcedProtobucksPrice > 0) || (CurrencyId == 6 && StorefrontManager.ForcedOmnibitsPrice > 0) ? 0 : DiscountType,
-                DiscountValue = (CurrencyId == 11 && StorefrontManager.ForcedProtobucksPrice > 0) || (CurrencyId == 6 && StorefrontManager.ForcedOmnibitsPrice > 0) ? 0 : DiscountValue,
-                DiscountTimeRemaining = (CurrencyId == 11 && StorefrontManager.ForcedProtobucksPrice > 0) || (CurrencyId == 6 && StorefrontManager.ForcedOmnibitsPrice > 0) ? -1 : (DiscountType > 0 ? 1 : -1), // Values more than 0 "enable" discount
+                DiscountType = (CurrencyId == 11 && GlobalStorefrontManager.ForcedProtobucksPrice > 0) || (CurrencyId == 6 && GlobalStorefrontManager.ForcedOmnibitsPrice > 0) ? 0 : DiscountType,
+                DiscountValue = (CurrencyId == 11 && GlobalStorefrontManager.ForcedProtobucksPrice > 0) || (CurrencyId == 6 && GlobalStorefrontManager.ForcedOmnibitsPrice > 0) ? 0 : DiscountValue,
+                DiscountTimeRemaining = (CurrencyId == 11 && GlobalStorefrontManager.ForcedProtobucksPrice > 0) || (CurrencyId == 6 && GlobalStorefrontManager.ForcedOmnibitsPrice > 0) ? -1 : (DiscountType > 0 ? 1 : -1), // Values more than 0 "enable" discount
                 TimeSinceExpiry = -1995405795 // Expiry
             };
         }

@@ -241,14 +241,18 @@ namespace NexusForever.Shared.Network.Message
         ServerAccountCurrencyGrant      = 0x0967,
         ServerAccountEntitlements       = 0x0968,
         ServerAccountItems              = 0x096D,
+        ServerAccountOperationResult    = 0x0970,
         ServerAccountItemCooldownSet    = 0x0974,
         ServerAccountItemAdd            = 0x0975,
         ServerAccountItemsPending       = 0x0979,
+        ServerAccountTransaction        = 0x097D,
         ServerGenericUnlockList         = 0x0981,
         ServerGenericUnlock             = 0x0982,
         ServerGenericUnlockResult       = 0x0985,
         ServerStoreFinalise             = 0x0987,
         ServerStoreCategories           = 0x0988,
         ServerStoreOffers               = 0x098B,
+        ServerStoreError                = 0x098A,
+        ServerStorePurchaseResult       = 0x098C
     }
 }

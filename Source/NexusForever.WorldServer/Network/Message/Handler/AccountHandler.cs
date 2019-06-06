@@ -1,11 +1,18 @@
-﻿using NexusForever.Shared.Network.Message;
+﻿using NexusForever.Shared.Game.Events;
+using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network.Message.Model;
+using NLog;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
     public static class AccountHandler
     {
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
+
         [MessageHandler(GameMessageOpcode.ClientStorefrontRequestCatalog)]
         public static void HandleStorefrontRequestCatalogRealm(WorldSession session, ClientStorefrontRequestCatalog storefrontRequest)
         {
@@ -96,7 +103,26 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             // 0x0988 - Store catalogue categories 
             // 0x098B - Store catalogue offer grouips + offers
             // 0x0987 - Store catalogue finalised message
-            StorefrontManager.HandleCatalogRequest(session);
+            GlobalStorefrontManager.HandleCatalogRequest(session);
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientStorefrontPurchaseCharacter)]
+        public static void HandlePurchaseCharacter(WorldSession session, ClientStorefrontPurchaseCharacter purchase)
+        {
+            log.Info($"OfferId: {purchase.StorePurchaseRequest.OfferId}, Unknown1: {purchase.StorePurchaseRequest.CurrencyId}, Unknown2: {purchase.StorePurchaseRequest.Price}, Unknown3: {purchase.StorePurchaseRequest.Unknown3}, Unknown4: {purchase.StorePurchaseRequest.CategoryId}, TargetPlayer: {purchase.StorePurchaseRequest.PlayerIdentity.RealmId} : {purchase.StorePurchaseRequest.PlayerIdentity.CharacterId}, Unknown5: {purchase.StorePurchaseRequest.Unknown5}");
+
+            session.AccountStorefrontManager.HandleCharacterPurchase(purchase.StorePurchaseRequest.OfferId, purchase.StorePurchaseRequest.CurrencyId, (uint)purchase.StorePurchaseRequest.Price, purchase.StorePurchaseRequest.PlayerIdentity, session.Player);
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientStorefrontPurchaseAccount)]
+        public static void HandlePurchaseAccount(WorldSession session, ClientStorefrontPurchaseAccount purchase)
+        {
+            log.Info($"OfferId: {purchase.StorePurchaseRequest.OfferId}, Unknown1: {purchase.StorePurchaseRequest.CurrencyId}, Unknown2: {purchase.StorePurchaseRequest.Price}, Unknown3: {purchase.StorePurchaseRequest.Unknown3}, Unknown4: {purchase.StorePurchaseRequest.CategoryId}, TargetPlayer: {purchase.StorePurchaseRequest.PlayerIdentity.RealmId} : {purchase.StorePurchaseRequest.PlayerIdentity.CharacterId}, Unknown5: {purchase.StorePurchaseRequest.Unknown5}, base.Unknown0: {purchase.Unknown0}, TargetPlayer: {purchase.TargetPlayerIdentity.RealmId} : {purchase.TargetPlayerIdentity.CharacterId}, Message: {purchase.Message}");
+
+            session.EnqueueMessageEncrypted(new ServerStoreError
+            {
+                Error = Game.Storefront.Static.StoreError.MissingEntitlement
+            });
         }
     }
 }

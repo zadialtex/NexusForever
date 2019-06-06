@@ -19,7 +19,7 @@ namespace NexusForever.WorldServer.Game.Storefront
         public uint[] CategoryArray { get; }
         public uint[] CategoryIndexArray { get; }
 
-        public List<OfferItem> offerItems = new List<OfferItem>();
+        public Dictionary</*offerId*/uint, OfferItem> offerItems = new Dictionary<uint, OfferItem>();
 
         public OfferGroup(StoreOfferGroup model)
         {
@@ -34,7 +34,10 @@ namespace NexusForever.WorldServer.Game.Storefront
             CategoryIndexArray = CalculateCategoryArray(model.StoreOfferGroupCategory, true);
 
             foreach (StoreOfferItem offerItem in model.StoreOfferItem)
-                offerItems.Add(new OfferItem(offerItem));
+            {
+                OfferItem offer = new OfferItem(offerItem);
+                offerItems.Add(offer.Id, offer);
+            }
         }
 
         private uint[] CalculateCategoryArray(IEnumerable<StoreOfferGroupCategory> offerGroupCategories, bool indexCheck = false)
@@ -50,9 +53,17 @@ namespace NexusForever.WorldServer.Game.Storefront
             return CategoryArray.ToArray();
         }
 
+        /// <summary>
+        /// Returns an <see cref="OfferItem"/> matching the supplied offer ID, if it exists
+        /// </summary>
+        public OfferItem GetOfferItem(uint offerId)
+        {
+            return offerItems.TryGetValue(offerId, out OfferItem offerItem) ? offerItem : null;
+        }
+
         private IEnumerable<ServerStoreOffers.OfferGroup.Offer> GetOfferNetworkPackets()
         {
-            foreach (OfferItem offer in offerItems)
+            foreach (OfferItem offer in offerItems.Values)
                 yield return offer.BuildNetworkPacket();
         }
 

@@ -59,7 +59,7 @@ namespace NexusForever.WorldServer
             ServerManager.Initialise();
 
             ResidenceManager.Initialise();
-            StorefrontManager.Initialise();
+            GlobalStorefrontManager.Initialise();
 
             // make sure the assigned realm id in the configuration file exists in the database
             RealmId = ConfigurationManager<WorldServerConfiguration>.Config.RealmId;

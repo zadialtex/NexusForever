@@ -12,17 +12,22 @@ using NLog;
 
 namespace NexusForever.WorldServer.Game.Storefront
 {
-    public static class StorefrontManager
+    /// <summary>
+    /// GlobalStorefrontManager provides global caching of all the store items that are sent to each player. It was made global so that reloading store items while the server is 
+    /// running would be handled in a global context.
+    /// </summary>
+    public static class GlobalStorefrontManager
     {
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
-        private static ImmutableList<Category> StoreCategoryList { get; set; }
+        private static ImmutableDictionary<uint, Category> StoreCategoryCache { get; set; }
         private static List<ServerStoreCategories.StoreCategory> ServerStoreCategoryList { get; set; } = new List<ServerStoreCategories.StoreCategory>();
 
-        private static ImmutableList<OfferGroup> StoreOfferList { get; set; }
+        private static ImmutableDictionary<uint, OfferGroup> StoreOfferCache { get; set; }
         private static List<ServerStoreOffers.OfferGroup> ServerStoreOfferList { get; set; } = new List<ServerStoreOffers.OfferGroup>();
 
-        // Move to configuration and set value
+        private static ImmutableDictionary</*offerId*/uint, /*offerGroupId*/uint> OfferItemLookupCache { get; set; }
+
         public static float ForcedProtobucksPrice { get; private set; } = 0f;
         public static float ForcedOmnibitsPrice { get; private set; } = 0f;
         public static bool CurrencyProtobucksEnabled { get; private set; } = true;
@@ -37,7 +42,7 @@ namespace NexusForever.WorldServer.Game.Storefront
 
             BuildNetworkPackets();
 
-            log.Info($"Initialised {StoreCategoryList.Count} categories with {StoreOfferList.Count} offers");
+            log.Info($"Initialised {StoreCategoryCache.Count} categories with {StoreOfferCache.Count} offers");
         }
 
         private static void LoadConfig()
@@ -50,10 +55,10 @@ namespace NexusForever.WorldServer.Game.Storefront
 
         private static void BuildNetworkPackets()
         {
-            foreach (Category category in StoreCategoryList)
+            foreach (Category category in StoreCategoryCache.Values)
                 ServerStoreCategoryList.Add(category.BuildNetworkPacket());
 
-            foreach (OfferGroup offerGroup in StoreOfferList)
+            foreach (OfferGroup offerGroup in StoreOfferCache.Values)
                 ServerStoreOfferList.Add(offerGroup.BuildNetworkPacket());
         }
 
@@ -63,11 +68,11 @@ namespace NexusForever.WorldServer.Game.Storefront
                 .OrderBy(i => i.Id)
                 .Where(x => x.Id != 26 && x.Visible == true); // Remove parent category placeholder
 
-            List<Category> categoryList = new List<Category>();
+            var categoryList = ImmutableDictionary.CreateBuilder<uint, Category>();
             foreach (StoreCategory category in StoreCategories)
-                categoryList.Add(new Category(category));
+                categoryList.Add(category.Id, new Category(category));
 
-            StoreCategoryList = categoryList.ToImmutableList();
+            StoreCategoryCache = categoryList.ToImmutable();
         }
 
         private static void InitialiseStoreOfferGroups()
@@ -76,13 +81,40 @@ namespace NexusForever.WorldServer.Game.Storefront
                 .OrderBy(i => i.Id)
                 .Where(x => x.Visible == true);
 
-            List<OfferGroup> offerGroupList = new List<OfferGroup>();
-            foreach (StoreOfferGroup offerGroup in StoreOfferGroups)
-                offerGroupList.Add(new OfferGroup(offerGroup));
+            var offerGroupList = ImmutableDictionary.CreateBuilder<uint, OfferGroup>();
+            var offerItems = ImmutableDictionary.CreateBuilder<uint, uint>();
 
-            StoreOfferList = offerGroupList.ToImmutableList();           
+            foreach (StoreOfferGroup offerGroup in StoreOfferGroups)
+            {
+                offerGroupList.Add(offerGroup.Id, new OfferGroup(offerGroup));
+
+                foreach (var offerItem in offerGroup.StoreOfferItem)
+                    offerItems.Add(offerItem.Id, offerGroup.Id); // Cache the offer item's group ID, to lookup the entry.
+            }
+                
+            StoreOfferCache = offerGroupList.ToImmutable();
+            OfferItemLookupCache = offerItems.ToImmutable();
         }
 
+        /// <summary>
+        /// Return the <see cref="OfferItem"/> that matches the supplied offer ID
+        /// </summary>
+        public static OfferItem GetStoreOfferItem(uint offerId)
+        {
+            if(OfferItemLookupCache.TryGetValue(offerId, out uint offerGroupId))
+            {
+                if (StoreOfferCache.TryGetValue(offerGroupId, out OfferGroup offerGroup))
+                {
+                    return offerGroup.GetOfferItem(offerId);
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// This method is used to send the current Store Catalog to the <see cref="WorldSession"/>
+        /// </summary>
         public static void HandleCatalogRequest(WorldSession session)
         {
             SendStoreCategories(session);
@@ -110,6 +142,7 @@ namespace NexusForever.WorldServer.Game.Storefront
             {
                 count++;
                 offersToSend.Add(offerGroup);
+                // Ensure we only send 20 Offer Groups per packet. This is the same as Live.
                 if(count == 20 || ServerStoreOfferList.IndexOf(offerGroup) == ServerStoreOfferList.Count - 1)
                 {
                     session.EnqueueMessageEncrypted(new ServerStoreOffers

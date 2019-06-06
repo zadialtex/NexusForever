@@ -37,9 +37,9 @@ namespace NexusForever.WorldServer.Game.Storefront
                 
             foreach (StoreOfferItemPrice price in model.StoreOfferItemPrice)
             {
-                if (!StorefrontManager.CurrencyProtobucksEnabled && price.CurrencyId == 11)
+                if (!GlobalStorefrontManager.CurrencyProtobucksEnabled && price.CurrencyId == 11)
                     continue;
-                if (!StorefrontManager.CurrencyOmnibitsEnabled && price.CurrencyId == 6)
+                if (!GlobalStorefrontManager.CurrencyOmnibitsEnabled && price.CurrencyId == 6)
                     continue;
 
                 OfferItemPrice itemPrice = new OfferItemPrice(price);
@@ -57,6 +57,22 @@ namespace NexusForever.WorldServer.Game.Storefront
         {
             foreach (OfferItemPrice price in prices.Values)
                 yield return price.BuildNetworkPacket();
+        }
+
+        /// <summary>
+        /// Get all <see cref="OfferItemData"/> as part of this <see cref="OfferItem"/>
+        /// </summary>
+        public IEnumerable<OfferItemData> GetOfferItems()
+        {
+            return itemDataList;
+        }
+
+        /// <summary>
+        /// Get the <see cref="OfferItemPrice"/> associated with this <see cref="OfferItem"/> for the given account currency ID
+        /// </summary>
+        public OfferItemPrice GetPriceDataForCurrency(byte currencyId)
+        {
+            return prices.TryGetValue(currencyId, out OfferItemPrice itemPrice) ? itemPrice : null;
         }
 
         public ServerStoreOffers.OfferGroup.Offer BuildNetworkPacket()
