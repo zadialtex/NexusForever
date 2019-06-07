@@ -6,6 +6,7 @@ using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Spell.Static;
+using NexusForever.WorldServer.Network.Message.Model;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -96,6 +97,52 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             Spell.Spell spell = pendingSpells.SingleOrDefault(s => s.CastingId == castingId);
             spell?.CancelCast(CastResult.SpellCancelled);
+        }
+
+        public void TakeDamage(uint damage)
+        {
+            int currentShield = (int)GetStatInteger(Stat.Shield);
+            int currentHealth = (int)GetStatInteger(Stat.Health);
+
+            while (damage > 0)
+            {
+                if (currentShield > 0)
+                    currentShield--;
+                else
+                    currentHealth--;
+
+                damage--;
+
+                if (currentHealth == 0)
+                    break;
+            }
+
+            uint newHealth = (uint)Math.Max(currentHealth - damage, 0);
+            SetStat(Stat.Shield, (uint)currentShield);
+            SetStat(Stat.Health, (uint)currentHealth);
+
+            if (newHealth > 0)
+                EnqueueToVisible(new Server0937
+                {
+                    UnitId = Guid,
+                    Value = newHealth,
+                    Unknown0 = false
+                }, true);
+            else
+            {
+                EnqueueToVisible(new Server0937
+                {
+                    UnitId = Guid,
+                    Value = newHealth,
+                    Unknown0 = false
+                }, true);
+                EnqueueToVisible(new ServerEntityDeath
+                {
+                    UnitId = Guid,
+                    Dead = true,
+                    Reason = 2
+                }, true);
+            }   
         }
     }
 }

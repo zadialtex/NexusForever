@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared;
@@ -18,7 +19,37 @@ namespace NexusForever.WorldServer.Game.Spell
         private void HandleEffectDamage(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
             // TODO: calculate damage
-            info.AddDamage((DamageType)info.Entry.DamageType, 1337);
+
+            // Calculate damage based on Level (This is accurate when zero assault/support rating is on the character)
+            uint baseDamage = 0;
+            if (info.Entry.ParameterType00 == 10)
+                baseDamage = (uint)(info.Entry.ParameterValue00 * caster.Level);
+            if (info.Entry.ParameterType01 == 10)
+                baseDamage = (uint)(info.Entry.ParameterValue01 * caster.Level);
+            if (info.Entry.ParameterType02 == 10)
+                baseDamage = (uint)(info.Entry.ParameterValue02 * caster.Level);
+            if (info.Entry.ParameterType03 == 10)
+                baseDamage = (uint)(info.Entry.ParameterValue03 * caster.Level);
+
+            // Calculate Damage from Assult Rating (is Support Rating added in here, too?)
+            // The division of 4 is accurate for Rating -> Value (220f rating, 55 value), but may be slightly off
+            caster.Properties.TryGetValue(Property.AssaultRating, out PropertyValue assaultRating);
+            if (info.Entry.ParameterType00 == 12)
+                baseDamage += (uint)Math.Floor(info.Entry.ParameterValue00 * (assaultRating.Value / 4));
+            if (info.Entry.ParameterType01 == 12)
+                baseDamage += (uint)Math.Floor(info.Entry.ParameterValue01 * (assaultRating.Value / 4));
+            if (info.Entry.ParameterType02 == 12)
+                baseDamage += (uint)Math.Floor(info.Entry.ParameterValue02 * (assaultRating.Value / 4));
+            if (info.Entry.ParameterType03 == 12)
+                baseDamage += (uint)Math.Floor(info.Entry.ParameterValue03 * (assaultRating.Value / 4));
+
+            info.AddDamage((DamageType)info.Entry.DamageType, baseDamage);
+
+            if (caster is Player player)
+            {
+                target.TakeDamage(baseDamage);
+            }
+                
         }
 
         [SpellEffectHandler(SpellEffectType.Proxy)]
