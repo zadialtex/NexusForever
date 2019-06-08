@@ -158,17 +158,6 @@ namespace NexusForever.WorldServer.Game.Entity
             MailManager             = new MailManager(this, model);
             ZoneMapManager          = new ZoneMapManager(this, model);
 
-            // temp
-            Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
-            Properties.Add(Property.ShieldCapacityMax, new PropertyValue(Property.ShieldCapacityMax, 0f, 450f));
-            Properties.Add(Property.MoveSpeedMultiplier, new PropertyValue(Property.MoveSpeedMultiplier, 1f, 1f));
-            Properties.Add(Property.JumpHeight, new PropertyValue(Property.JumpHeight, 2.5f, 2.5f));
-            Properties.Add(Property.GravityMultiplier, new PropertyValue(Property.GravityMultiplier, 1f, 1f));
-            // sprint
-            Properties.Add(Property.ResourceMax0, new PropertyValue(Property.ResourceMax0, 500f, 500f));
-            // dash
-            Properties.Add(Property.ResourceMax7, new PropertyValue(Property.ResourceMax7, 200f, 200f));
-
             Costume costume = null;
             if (CostumeIndex >= 0)
                 costume = CostumeManager.GetCostume((byte)CostumeIndex);
@@ -194,6 +183,53 @@ namespace NexusForever.WorldServer.Game.Entity
             // sprint
             SetStat(Stat.Resource0, 500f);
             SetStat(Stat.Shield, 450u);
+        }
+
+        protected override void SetBaseProperties()
+        {
+            var baseProperties = AssetManager.GetCharacterBaseProperties();
+            foreach(PropertyValue propertyValue in baseProperties)
+            {
+                if (propertyValue.Property == Property.BaseHealth || propertyValue.Property == Property.AssaultRating || propertyValue.Property == Property.SupportRating)
+                    propertyValue.Value *= Level;
+
+                SetProperty(propertyValue.Property, propertyValue.Value, propertyValue.Value);
+            }
+                
+            //Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
+            //float resourceMax0 = 100f;
+            //switch (Class)
+            //{
+            //    case Class.Warrior:
+            //        resourceMax0 = 1000f;
+            //        break;
+            //    case Class.Esper:
+            //        resourceMax0 = 5f;
+            //        break;
+            //    case Class.Engineer:
+            //        resourceMax0 = 100f;
+            //        break;
+            //    case Class.Medic:
+            //        resourceMax0 = 4f;
+            //        break;
+            //}
+            //Properties.Add(Property.ResourceMax1, new PropertyValue(Property.ResourceMax1, resourceMax0, resourceMax0));
+            //Properties.Add(Property.ResourceMax2, new PropertyValue(Property.ResourceMax2, 100f, 100f));
+            //Properties.Add(Property.ResourceMax3, new PropertyValue(Property.ResourceMax3, 100f, 100f));
+            //Properties.Add(Property.ResourceMax4, new PropertyValue(Property.ResourceMax4, 100f, 100f));
+            //Properties.Add(Property.ResourceMax6, new PropertyValue(Property.ResourceMax6, 100f, 100f));
+            //Properties.Add(Property.ResourceRegenMultiplier0, new PropertyValue(Property.ResourceRegenMultiplier0, 0.0225f, 0.0225f));
+            //Properties.Add(Property.ShieldCapacityMax, new PropertyValue(Property.ShieldCapacityMax, 0f, 450f));
+            //Properties.Add(Property.MoveSpeedMultiplier, new PropertyValue(Property.MoveSpeedMultiplier, 1f, 1f));
+            //Properties.Add(Property.JumpHeight, new PropertyValue(Property.JumpHeight, 2.5f, 2.5f));
+            //Properties.Add(Property.GravityMultiplier, new PropertyValue(Property.GravityMultiplier, 1f, 1f));
+            //Properties.Add(Property.AssaultRating, new PropertyValue(Property.AssaultRating, 18f, 220f));
+            //// sprint
+            //Properties.Add(Property.ResourceMax0, new PropertyValue(Property.ResourceMax0, 500f, 500f));
+            //// dash
+            //Properties.Add(Property.ResourceMax7, new PropertyValue(Property.ResourceMax7, 200f, 200f));
+
+            base.SetBaseProperties();
         }
 
         public override void Update(double lastTick)

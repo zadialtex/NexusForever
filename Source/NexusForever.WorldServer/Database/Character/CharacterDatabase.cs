@@ -148,5 +148,11 @@ namespace NexusForever.WorldServer.Database.Character
             using (var context = new CharacterContext())
                 return context.CharacterMail.DefaultIfEmpty().Max(s => s.Id);
         }
+
+        public static List<PropertyBase> GetProperties(uint type)
+        {
+            using (var context = new CharacterContext())
+                return context.PropertyBase.Where(p => p.Type == type).ToList();
+        }
     }
 }

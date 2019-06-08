@@ -76,6 +76,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
             foreach (EntityStat statModel in model.EntityStat)
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
+
+            SetBaseProperties();
         }
 
         public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
@@ -163,6 +165,11 @@ namespace NexusForever.WorldServer.Game.Entity
 
             DirtyProperties.Clear();
             return propertyUpdatePacket;
+        }
+
+        protected virtual void SetBaseProperties()
+        {
+            // Delibrartely empty
         }
 
         public bool HasPendingPropertyChanges => DirtyProperties.Count != 0;
