@@ -142,6 +142,24 @@ namespace NexusForever.WorldServer.Game.Entity
                     Dead = true,
                     Reason = 2
                 }, true);
+
+                Random random = new Random();
+                EnqueueToVisible(new ServerLoot
+                {
+                    UnitId = Guid,
+                    Explosion = false,
+                    LootItems = new List<ServerLoot.LootItem>
+                    {
+                        new ServerLoot.LootItem
+                        {
+                            UniqueId = (uint)random.Next(),
+                            Type = 0,
+                            StaticId = 7608,
+                            Amount = 1,
+                            CanLoot = true
+                        }
+                    }
+                });
             }   
         }
     }
