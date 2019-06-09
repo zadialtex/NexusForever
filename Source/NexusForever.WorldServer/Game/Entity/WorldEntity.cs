@@ -169,7 +169,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         protected virtual void SetBaseProperties()
         {
-            // Delibrartely empty
+            // Deliberately empty
         }
 
         public bool HasPendingPropertyChanges => DirtyProperties.Count != 0;
@@ -184,9 +184,27 @@ namespace NexusForever.WorldServer.Game.Entity
             DirtyProperties.Add(property);
         }
 
-        public float? GetPropertyValue(Property property)
+        public float GetPropertyValue(Property property)
         {
             return Properties.ContainsKey(property) ? Properties[property].Value : default;
+        }
+
+        public void AddToProperty(Property property, float value)
+        {
+            if (value < 0f)
+                return;
+
+            float propertyToMod = GetPropertyValue(property);
+            SetProperty(property, propertyToMod + value);
+        }
+
+        public void SubtractFromProperty(Property property, float value)
+        {
+            if (value < 0f)
+                value *= -1f;
+
+            float propertyToMod = GetPropertyValue(property);
+            SetProperty(property, propertyToMod - value);
         }
 
         /// <summary>
