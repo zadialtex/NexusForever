@@ -115,5 +115,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     break;
             }
         }
+
+        [MessageHandler(GameMessageOpcode.ClientMovementDash)]
+        public static void HandleClientMovementDash(WorldSession session, ClientMovementDash clientMovementDash)
+        {
+            session.Player.Dash();
+        }
     }
 }

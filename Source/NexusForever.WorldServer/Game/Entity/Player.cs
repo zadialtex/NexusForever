@@ -126,6 +126,17 @@ namespace NexusForever.WorldServer.Game.Entity
         private LogoutManager logoutManager;
         private PendingTeleport pendingTeleport;
 
+        public bool InCombat = false;
+
+        public void Dash() => SetStat(Stat.Dash, (float)GetStatFloat(Stat.Dash) - 100f);
+
+        private double StatUpdateTimer = 0.25d;
+        private double timeToStatUpdate;
+
+        private float MaxHealthRegenPercentPerSecond = 0.01f;
+        private float Resource9RegenPerSecond = 20f;
+        
+
         public Player(WorldSession session, Character model)
             : base(EntityType.Player)
         {
@@ -207,8 +218,8 @@ namespace NexusForever.WorldServer.Game.Entity
             foreach (PropertyValue propertyValue in classProperties)
             {
                 float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
-
                 SetProperty(propertyValue.Property, value, value);
+                SetStat((Stat)((uint)propertyValue.Property - 7), value);
             }
                 
             //Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
@@ -235,6 +246,28 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             base.Update(lastTick);
+
+            timeToStatUpdate -= lastTick;
+            if (timeToStatUpdate <= 0d)
+            {
+                float dashRemaining = (float)GetStatFloat(Stat.Dash);
+                if (dashRemaining < GetPropertyValue(Property.ResourceMax7))
+                    SetStat(Stat.Dash, Math.Min(dashRemaining + (Resource9RegenPerSecond * (float)StatUpdateTimer + ((float)timeToStatUpdate * -1f)), GetPropertyValue(Property.ResourceMax7)));
+
+                uint healthRemaining = (uint)GetStatInteger(Stat.Health);
+                if (healthRemaining < GetPropertyValue(Property.BaseHealth))
+                {
+                    SetStat(Stat.Health, (uint)Math.Min(healthRemaining + (GetPropertyValue(Property.BaseHealth) * MaxHealthRegenPercentPerSecond * (float)StatUpdateTimer + ((float)timeToStatUpdate * -1f)), GetPropertyValue(Property.BaseHealth)));
+                    EnqueueToVisible(new ServerUpdateHealth
+                    {
+                        UnitId = Guid,
+                        Health = (uint)GetStatInteger(Stat.Health)
+                    }, true);
+                }
+                    
+                timeToStatUpdate = StatUpdateTimer;
+            }
+
             TitleManager.Update(lastTick);
             SpellManager.Update(lastTick);
             CostumeManager.Update(lastTick);
