@@ -61,7 +61,7 @@ namespace NexusForever.WorldServer.Game.Storefront
         {
             IEnumerable<StoreCategory> StoreCategories = WorldDatabase.GetStoreCategories()
                 .OrderBy(i => i.Id)
-                .Where(x => x.Id != 26 && x.Visible == true); // Remove parent category placeholder
+                .Where(x => x.Id != 26 && Convert.ToBoolean(x.Visible) == true); // Remove parent category placeholder
 
             List<Category> categoryList = new List<Category>();
             foreach (StoreCategory category in StoreCategories)
@@ -74,7 +74,7 @@ namespace NexusForever.WorldServer.Game.Storefront
         {
             IEnumerable<StoreOfferGroup> StoreOfferGroups = WorldDatabase.GetStoreOfferGroups()
                 .OrderBy(i => i.Id)
-                .Where(x => x.Visible == true);
+                .Where(x => Convert.ToBoolean(x.Visible) == true);
 
             List<OfferGroup> offerGroupList = new List<OfferGroup>();
             foreach (StoreOfferGroup offerGroup in StoreOfferGroups)

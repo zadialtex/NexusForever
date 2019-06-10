@@ -192,7 +192,7 @@ namespace NexusForever.WorldServer.Database.World.Model
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
                     .HasDefaultValueSql("'0'");
-
+                    
                 entity.HasOne(d => d.IdNavigation)
                     .WithMany(p => p.EntityStats)
                     .HasForeignKey(d => d.Id)
@@ -773,7 +773,7 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .HasColumnName("id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ParentCategoryId)
+                entity.Property(e => e.ParentId)
                     .HasColumnName("parentId")
                     .HasDefaultValueSql("'26'");
 
@@ -894,7 +894,7 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .HasColumnName("visible")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.IdNavigation)
+                entity.HasOne(d => d.Group)
                     .WithMany(p => p.StoreOfferItem)
                     .HasForeignKey(d => d.GroupId)
                     .HasConstraintName("FK__store_offer_item__store_offer_group")
@@ -903,7 +903,7 @@ namespace NexusForever.WorldServer.Database.World.Model
 
             modelBuilder.Entity<StoreOfferItemData>(entity =>
             {
-                entity.HasKey(e => new { e.Id, e.OfferId })
+                entity.HasKey(e => new { e.Id, e.ItemId })
                     .HasName("PRIMARY");
 
                 entity.ToTable("store_offer_item_data");
@@ -911,10 +911,6 @@ namespace NexusForever.WorldServer.Database.World.Model
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasDefaultValueSql("AUTO_INCREMENT");
-
-                entity.Property(e => e.OfferId)
-                    .HasColumnName("offerId")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Type)
                     .HasColumnName("type")
@@ -929,19 +925,19 @@ namespace NexusForever.WorldServer.Database.World.Model
 
                 entity.HasOne(d => d.IdNavigation)
                     .WithMany(p => p.StoreOfferItemData)
-                    .HasForeignKey(d => d.OfferId)
+                    .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__store_offer_item_data__store_offer_item")
                     .HasPrincipalKey(p => p.Id);
             });
 
             modelBuilder.Entity<StoreOfferItemPrice>(entity =>
             {
-                entity.HasKey(e => new { e.OfferId, e.CurrencyId });
+                entity.HasKey(e => new { e.Id, e.CurrencyId });
 
                 entity.ToTable("store_offer_item_price");
 
-                entity.Property(e => e.OfferId)
-                    .HasColumnName("offerId")
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.CurrencyId)
@@ -970,7 +966,7 @@ namespace NexusForever.WorldServer.Database.World.Model
 
                 entity.HasOne(d => d.IdNavigation)
                     .WithMany(p => p.StoreOfferItemPrice)
-                    .HasForeignKey(d => d.OfferId)
+                    .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__store_offer_item_price__store_offer_item")
                     .HasPrincipalKey(p => p.Id);
             });
