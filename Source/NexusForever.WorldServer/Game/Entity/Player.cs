@@ -34,11 +34,14 @@ using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
+using NLog;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
     public class Player : UnitEntity, ISaveAuth, ISaveCharacter, ICharacter
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
         // TODO: move this to the config file
         private const double SaveDuration = 60d;
 
@@ -317,7 +320,15 @@ namespace NexusForever.WorldServer.Game.Entity
                 TimePlayedLevel += timeSinceLastSave;
                 TimePlayedTotal += timeSinceLastSave;
 
-                Save();
+                try
+                {
+                    Save();
+
+                }
+                catch (Exception e)
+                {
+                    log.Error($"{e.Message}: {e.StackTrace}");
+                }
             }
         }
 
