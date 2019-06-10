@@ -996,12 +996,12 @@ namespace NexusForever.WorldServer.Database.Character.Model
 
                 entity.Property(e => e.MessageOfTheDay)
                     .HasColumnName("motd")
-                    .HasColumnType("varchar(200)")
+                    .HasColumnType("varchar(500)")
                     .HasDefaultValueSql("''");
 
                 entity.Property(e => e.AdditionalInfo)
                     .HasColumnName("additionalInfo")
-                    .HasColumnType("varchar(200)")
+                    .HasColumnType("varchar(500)")
                     .HasDefaultValueSql("''");
 
                 entity.Property(e => e.BackgroundIconPartId)
