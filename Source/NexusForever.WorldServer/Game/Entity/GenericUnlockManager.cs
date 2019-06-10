@@ -10,7 +10,6 @@ using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message;
 using NexusForever.WorldServer.Network.Message.Model;
-using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
