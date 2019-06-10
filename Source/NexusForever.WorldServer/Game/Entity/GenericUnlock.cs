@@ -4,7 +4,6 @@ using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
-using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 
 namespace NexusForever.WorldServer.Game.Entity
 {

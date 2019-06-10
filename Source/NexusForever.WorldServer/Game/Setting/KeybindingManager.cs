@@ -8,7 +8,6 @@ using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Setting.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 using NetworkBinding = NexusForever.WorldServer.Network.Message.Model.Shared.Binding;
-using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 
 namespace NexusForever.WorldServer.Game.Setting
 {

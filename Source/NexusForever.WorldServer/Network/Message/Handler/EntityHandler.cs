@@ -73,7 +73,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             // TODO: sanity check for range etc.
 
             session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, entity.CreatureId, 1u);
-            entity.OnActivateCast(session.Player);
+            entity.OnActivateCast(session.Player, unit.ClientUniqueId);
         }
 
         [MessageHandler(GameMessageOpcode.ClientEntityInteract)]

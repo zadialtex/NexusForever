@@ -14,7 +14,6 @@ using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 using NLog;
 using NetworkCostume = NexusForever.WorldServer.Network.Message.Model.Shared.Costume;
-using AccountModel = NexusForever.Shared.Database.Auth.Model.Account;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
