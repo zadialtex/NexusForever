@@ -1,5 +1,6 @@
 ﻿using NexusForever.WorldServer.Game.CSI;
 using NexusForever.WorldServer.Game.Entity;
+using System;
 
 namespace NexusForever.WorldServer.Game.Spell
 {
@@ -13,6 +14,7 @@ namespace NexusForever.WorldServer.Game.Spell
         public Position Position { get; set; }
         public ushort TaxiNode { get; set; }
         public ClientSideInteraction ClientSideInteraction { get; set; }
+        public Action<SpellParameters> CompleteAction { get; set; }
         public uint CastTimeOverride { get; set; }
     }
 }

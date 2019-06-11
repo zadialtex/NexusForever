@@ -49,6 +49,8 @@ namespace NexusForever.WorldServer.Game.Spell
                 status = SpellStatus.Finished;
                 log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has finished.");
 
+                parameters.CompleteAction?.DynamicInvoke(parameters);
+
                 // TODO: add a timer to count down on the Effect before sending the finish - sending the finish will e.g. wear off the buff
                 //SendSpellFinish();
             }
@@ -250,7 +252,7 @@ namespace NexusForever.WorldServer.Game.Spell
             if (parameters.ClientSideInteraction == null)
                 throw new ArgumentException("This can only be used by a Client Interaction Event.");
 
-            parameters.ClientSideInteraction.TriggerSuccess();
+            parameters.ClientSideInteraction.HandleSuccess(parameters);
 
             Execute();
         }
