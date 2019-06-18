@@ -29,6 +29,7 @@ using CostumeEntity = NexusForever.WorldServer.Game.Entity.Costume;
 using Item = NexusForever.WorldServer.Game.Entity.Item;
 using Residence = NexusForever.WorldServer.Game.Housing.Residence;
 using NetworkMessage = NexusForever.Shared.Network.Message.Model.Shared.Message;
+using NexusForever.WorldServer.Game.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
@@ -361,7 +362,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 {
                     session.EnqueueMessageEncrypted(new ServerCharacterCreate
                     {
-                        Result = 0
+                        Result = CharacterModifyResult.CreateFailed_UniqueName
                     });
 
                     return;
