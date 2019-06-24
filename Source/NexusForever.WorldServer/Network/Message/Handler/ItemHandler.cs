@@ -86,8 +86,8 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             if (entry == null)
                 throw new InvalidPacketValueException();
 
-            Task<Residence> task = ResidenceManager.GetResidence(session.Player.Name);
-            session.EnqueueEvent(new TaskGenericEvent<Residence>(task,
+            Task<Game.Housing.Residence> task = ResidenceManager.GetResidence(session.Player.Name);
+            session.EnqueueEvent(new TaskGenericEvent<Game.Housing.Residence>(task,
                 residence =>
             {
                 if (residence == null)

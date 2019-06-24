@@ -6,10 +6,12 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Entity.Network.Command;
 using NexusForever.WorldServer.Game.Housing;
 using NexusForever.WorldServer.Game.Housing.Static;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
+using ResidenceEntity = NexusForever.WorldServer.Game.Entity.Residence;
 
 namespace NexusForever.WorldServer.Game.Map
 {
@@ -19,7 +21,7 @@ namespace NexusForever.WorldServer.Game.Map
         // housing maps have unlimited vision range.
         public override float VisionRange { get; protected set; } = -1f;
 
-        private Residence residence;
+        private Housing.Residence residence;
 
         public override void Initialise(MapInfo info, Player player)
         {
@@ -38,6 +40,15 @@ namespace NexusForever.WorldServer.Game.Map
             foreach (Plot plot in residence.GetPlots().Where(p => p.PlugEntry != null))
             {
                 var plug = new Plug(plot.PlotEntry, plot.PlugEntry);
+
+                if (plot.Index == 0)
+                    plug.SetPosition(new Vector3
+                    {
+                        X = 1472f,
+                        Y = -715.0843505859375f,
+                        Z = 1440f,
+                    });
+
                 EnqueueAdd(plug, Vector3.Zero);
             }
         }
@@ -70,6 +81,9 @@ namespace NexusForever.WorldServer.Game.Map
 
             player.Session.EnqueueMessageEncrypted(housingPlots);
 
+            ResidenceEntity residenceEntity = new ResidenceEntity();
+            player.Map.EnqueueAdd(residenceEntity, residenceEntity.Position);
+
             // this shows the housing toolbar, might need to move this to a more generic place in the future
             player.Session.EnqueueMessageEncrypted(new ServerShowActionBar
             {
@@ -79,6 +93,38 @@ namespace NexusForever.WorldServer.Game.Map
             });
 
             SendResidenceDecor(player);
+
+            Simple door1 = new Simple
+            {
+                CreatureId = 72338,
+                QuestChecklistIdx = 255,
+                CreateFlags = Entity.Static.EntityCreateFlag.SpawnAnimation,
+                DisplayInfo = 32614,
+                Position = new Vector3
+                {
+                    X = 1487.921875f,
+                    Y = -711.7042236328125f,
+                    Z = 1440.810546875f,
+                }
+            };
+            door1.SetPropData(84255740, 1159);
+            Simple door2 = new Simple
+            {
+                CreatureId = 72338,
+                QuestChecklistIdx = 255,
+                CreateFlags = Entity.Static.EntityCreateFlag.SpawnAnimation,
+                DisplayInfo = 32614,
+                Position = new Vector3
+                {
+                    X = 1482.39453125f,
+                    Y = -811.41650390625f,
+                    Z = 1444.5390625f
+                }
+            };
+            door2.SetPropData(0, 1159);
+
+            player.Map.EnqueueAdd(door1, door1.Position);
+            player.Map.EnqueueAdd(door2, door2.Position);
         }
 
         private void SendHousingPrivacy(Player player = null)
@@ -110,6 +156,7 @@ namespace NexusForever.WorldServer.Game.Map
                         CharacterIdOwner  = residence.OwnerId,
                         Name              = residence.Name,
                         PropertyInfoId    = residence.PropertyInfoId,
+                        ResidenceInfoId   = 22,
                         WallpaperExterior = residence.Wallpaper,
                         Entryway          = residence.Entryway,
                         Roof              = residence.Roof,
