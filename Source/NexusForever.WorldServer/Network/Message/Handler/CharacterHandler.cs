@@ -396,18 +396,30 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 ImmutableList<CharacterCustomizationEntry> entries = AssetManager.Instance.GetPrimaryCharacterCustomisation(race, sex, primaryLabel, primaryValue);
                 if (entries == null)
                     return null;
-                if (entries[0].CharacterCustomizationLabelId00 != 0 && entries[0].Value00 != 0 )
-                    return entries[0];
 
                 // customisation has multiple results, filter with secondary label and value 
-                CharacterCustomizationEntry primaryEntry = entries.First(e => e.CharacterCustomizationLabelId01 != 0);
-                if (primaryEntry != null)
+                List<CharacterCustomizationEntry> primaryEntry = entries.Where(e => e.CharacterCustomizationLabelId01 != 0).ToList();
+                if (primaryEntry.Count > 0)
                 {
-                    uint secondaryLabel = primaryEntry.CharacterCustomizationLabelId01;
-                    uint secondaryValue = customisations[secondaryLabel];
+                    uint secondaryLabel = 0;
+                    uint secondaryValue = 0;
+                    CharacterCustomizationEntry chosenCustomizationEntry = null;
+                    foreach (CharacterCustomizationEntry customizationEntry in primaryEntry)
+                    {
+                        if (customizationEntry.CharacterCustomizationLabelId00 != 0 && customisations.ContainsKey(customizationEntry.CharacterCustomizationLabelId01) && customisations[customizationEntry.CharacterCustomizationLabelId01] == customizationEntry.Value01)
+                        {
+                            secondaryLabel = customizationEntry.CharacterCustomizationLabelId01;
+                            secondaryValue = customizationEntry.Value01;
+                            chosenCustomizationEntry = customizationEntry;
+                            break;
+                        }
+                    }
 
-                    CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId01 == secondaryLabel && e.Value01 == secondaryValue);
-                    return entry ?? entries.Single(e => e.CharacterCustomizationLabelId01 == 0 && e.Value01 == 0);
+                    if (chosenCustomizationEntry != null)
+                        return chosenCustomizationEntry;
+
+                    CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId01 == primaryLabel && e.Value01 == primaryValue);
+                    return entry ?? entries.Single(e => e.CharacterCustomizationLabelId00 == 0 && e.Value00 == 0);
                 }
                 else
                 {
