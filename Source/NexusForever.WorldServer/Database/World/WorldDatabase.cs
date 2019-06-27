@@ -106,13 +106,5 @@ namespace NexusForever.WorldServer.Database.World
                     .AsNoTracking()
                     .ToImmutableList();
         }
-
-        public static ImmutableList<StoreOfferItemCurrency> GetStoreOfferItemCurrencies()
-        {
-            using (var context = new WorldContext())
-                return context.StoreOfferItemCurrency
-                    .AsNoTracking()
-                    .ToImmutableList();
-        }
     }
 }
