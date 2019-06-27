@@ -9,7 +9,7 @@ namespace NexusForever.WorldServer.Command.Handler
     public class SaveCommandHandler : NamedCommand
     {
         public SaveCommandHandler()
-            : base(false, "save", "")
+            : base(false, "save")
         {
         }
 

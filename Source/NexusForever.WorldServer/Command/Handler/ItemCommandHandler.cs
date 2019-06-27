@@ -58,16 +58,8 @@ namespace NexusForever.WorldServer.Command.Handler
             else
                 itemId = uint.Parse(parameters[0]);
 
-            uint amount = 1;
-            if (parameters.Length > 1)
-                amount = uint.Parse(parameters[1]);
-
-            uint charges = 1;
-            if (parameters.Length > 2)
-                charges = uint.Parse(parameters[2]);
-
             if (itemId > 0)
-                context.Session.Player.Inventory.ItemCreate(itemId, amount, 49, charges);
+                context.Session.Player.Inventory.ItemCreate(itemId, amount, Game.Entity.Static.ItemUpdateReason.Cheat, charges);
             else
                 context.SendMessageAsync($"Problem trying to create item: {parameters[0]}. Please try again.");
             
