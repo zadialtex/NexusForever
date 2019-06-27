@@ -35,6 +35,8 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 {
     public static class CharacterHandler
     {
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
+
         [MessageHandler(GameMessageOpcode.ClientRealmList)]
         public static void HandleRealmList(WorldSession session, ClientRealmList realmList)
         {
@@ -263,7 +265,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         Value = value
                     });
 
-                    CharacterCustomizationEntry entry = GetCharacterCustomisation(customisations, creationEntry.RaceId, creationEntry.Sex, label, value);
+                    CharacterCustomizationEntry entry = AssetManager.GetCharacterCustomisation(customisations, creationEntry.RaceId, creationEntry.Sex, label, value);
                     if (entry == null)
                         continue;
 
