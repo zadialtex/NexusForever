@@ -90,7 +90,7 @@ namespace NexusForever.WorldServer
                 while (true)
                 {
                     Console.Write(">> ");
-                    string line = Console.ReadLine();
+                    string line = Console.ReadLine().Trim();
                     if (!CommandManager.HandleCommand(new ConsoleCommandContext(), line, false))
                         Console.WriteLine("Invalid command");
                 }

@@ -43,6 +43,9 @@ namespace NexusForever.WorldServer.Command
 
         public static async Task<bool> HandleCommandAsync(CommandContext session, string commandText, bool isFromChat)
         {
+            if (commandText.Length == 0)
+                return false;
+
             if (isFromChat)
             {
                 if (!commandText.StartsWith("!"))
