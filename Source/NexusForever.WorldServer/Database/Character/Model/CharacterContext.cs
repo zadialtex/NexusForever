@@ -326,8 +326,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.BoneIndex)
-                    .HasColumnName("boneIndex")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnName("boneIndex");
 
                 entity.Property(e => e.Bone)
                     .HasColumnName("bone")
