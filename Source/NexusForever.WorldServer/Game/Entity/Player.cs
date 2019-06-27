@@ -1020,17 +1020,16 @@ namespace NexusForever.WorldServer.Game.Entity
                 else
                     characterCustomisations.TryAdd(label, new Customisation(CharacterId, label, value));
 
-                CharacterCustomizationEntry entry = AssetManager.GetCharacterCustomisation(customisations, (uint)newRace, (uint)newSex, label, value);
-                if (entry == null)
-                    continue;
+                foreach(CharacterCustomizationEntry entry in AssetManager.GetCharacterCustomisation(customisations, (uint)newRace, (uint)newSex, label, value))
+                {
+                    if (characterAppearances.TryGetValue((ItemSlot)entry.ItemSlotId, out Appearance appearance))
+                        appearance.DisplayId = (ushort)entry.ItemDisplayId;
+                    else
+                        characterAppearances.TryAdd((ItemSlot)entry.ItemSlotId, new Appearance(CharacterId, (ItemSlot)entry.ItemSlotId, (ushort)entry.ItemDisplayId));
 
-                if (characterAppearances.TryGetValue((ItemSlot)entry.ItemSlotId, out Appearance appearance))
-                    appearance.DisplayId = (ushort)entry.ItemDisplayId;
-                else
-                    characterAppearances.TryAdd((ItemSlot)entry.ItemSlotId, new Appearance(CharacterId, (ItemSlot)entry.ItemSlotId, (ushort)entry.ItemDisplayId));
-
-                // This is to track slots which are modified
-                itemSlotsModified.Add((ItemSlot)entry.ItemSlotId);
+                    // This is to track slots which are modified
+                    itemSlotsModified.Add((ItemSlot)entry.ItemSlotId);
+                }
             }
 
             for (int i = 0; i < bones.Count; i++)
@@ -1216,6 +1215,33 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     model.GuildHolomarkMask = Convert.ToByte(GuildHolomarkMask);
                     entity.Property(p => p.GuildHolomarkMask).IsModified = true;
+                }
+
+                if ((saveMask & PlayerSaveMask.Appearance) != 0)
+                {
+                    model.Race = (byte)Race;
+                    entity.Property(p => p.Race).IsModified = true;
+
+                    model.Sex = (byte)Sex;
+                    entity.Property(p => p.Sex).IsModified = true;
+
+                    foreach (Appearance characterAppearance in deletedCharacterAppearances)
+                        characterAppearance.Save(context);
+                    foreach (Bone characterBone in deletedCharacterBones)
+                        characterBone.Save(context);
+                    foreach (Customisation characterCustomisation in deletedCharacterCustomisations)
+                        characterCustomisation.Save(context);
+
+                    deletedCharacterAppearances.Clear();
+                    deletedCharacterBones.Clear();
+                    deletedCharacterCustomisations.Clear();
+
+                    foreach (Appearance characterAppearance in characterAppearances.Values)
+                        characterAppearance.Save(context);
+                    foreach (Bone characterBone in characterBones.Values)
+                        characterBone.Save(context);
+                    foreach (Customisation characterCustomisation in characterCustomisations.Values)
+                        characterCustomisation.Save(context);
                 }
 
                 if ((saveMask & PlayerSaveMask.Appearance) != 0)

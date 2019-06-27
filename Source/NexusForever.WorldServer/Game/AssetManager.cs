@@ -179,11 +179,13 @@ namespace NexusForever.WorldServer.Game
         /// <summary>
         /// Returns matching <see cref="CharacterCustomizationEntry"/> given input parameters
         /// </summary>
-        public static CharacterCustomizationEntry GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
+        public static IEnumerable<CharacterCustomizationEntry> GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
         {
             ImmutableList<CharacterCustomizationEntry> entries = GetPrimaryCharacterCustomisation(race, sex, primaryLabel, primaryValue);
             if (entries == null)
-                return null;
+                return Enumerable.Empty<CharacterCustomizationEntry>();
+
+            List<CharacterCustomizationEntry> customizationEntries = new List<CharacterCustomizationEntry>();
 
             // Customisation has multiple results, filter with a non-zero secondary KvP.
             List<CharacterCustomizationEntry> primaryEntries = entries.Where(e => e.CharacterCustomizationLabelId01 != 0).ToList();
@@ -202,19 +204,29 @@ namespace NexusForever.WorldServer.Game
 
                     // Returning match found for primary KvP and secondary KvP
                     if (customisations[customizationEntry.CharacterCustomizationLabelId01] == customizationEntry.Value01)
-                        return customizationEntry;
+                        customizationEntries.Add(customizationEntry);
                 }
 
                 // Return the matching value when the primary KvP matching the table's secondary KvP
                 CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId01 == primaryLabel && e.Value01 == primaryValue);
-                return entry ?? entries[0];
+                if (entry != null)
+                    customizationEntries.Add(entry);
             }
             else
             {
                 // Return the matching value when the primary KvP matches the table's primary KvP, and no secondary KvP is present.
                 CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId00 == primaryLabel && e.Value00 == primaryValue);
-                return entry ?? entries.Single(e => e.CharacterCustomizationLabelId01 == 0 && e.Value01 == 0);
+                if (entry != null)
+                    customizationEntries.Add(entry);
+                else
+                {
+                    entry = entries.Single(e => e.CharacterCustomizationLabelId01 == 0 && e.Value01 == 0);
+                    if (entry != null)
+                        customizationEntries.Add(entry);
+                }
             }
+
+            return customizationEntries;
         }
 
         /// <summary>
