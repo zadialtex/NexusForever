@@ -12,67 +12,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             // Packet order below, for reference and implementation
 
             // 0x096D - Account inventory
-            session.EnqueueMessageEncrypted(new ServerAccountItems
-            {
-                AccountItems = new System.Collections.Generic.List<Model.Shared.AccountItem>
-                {
-                    new Model.Shared.AccountItem
-                    {
-                        Id = 1,
-                        ItemId = 793,
-                        //Unknown0 = 0,
-                        //Unknown1 = false,
-                        //TargetPlayerIdentity = new Model.Shared.TargetPlayerIdentity
-                        //{
-                        //    RealmId = 1,
-                        //    CharacterId = 2
-                        //}
-                    },
-                    new Model.Shared.AccountItem
-                    {
-                        Id = 12757397,
-                        ItemId = 29,
-                        //Unknown0 = 3,
-                        //Unknown1 = true
-                    },
-                    //new Model.Shared.AccountItem
-                    //{
-                    //    Id = 12757398,
-                    //    ItemId = 29,
-                    //    Unknown0 = 1234,
-                    //},
-                    new Model.Shared.AccountItem
-                    {
-                        Id = 234459813,
-                        ItemId = 19
-                    },
-                    new Model.Shared.AccountItem
-                    {
-                        Id = 59824862,
-                        ItemId = 2212,
-                        Unknown0 = 7,
-                        Unknown1 = true,
-                        TargetPlayerIdentity = new Model.Shared.TargetPlayerIdentity
-                        {
-                            RealmId = 1,
-                            CharacterId = 1
-                        }
-                    },
-                    new Model.Shared.AccountItem
-                    {
-                        Id = 59824863,
-                        ItemId = 2132,
-                        Unknown0 = 0,
-                        Unknown1 = false,
-                        TargetPlayerIdentity = new Model.Shared.TargetPlayerIdentity
-                        {
-                            RealmId = 1,
-                            CharacterId = 1
-                        }
-                    }
-                }
-            });
-
+            
             // 0x0974 - Server Account Item Cooldowns (Boom Box!)
             
             // 0x0968 - Entitlements

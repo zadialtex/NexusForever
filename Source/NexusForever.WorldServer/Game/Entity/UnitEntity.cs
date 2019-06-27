@@ -77,23 +77,21 @@ namespace NexusForever.WorldServer.Game.Entity
             if (parameters == null)
                 throw new ArgumentNullException();
 
-            if (DisableManager.Instance.IsDisabled(DisableType.BaseSpell, parameters.SpellInfo.BaseInfo.Entry.Id))
-            {
-                if (this is Player player)
-                    player.SendSystemMessage($"Unable to cast base spell {parameters.SpellInfo.BaseInfo.Entry.Id} because it is disabled.");
-                return;
-            }
-
-            if (DisableManager.Instance.IsDisabled(DisableType.Spell, parameters.SpellInfo.Entry.Id))
-            {
-                if (this is Player player)
-                    player.SendSystemMessage($"Unable to cast spell {parameters.SpellInfo.Entry.Id} because it is disabled.");
-                return;
-            }
-            
             if (this is Player player)
             {
-                if(parameters.UserInitiatedSpellCast)
+                if (DisableManager.Instance.IsDisabled(DisableType.BaseSpell, parameters.SpellInfo.BaseInfo.Entry.Id))
+                {
+                    player.SendSystemMessage($"Unable to cast base spell {parameters.SpellInfo.BaseInfo.Entry.Id} because it is disabled.");
+                    return;
+                }
+
+                if (DisableManager.Instance.IsDisabled(DisableType.Spell, parameters.SpellInfo.Entry.Id))
+                {
+                    player.SendSystemMessage($"Unable to cast spell {parameters.SpellInfo.Entry.Id} because it is disabled.");
+                    return;
+                }
+
+                if (parameters.UserInitiatedSpellCast)
                     player.Dismount();
             }
 
