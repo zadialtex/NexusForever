@@ -612,7 +612,6 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientCharacterAppearanceChange)]
         public static void HandleAppearanceChange(WorldSession session, ClientCharacterAppearanceChange appearanceChange)
         {
-            log.Info($"{string.Join(", ", appearanceChange.Labels)} | {string.Join(", ", appearanceChange.Values)}");
             // merge seperate label and value lists into a single dictonary
             Dictionary<uint, uint> customisations = appearanceChange.Labels
                 .Zip(appearanceChange.Values, (l, v) => new { l, v })

@@ -215,7 +215,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private HashSet<Customisation> deletedCharacterCustomisations = new HashSet<Customisation>();
         private Dictionary<ItemSlot, Appearance> characterAppearances = new Dictionary<ItemSlot, Appearance>();
         private HashSet<Appearance> deletedCharacterAppearances = new HashSet<Appearance>();
-        private Dictionary</*boneIndex*/byte, Bone> characterBones = new Dictionary<byte, Bone>();
+        private List<Bone> characterBones = new List<Bone>();
         private HashSet<Bone> deletedCharacterBones = new HashSet<Bone>();
 
         public Player(WorldSession session, Character model)
@@ -298,7 +298,7 @@ namespace NexusForever.WorldServer.Game.Entity
             foreach (CharacterBone bone in model.CharacterBone.OrderBy(bone => bone.BoneIndex))
             {
                 Bones.Add(bone.Bone);
-                characterBones.Add(bone.BoneIndex, new Bone(bone));
+                characterBones.Add(new Bone(bone));
             }
                 
 
@@ -1034,10 +1034,14 @@ namespace NexusForever.WorldServer.Game.Entity
 
             for (int i = 0; i < bones.Count; i++)
             {
-                if (characterBones.TryGetValue((byte)i, out Bone bone))
-                    bone.BoneValue = bones[i];
+                if (i > characterBones.Count - 1)
+                    characterBones.Add(new Bone(CharacterId, (byte)i, bones[i]));
                 else
-                    characterBones.TryAdd((byte)i, new Bone(CharacterId, (byte)i, bones[i]));
+                {
+                    var bone = characterBones.FirstOrDefault(x => x.BoneIndex == i);
+                    if (bone != null)
+                        bone.BoneValue = bones[i];
+                }
             }
 
             // Cleanup the unused customisations
@@ -1061,11 +1065,13 @@ namespace NexusForever.WorldServer.Game.Entity
             }
             if (Bones.Count > bones.Count)
             {
-                for (int i = Bones.Count - bones.Count; i <= Bones.Count; i++)
+                for (int i = Bones.Count; i >= bones.Count; i--)
                 {
-                    if (characterBones.TryGetValue((byte)i, out Bone bone))
+                    Bone bone = characterBones[i];
+
+                    if (bone != null)
                     {
-                        characterBones.Remove((byte)i);
+                        characterBones.RemoveAt(i);
                         bone.Delete();
                         deletedCharacterBones.Add(bone);
                     }
@@ -1081,7 +1087,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 }));
 
             Bones.Clear();
-            foreach (Bone bone in characterBones.Values.OrderBy(bone => bone.BoneIndex))
+            foreach (Bone bone in characterBones.OrderBy(bone => bone.BoneIndex))
                 Bones.Add(bone.BoneValue);
 
             // Update surrounding entities, including the player, with new appearance
@@ -1266,6 +1272,33 @@ namespace NexusForever.WorldServer.Game.Entity
                     foreach (Appearance characterAppearance in characterAppearances.Values)
                         characterAppearance.Save(context);
                     foreach (Bone characterBone in characterBones.Values)
+                        characterBone.Save(context);
+                    foreach (Customisation characterCustomisation in characterCustomisations.Values)
+                        characterCustomisation.Save(context);
+                }
+
+                if ((saveMask & PlayerSaveMask.Appearance) != 0)
+                {
+                    model.Race = (byte)Race;
+                    entity.Property(p => p.Race).IsModified = true;
+
+                    model.Sex = (byte)Sex;
+                    entity.Property(p => p.Sex).IsModified = true;
+
+                    foreach (Appearance characterAppearance in deletedCharacterAppearances)
+                        characterAppearance.Save(context);
+                    foreach (Bone characterBone in deletedCharacterBones)
+                        characterBone.Save(context);
+                    foreach (Customisation characterCustomisation in deletedCharacterCustomisations)
+                        characterCustomisation.Save(context);
+
+                    deletedCharacterAppearances.Clear();
+                    deletedCharacterBones.Clear();
+                    deletedCharacterCustomisations.Clear();
+
+                    foreach (Appearance characterAppearance in characterAppearances.Values)
+                        characterAppearance.Save(context);
+                    foreach (Bone characterBone in characterBones)
                         characterBone.Save(context);
                     foreach (Customisation characterCustomisation in characterCustomisations.Values)
                         characterCustomisation.Save(context);
