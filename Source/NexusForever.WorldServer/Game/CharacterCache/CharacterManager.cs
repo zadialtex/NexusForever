@@ -29,7 +29,13 @@ namespace NexusForever.WorldServer.Game.CharacterCache
         {
             List<CharacterModel> allCharactersInDb = await CharacterDatabase.GetAllCharactersAsync();
             foreach (CharacterModel character in allCharactersInDb)
+            {
+                if (character.DeleteTime != null)
+                    continue;
+
                 AddPlayer(character.Id, new CharacterInfo(character));
+            }
+                
 
             log.Info($"Stored {characters.Count} characters in Character Cache");
         }
@@ -41,6 +47,18 @@ namespace NexusForever.WorldServer.Game.CharacterCache
         {
             characters.TryAdd(characterId, character);
             characterNameToId.Add(character.Name.ToLower(), characterId);
+        }
+
+        /// <summary>
+        /// Remove <see cref="ICharacter"/> from the cache with a given ID. Should only be called when character is being deleted.
+        /// </summary>
+        public static void RemovePlayer(ulong characterId)
+        {
+            if (characters.TryGetValue(characterId, out ICharacter character))
+                characters.Remove(characterId);
+
+            if (characterNameToId.TryGetValue(character.Name.ToLower(), out ulong characterNameLookupId))
+                characterNameToId.Remove(character.Name.ToLower());
         }
 
         /// <summary>
