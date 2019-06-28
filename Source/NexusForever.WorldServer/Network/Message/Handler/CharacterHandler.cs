@@ -30,6 +30,9 @@ using Item = NexusForever.WorldServer.Game.Entity.Item;
 using Residence = NexusForever.WorldServer.Game.Housing.Residence;
 using NetworkMessage = NexusForever.Shared.Network.Message.Model.Shared.Message;
 using NexusForever.WorldServer.Game.Static;
+using NLog;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using NexusForever.WorldServer.Game.CharacterCache;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
@@ -265,7 +268,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         Value = value
                     });
 
-                    CharacterCustomizationEntry entry = AssetManager.GetCharacterCustomisation(customisations, creationEntry.RaceId, creationEntry.Sex, label, value);
+                    CharacterCustomizationEntry entry = AssetManager.Instance.GetCharacterCustomisation(customisations, creationEntry.RaceId, creationEntry.Sex, label, value);
                     if (entry == null)
                         continue;
 
@@ -392,43 +395,6 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 
                 throw;
             }
-
-            CharacterCustomizationEntry GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
-            {
-                ImmutableList<CharacterCustomizationEntry> entries = AssetManager.Instance.GetPrimaryCharacterCustomisation(race, sex, primaryLabel, primaryValue);
-                if (entries == null)
-                    return null;
-
-                // customisation has multiple results, filter with secondary label and value 
-                List<CharacterCustomizationEntry> primaryEntry = entries.Where(e => e.CharacterCustomizationLabelId01 != 0).ToList();
-                if (primaryEntry.Count > 0)
-                {
-                    uint secondaryLabel = 0;
-                    uint secondaryValue = 0;
-                    CharacterCustomizationEntry chosenCustomizationEntry = null;
-                    foreach (CharacterCustomizationEntry customizationEntry in primaryEntry)
-                    {
-                        if (customizationEntry.CharacterCustomizationLabelId00 != 0 && customisations.ContainsKey(customizationEntry.CharacterCustomizationLabelId01) && customisations[customizationEntry.CharacterCustomizationLabelId01] == customizationEntry.Value01)
-                        {
-                            secondaryLabel = customizationEntry.CharacterCustomizationLabelId01;
-                            secondaryValue = customizationEntry.Value01;
-                            chosenCustomizationEntry = customizationEntry;
-                            break;
-                        }
-                    }
-
-                    if (chosenCustomizationEntry != null)
-                        return chosenCustomizationEntry;
-
-                    CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId01 == primaryLabel && e.Value01 == primaryValue);
-                    return entry ?? entries.Single(e => e.CharacterCustomizationLabelId00 == 0 && e.Value00 == 0);
-                }
-                else
-                {
-                    CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId01 == primaryLabel && e.Value01 == primaryValue);
-                    return entry ?? entries.Single(e => e.CharacterCustomizationLabelId01 == 0 && e.Value01 == 0);
-                }
-            }
         }
 
         [MessageHandler(GameMessageOpcode.ClientCharacterDelete)]
@@ -452,6 +418,8 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 }
 
                 // TODO: Ensure character is not a guild master
+                if (characterToDelete.GuildAffiliation > 0)
+                    return CharacterModifyResult.DeleteFailed_GuildMaster;
 
                 return CharacterModifyResult.DeleteOk;
             }
@@ -493,6 +461,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 session.CanProcessPackets = true;
 
                 // TODO: De-register from any character cache
+                CharacterManager.RemovePlayer(characterToDelete.Id);
 
                 session.EnqueueMessageEncrypted(new ServerCharacterDeleteResult
                 {

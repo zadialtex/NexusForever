@@ -184,7 +184,7 @@ namespace NexusForever.WorldServer.Game
         /// <summary>
         /// Returns matching <see cref="CharacterCustomizationEntry"/> given input parameters
         /// </summary>
-        public static CharacterCustomizationEntry GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
+        public CharacterCustomizationEntry GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
         {
             ImmutableList<CharacterCustomizationEntry> entries = GetPrimaryCharacterCustomisation(race, sex, primaryLabel, primaryValue);
             if (entries == null)
