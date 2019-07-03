@@ -11,11 +11,14 @@ using NexusForever.WorldServer.Database.World;
 using NexusForever.WorldServer.Database.World.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NLog;
 
 namespace NexusForever.WorldServer.Game
 {
     public sealed class AssetManager : Singleton<AssetManager>
     {
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
+
         public static ImmutableDictionary<InventoryLocation, uint> InventoryLocationCapacities { get; private set; }
 
         /// <summary>
@@ -186,6 +189,8 @@ namespace NexusForever.WorldServer.Game
         /// </summary>
         public IEnumerable<CharacterCustomizationEntry> GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
         {
+            log.Info($"Race: {(Race)race}, Sex: {(Sex)sex}, {primaryLabel}, {primaryValue}");
+
             ImmutableList<CharacterCustomizationEntry> entries = GetPrimaryCharacterCustomisation(race, sex, primaryLabel, primaryValue);
             if (entries == null)
                 return Enumerable.Empty<CharacterCustomizationEntry>();
@@ -213,14 +218,14 @@ namespace NexusForever.WorldServer.Game
                 }
 
                 // Return the matching value when the primary KvP matching the table's secondary KvP
-                CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId01 == primaryLabel && e.Value01 == primaryValue);
+                CharacterCustomizationEntry entry = entries.FirstOrDefault(e => e.CharacterCustomizationLabelId01 == primaryLabel && e.Value01 == primaryValue);
                 if (entry != null)
                     customizationEntries.Add(entry);
             }
             else
             {
                 // Return the matching value when the primary KvP matches the table's primary KvP, and no secondary KvP is present.
-                CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId00 == primaryLabel && e.Value00 == primaryValue);
+                CharacterCustomizationEntry entry = entries.FirstOrDefault(e => e.CharacterCustomizationLabelId00 == primaryLabel && e.Value00 == primaryValue);
                 if (entry != null)
                     customizationEntries.Add(entry);
                 else
