@@ -76,6 +76,16 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientEntityInteract)]
         public static void HandleClientEntityInteraction(WorldSession session, ClientEntityInteract entityInteraction)
         {
+            WorldEntity entity = session.Player.GetVisible<WorldEntity>(entityInteraction.Guid);
+            if (entity != null)
+            {
+                session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, entity.CreatureId, 1u);
+                session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.TalkTo, entity.CreatureId, 1u);
+                // Testing Target Group talking
+                if (entity.CreatureId == 20453)
+                    session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.TalkToTargetGroup, 14427, 1u);
+            }
+
             switch (entityInteraction.Event)
             {
                 case 37: // Quest NPC

@@ -258,8 +258,9 @@ namespace NexusForever.WorldServer.Game.Quest
         /// </summary>
         public void ObjectiveUpdate(QuestObjectiveType type, uint data, uint progress)
         {
+            // Order in reverse Index so that sequential steps don't completed by the same action
             foreach (QuestObjective objective in objectives
-                .Where(o => o.Entry.Type == (uint)type && o.Entry.Data == data))
+                .Where(o => o.Entry.Type == (uint)type && o.Entry.Data == data).OrderByDescending(o => o.Index))
             {
                 if (!CanUpdateObjective(objective))
                     continue;

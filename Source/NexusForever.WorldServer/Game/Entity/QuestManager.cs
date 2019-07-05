@@ -13,6 +13,7 @@ using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 using NLog;
+using Quest2Flags = NexusForever.WorldServer.GameTable.Quest2.Static.QuestFlags;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -428,7 +429,8 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void QuestComplete(ushort questId, ushort reward, bool communicator)
         {
-            if (GlobalQuestManager.GetQuestInfo(questId) == null)
+            QuestInfo questInfo = GlobalQuestManager.GetQuestInfo(questId);
+            if (questInfo == null)
                 throw new ArgumentException($"Invalid quest {questId}!");
 
             if (DisableManager.Instance.IsDisabled(DisableType.Quest, questId))
@@ -438,8 +440,18 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             Quest.Quest quest = GetQuest(questId, GetQuestFlags.Active);
-            if (quest == null)
+            if (quest == null && (questInfo.Entry.Flags & (uint)Quest2Flags.NoObjectives) == 0)
                 throw new QuestException($"Player {player.CharacterId} tried to complete quest {questId} which they don't have!");
+            else if (quest == null && (questInfo.Entry.Flags & (uint)Quest2Flags.NoObjectives) != 0)
+            {
+                QuestAdd(questId, null);
+                quest = GetQuest(questId);
+                if (quest == null)
+                    throw new QuestException($"Player {player.CharacterId} tried to complete quest {questId} which they don't have!");
+                else
+                    quest.State = QuestState.Achieved;
+            }
+                
 
             if (quest.State != QuestState.Achieved)
                 throw new QuestException($"Player {player.CharacterId} tried to complete quest {questId} which wasn't complete!");
