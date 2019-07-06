@@ -21,3 +21,4 @@ INSERT INTO `property_base` (`type`, `property`, `value`, `note`) VALUES
 	(0, 41, 0, 'Player - Shield Capacity Base'),
 	(0, 100, 1, 'Player - Base Movement Speed'),
 	(0, 130, 0.8, 'Player - Base Gravity Multiplier');
+	(0, 191, 1, 'Player - Base Mount Movement Speed'),

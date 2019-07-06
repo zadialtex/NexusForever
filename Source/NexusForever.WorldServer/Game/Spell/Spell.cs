@@ -5,6 +5,7 @@ using NexusForever.Shared;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Prerequisite;
 using NexusForever.WorldServer.Game.Spell.Event;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -162,6 +163,9 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0
                     && player.SpellManager.GetGlobalSpellCooldown() > 0d)
                     return CastResult.SpellGlobalCooldown;
+
+                if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
+                    return CastResult.PrereqCasterCast;
             }
 
             return CastResult.Ok;
@@ -380,6 +384,13 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             foreach (Spell4EffectsEntry spell4EffectsEntry in parameters.SpellInfo.Effects)
             {
+                if (caster is Player player)
+                {
+                    // Ensure caster can apply this effect
+                    if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
+                        continue;
+                }
+                
                 // select targets for effect
                 List<SpellTargetInfo> effectTargets = targets
                     .Where(t => (t.Flags & (SpellEffectTargetFlags)spell4EffectsEntry.TargetFlags) != 0)
@@ -436,7 +447,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
             parameters.ClientSideInteraction.TriggerFail();
         }
-        
+
         public void Finish()
         {
             if (status == SpellStatus.Executing || status == SpellStatus.Waiting)
