@@ -19,7 +19,14 @@ namespace NexusForever.WorldServer.Game.Entity
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
         public Vector3 Rotation { get; set; } = Vector3.Zero;
+
+        /// <summary>
+        /// Property related cached data
+        /// </summary>
         public Dictionary<Property, PropertyValue> Properties { get; } = new Dictionary<Property, PropertyValue>();
+        private Dictionary<Property, float> BaseProperties { get; } = new Dictionary<Property, float>();
+        private Dictionary<Property, Dictionary<ItemSlot, /*value*/float>> ItemProperties { get; } = new Dictionary<Property, Dictionary<ItemSlot, float>>();
+        private Dictionary<Property, Dictionary</*spell4Id*/uint, PropertyModifier>> SpellProperties { get; } = new Dictionary<Property, Dictionary<uint, PropertyModifier>>();
         private HashSet<Property> DirtyProperties { get; } = new HashSet<Property>();
 
         public uint CreatureId { get; protected set; }
@@ -79,7 +86,7 @@ namespace NexusForever.WorldServer.Game.Entity
             foreach (EntityStat statModel in model.EntityStat)
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
 
-            SetBaseProperties();
+            BuildBaseProperties();
         }
 
         public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
@@ -148,7 +155,10 @@ namespace NexusForever.WorldServer.Game.Entity
             // deliberately empty
         }
         
-        public virtual ServerEntityPropertiesUpdate BuildPropertyUpdates()
+        /// <summary>
+        /// Used to build the <see cref="ServerEntityPropertiesUpdate"/> from all modified <see cref="Property"/>
+        /// </summary>
+        private ServerEntityPropertiesUpdate BuildPropertyUpdates()
         {
             if (!HasPendingPropertyChanges)
                 return null;
@@ -160,8 +170,12 @@ namespace NexusForever.WorldServer.Game.Entity
             
             foreach (Property propertyUpdate in DirtyProperties)
             {
-                if (!Properties.TryGetValue(propertyUpdate, out PropertyValue propertyValue) ||
-                    propertyValue == null) continue;
+                PropertyValue propertyValue = CalculateProperty(propertyUpdate);
+                if (Properties.ContainsKey(propertyUpdate))
+                    Properties[propertyUpdate] = propertyValue;
+                else
+                    Properties.Add(propertyUpdate, propertyValue);
+
                 propertyUpdatePacket.Properties.Add(propertyValue);
             }
 
@@ -169,44 +183,131 @@ namespace NexusForever.WorldServer.Game.Entity
             return propertyUpdatePacket;
         }
 
-        protected virtual void SetBaseProperties()
+        /// <summary>
+        /// Calculates and builds a <see cref="PropertyValue"/> for this Entity's <see cref="Property"/>
+        /// </summary>
+        private PropertyValue CalculateProperty(Property property)
         {
-            // Deliberately empty
+            float baseValue = GetBasePropertyValue(property);
+            float value = baseValue;
+
+            foreach (PropertyModifier spellModifier in GetSpellPropertyModifiers(property).OrderBy(e => e.ModifierType))
+            {
+                if (spellModifier.ModifierType == ModifierType.SetBase)
+                {
+                    baseValue = spellModifier.Value;
+                    value = baseValue;
+                }
+
+                if (spellModifier.ModifierType == ModifierType.AdjustPercent && spellModifier.Value > 0f)
+                {
+                    baseValue *= spellModifier.Value + 1f;
+                    value = baseValue;
+                }
+
+                if (spellModifier.ModifierType == ModifierType.SetValue)
+                {
+                    value = spellModifier.Value;
+                    break;
+                }
+
+                if (spellModifier.ModifierType == ModifierType.AdjustValue)
+                    value += spellModifier.Value;
+
+                if (spellModifier.ModifierType == ModifierType.AdjustValueStack)
+                    value += spellModifier.Value * spellModifier.StackCount;
+            }
+
+            return new PropertyValue(property, baseValue, value);
+        }
+
+        /// <summary>
+        /// Used on entering world to set the <see cref="WorldEntity"/> base <see cref="PropertyValue"/>
+        /// </summary>
+        protected virtual void BuildBaseProperties()
+        {
+            foreach (Property property in BaseProperties.Keys)
+                BuildPropertyUpdates();
         }
 
         public bool HasPendingPropertyChanges => DirtyProperties.Count != 0;
 
-        public void SetProperty(Property property, float value, float baseValue = 0.0f)
+        /// <summary>
+        /// Sets the base value for a <see cref="Property"/>
+        /// </summary>
+        public void SetBaseProperty(Property property, float value)
         {
-            if (Properties.ContainsKey(property))
-                Properties[property].Value = value;
+            if (BaseProperties.ContainsKey(property))
+                BaseProperties[property] = value;
             else
-                Properties.Add(property, new PropertyValue(property, baseValue, value));
+                BaseProperties.Add(property, value);
 
             DirtyProperties.Add(property);
         }
 
+        /// <summary>
+        /// Add a <see cref="Property"/> modifier given a Spell4Id and <see cref="PropertyModifier"/> instance
+        /// </summary>
+        public void AddSpellModifierProperty(Property property, uint spell4Id, PropertyModifier modifier)
+        {
+            if (SpellProperties.ContainsKey(property))
+            {
+                var spellDict = SpellProperties[property];
+
+                if (spellDict.ContainsKey(spell4Id))
+                    spellDict[spell4Id] = modifier;
+                else
+                    spellDict.Add(spell4Id, modifier);
+            }
+            else
+            {
+                SpellProperties.Add(property, new Dictionary<uint, PropertyModifier>
+        {
+                    { spell4Id, modifier }
+                });
+            }
+
+            DirtyProperties.Add(property);
+        }
+
+        /// <summary>
+        /// Remove a <see cref="Property"/> modifier by a Spell that is currently affecting this <see cref="WorldEntity"/>
+        /// </summary>
+        public void RemoveSpellProperty(Property property, uint spell4Id)
+        {
+            if (SpellProperties.ContainsKey(property))
+        {
+                var spellDict = SpellProperties[property];
+
+                if (spellDict.ContainsKey(spell4Id))
+                    spellDict.Remove(spell4Id);
+            }
+
+            DirtyProperties.Add(property);
+        }
+
+        /// <summary>
+        /// Return the base value for this <see cref="WorldEntity"/>'s <see cref="Property"/>
+        /// </summary>
+        private float GetBasePropertyValue(Property property)
+        {
+            return BaseProperties.ContainsKey(property) ? BaseProperties[property] : default;
+        }
+
+        /// <summary>
+        /// Return all <see cref="PropertyModifier"/> for this <see cref="WorldEntity"/>'s <see cref="Property"/>
+        /// </summary>
+        private IEnumerable<PropertyModifier> GetSpellPropertyModifiers(Property property)
+        {
+            return SpellProperties.ContainsKey(property) ? SpellProperties[property].Values : Enumerable.Empty<PropertyModifier>();
+        }
+
+        /// <summary>
+        /// Returns the current value for this <see cref="WorldEntity"/>'s <see cref="Property"/>
+        /// </summary>
         public float GetPropertyValue(Property property)
         {
             return Properties.ContainsKey(property) ? Properties[property].Value : default;
-        }
-
-        public void AddToProperty(Property property, float value)
-        {
-            if (value < 0f)
-                return;
-
-            float propertyToMod = GetPropertyValue(property);
-            SetProperty(property, propertyToMod + value);
-        }
-
-        public void SubtractFromProperty(Property property, float value)
-        {
-            if (value < 0f)
-                value *= -1f;
-
-            float propertyToMod = GetPropertyValue(property);
-            SetProperty(property, propertyToMod - value);
         }
 
         /// <summary>
