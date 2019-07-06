@@ -11,14 +11,11 @@ using NexusForever.WorldServer.Database.World;
 using NexusForever.WorldServer.Database.World.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
-using NLog;
 
 namespace NexusForever.WorldServer.Game
 {
     public sealed class AssetManager : Singleton<AssetManager>
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
-
         public static ImmutableDictionary<InventoryLocation, uint> InventoryLocationCapacities { get; private set; }
 
         /// <summary>
@@ -102,7 +99,6 @@ namespace NexusForever.WorldServer.Game
 
             foreach(ClassEntry classEntry in classList)
             {
-                log.Info($"Looping through {classEntry.Id} - {classEntry.EnumName}");
                 Class @class = (Class)classEntry.Id;
 
                 if (entries.ContainsKey(@class))
@@ -111,7 +107,6 @@ namespace NexusForever.WorldServer.Game
                 ImmutableList<PropertyValue>.Builder propertyList = ImmutableList.CreateBuilder<PropertyValue>();
                 foreach (PropertyBase propertyModel in CharacterDatabase.GetProperties((uint)@class))
                 {
-                    log.Info($"Looping through {propertyModel.Type} : {(Property)propertyModel.Property}");
                     var newPropValue = new PropertyValue((Property)propertyModel.Property, propertyModel.Value, propertyModel.Value);
                     propertyList.Add(newPropValue);
                 }
@@ -119,7 +114,7 @@ namespace NexusForever.WorldServer.Game
 
                 entries.Add(@class, classProperties);
             }
-            log.Info($"{entries.Count}, {entries[Class.Warrior].Count}");
+            
             characterClassBaseProperties = entries.ToImmutable();
         }
 
