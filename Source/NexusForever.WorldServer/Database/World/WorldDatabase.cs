@@ -82,29 +82,5 @@ namespace NexusForever.WorldServer.Database.World
                     .AsNoTracking()
                     .ToImmutableList();
         }
-
-        public static ImmutableList<StoreOfferGroupCategory> GetStoreOfferGroupCategories()
-        {
-            using (var context = new WorldContext())
-                return context.StoreOfferGroupCategory
-                    .AsNoTracking()
-                    .ToImmutableList();
-        }
-
-        public static ImmutableList<StoreOfferItem> GetStoreOfferItems()
-        {
-            using (var context = new WorldContext())
-                return context.StoreOfferItem
-                    .AsNoTracking()
-                    .ToImmutableList();
-        }
-
-        public static ImmutableList<StoreOfferItemData> GetStoreOfferItemsData()
-        {
-            using (var context = new WorldContext())
-                return context.StoreOfferItemData
-                    .AsNoTracking()
-                    .ToImmutableList();
-        }
     }
 }
