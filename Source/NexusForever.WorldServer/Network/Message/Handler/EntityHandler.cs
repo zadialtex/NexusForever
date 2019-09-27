@@ -142,7 +142,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             session.Player.Sit(chair);
         }
         
-        [MessageHandler(GameMessageOpcode.ClientActivateUnitInteraction)]
+        [MessageHandler(GameMessageOpcode.ClientActivateUnitDeferred)]
         public static void HandleActivateUnitDeferred(WorldSession session, ClientActivateUnitDeferred request)
         {
             WorldEntity entity = session.Player.GetVisible<WorldEntity>(request.ActivateUnitId);

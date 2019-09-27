@@ -1296,34 +1296,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
                     foreach (Appearance characterAppearance in characterAppearances.Values)
                         characterAppearance.Save(context);
-                    foreach (Bone characterBone in characterBones.Values)
-                        characterBone.Save(context);
-                    foreach (Customisation characterCustomisation in characterCustomisations.Values)
-                        characterCustomisation.Save(context);
-                }
-
-                if ((saveMask & PlayerSaveMask.Appearance) != 0)
-                {
-                    model.Race = (byte)Race;
-                    entity.Property(p => p.Race).IsModified = true;
-
-                    model.Sex = (byte)Sex;
-                    entity.Property(p => p.Sex).IsModified = true;
-
-                    foreach (Appearance characterAppearance in deletedCharacterAppearances)
-                        characterAppearance.Save(context);
-                    foreach (Bone characterBone in deletedCharacterBones)
-                        characterBone.Save(context);
-                    foreach (Customisation characterCustomisation in deletedCharacterCustomisations)
-                        characterCustomisation.Save(context);
-
-                    deletedCharacterAppearances.Clear();
-                    deletedCharacterBones.Clear();
-                    deletedCharacterCustomisations.Clear();
-
-                    foreach (Appearance characterAppearance in characterAppearances.Values)
-                        characterAppearance.Save(context);
-                    foreach (Bone characterBone in characterBones.Values)
+                    foreach (Bone characterBone in characterBones)
                         characterBone.Save(context);
                     foreach (Customisation characterCustomisation in characterCustomisations.Values)
                         characterCustomisation.Save(context);

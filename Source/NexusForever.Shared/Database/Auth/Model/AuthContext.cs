@@ -162,7 +162,7 @@ namespace NexusForever.Shared.Database.Auth.Model
                     .WithMany(p => p.AccountEntitlement)
                     .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__account_entitlements_id__account_id");
-            };
+            });
 
             modelBuilder.Entity<AccountPermission>(entity =>
             {
