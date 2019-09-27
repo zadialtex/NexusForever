@@ -126,7 +126,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             }
         }
         
-        [MessageHandler(GameMessageOpcode.ClientActivateUnitInteraction)]
+        [MessageHandler(GameMessageOpcode.ClientActivateUnitDeferred)]
         public static void HandleActivateUnitDeferred(WorldSession session, ClientActivateUnitDeferred request)
         {
             WorldEntity entity = session.Player.GetVisible<WorldEntity>(request.ActivateUnitId);

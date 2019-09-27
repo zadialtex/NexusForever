@@ -95,7 +95,7 @@ namespace NexusForever.WorldServer.Game.Storefront
             ServerStoreCategories serverCategories = new ServerStoreCategories
             {
                 StoreCategories = ServerStoreCategoryList.ToList(),
-                Unknown4 = 4
+                RealCurrency = RealCurrency.Usd
             };
 
             session.EnqueueMessageEncrypted(serverCategories);
