@@ -255,7 +255,9 @@ namespace NexusForever.Shared.GameTable
         [GameData]
         public static GameTable<HousingPropertyInfoEntry> HousingPropertyInfo { get; private set; }
 
+        [GameData]
         public static GameTable<HousingResidenceInfoEntry> HousingResidenceInfo { get; private set; }
+
         public static GameTable<HousingResourceEntry> HousingResource { get; private set; }
 
         [GameData]
