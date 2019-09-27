@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Game.Account.Static;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
-    [Name("Save", Permission.None)]
+    [Name("Save", Permission.Everything)]
     public class SaveCommandHandler : NamedCommand
     {
         public SaveCommandHandler()

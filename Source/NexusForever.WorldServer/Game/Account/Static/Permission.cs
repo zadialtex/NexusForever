@@ -35,6 +35,8 @@ namespace NexusForever.WorldServer.Game.Account.Static
         CommandHouseDecorAdd        = 27,
         CommandHouseDecorLookup     = 28,
         CommandLocation             = 29,
+        CommandMovementDirect       = 30,
+        CommandMovementRandom       = 31,
         GMFlag                      = 100,
     }
 }

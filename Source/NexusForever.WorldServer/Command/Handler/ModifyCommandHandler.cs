@@ -5,7 +5,7 @@ using NexusForever.WorldServer.Command.Contexts;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
-    [Name("Modify")]
+    [Name("Modify", Game.Account.Static.Permission.None)]
     public class ModifyCommandHandler : CommandCategory
     {
         public ModifyCommandHandler()
@@ -13,7 +13,7 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("displayInfo", "id - Change your look to match that of a creature.")]
+        [SubCommandHandler("displayInfo", "id - Change your look to match that of a creature.", Game.Account.Static.Permission.None)]
         public async Task DisplayInfoSubCommandHandler(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length != 1)
