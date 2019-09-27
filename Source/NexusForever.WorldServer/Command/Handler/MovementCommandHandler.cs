@@ -20,7 +20,7 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("direct", "", Permission.None)]
+        [SubCommandHandler("direct", "", Permission.CommandMovementDirect)]
         public async Task DebugDirectGenerator(CommandContext context, string command, string[] parameters)
         {
             WorldEntity entity = context.Session.Player.GetVisible<WorldEntity>(context.Session.Player.TargetGuid);
@@ -40,7 +40,7 @@ namespace NexusForever.WorldServer.Command.Handler
             entity.MovementManager.LaunchGenerator(generator, 3f);
         }
 
-        [SubCommandHandler("random", "", Permission.None)]
+        [SubCommandHandler("random", "", Permission.CommandMovementRandom)]
         public async Task DebugRandomGenerator(CommandContext context, string command, string[] parameters)
         {
             WorldEntity entity = context.Session.Player.GetVisible<WorldEntity>(context.Session.Player.TargetGuid);
