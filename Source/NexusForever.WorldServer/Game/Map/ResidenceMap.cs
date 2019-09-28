@@ -241,16 +241,7 @@ namespace NexusForever.WorldServer.Game.Map
 
         private Vector3 CalculateDecorPosition(ClientHousingDecorUpdate.DecorUpdate update)
         {
-            // TODO: research 0.835f
-            // in meantime workaround checks for House PlotIndex and sets hardcoded offset
-            var position = new Vector3(update.Position.X, update.Position.Y, update.Position.Z);
-            if (update.PlotIndex != 0)
-            {
-                position.Y += 0.835f;
-                position.Z += 0.01f;
-            }
-
-            return position;
+            return new Vector3(update.Position.X, update.Position.Y, update.Position.Z);
         }
 
         private void DecorCreate(Player player, ClientHousingDecorUpdate.DecorUpdate update)
