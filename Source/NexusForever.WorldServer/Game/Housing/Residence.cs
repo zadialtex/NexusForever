@@ -510,6 +510,7 @@ namespace NexusForever.WorldServer.Game.Housing
 
         /// <summary>
         /// Return <see cref="Plot"/> that matches the supploed Plot Info ID.
+        /// /// </summary>
         public Plot GetPlot(uint plotInfoId)
         {
             return plots.FirstOrDefault(i => i.PlotEntry.Id == plotInfoId);
