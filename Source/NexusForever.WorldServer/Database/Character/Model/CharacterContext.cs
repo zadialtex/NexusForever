@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using NexusForever.Shared;
@@ -1049,6 +1049,10 @@ namespace NexusForever.WorldServer.Database.Character.Model
                 entity.Property(e => e.DecorType)
                     .HasColumnName("decorType")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.PlotIndex)
+                    .HasColumnName("plotIndex")
+                    .HasDefaultValueSql("'2147483647'");
 
                 entity.Property(e => e.Qw)
                     .HasColumnName("qw")
