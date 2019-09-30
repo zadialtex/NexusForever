@@ -542,7 +542,9 @@ namespace NexusForever.Shared.GameTable
         [GameData]
         public GameTable<Spell4TelegraphEntry> Spell4Telegraph { get; private set; }
 
+        [GameData]
         public GameTable<Spell4ThresholdsEntry> Spell4Thresholds { get; private set; }
+
         public GameTable<Spell4TierRequirementsEntry> Spell4TierRequirements { get; private set; }
 
         [GameData]
@@ -637,7 +639,7 @@ namespace NexusForever.Shared.GameTable
 
         [GameData]
         public GameTable<WorldSocketEntry> WorldSocket { get; private set; }
-        
+
         public GameTable<WorldWaterEnvironmentEntry> WorldWaterEnvironment { get; private set; }
         public GameTable<WorldWaterFogEntry> WorldWaterFog { get; private set; }
         public GameTable<WorldWaterLayerEntry> WorldWaterLayer { get; private set; }
