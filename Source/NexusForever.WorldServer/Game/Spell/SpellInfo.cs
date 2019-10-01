@@ -24,6 +24,7 @@ namespace NexusForever.WorldServer.Game.Spell
         public List<TelegraphDamageEntry> Telegraphs { get; }
         public List<Spell4EffectsEntry> Effects { get; }
         public List<Spell4ThresholdsEntry> Thresholds { get; }
+        public List<SpellPhaseEntry> Phases { get; }
 
         public SpellInfo(SpellBaseInfo spellBaseBaseInfo, Spell4Entry spell4Entry)
         {
@@ -53,6 +54,11 @@ namespace NexusForever.WorldServer.Game.Spell
 
             Thresholds = GameTableManager.Spell4Thresholds.Entries
                 .Where(e => e.Spell4IdParent == spell4Entry.Id)
+                .OrderBy(e => e.OrderIndex)
+                .ToList();
+
+            Phases = GameTableManager.SpellPhase.Entries
+                .Where(e => e.Spell4IdOwner == spell4Entry.Id)
                 .OrderBy(e => e.OrderIndex)
                 .ToList();
         }
