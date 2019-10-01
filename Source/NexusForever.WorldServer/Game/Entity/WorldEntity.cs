@@ -41,6 +41,27 @@ namespace NexusForever.WorldServer.Game.Entity
         public float LeashRange { get; protected set; } = 15f;
         public MovementManager MovementManager { get; private set; }
 
+        public uint Health
+        {
+            get => GetStatInteger(Stat.Health) ?? 0u;
+            set
+            {
+                SetStat(Stat.Health, value);
+                EnqueueToVisible(new ServerUpdateHealth
+                {
+                    UnitId = Guid,
+                    Health = Health,
+                    Mask = (UpdateHealthMask)4
+                }, true);
+            }
+        }
+
+        public uint MaxHealth
+        {
+            get => (uint)GetPropertyValue(Property.BaseHealth);
+            set => SetBaseProperty(Property.BaseHealth, value);
+        }
+
         public uint Level
         {
             get => GetStatInteger(Stat.Level) ?? 1u;

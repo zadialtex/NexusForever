@@ -88,7 +88,7 @@ namespace NexusForever.WorldServer.Game.Spell
             saveMask = UnlockedSpellSaveMask.None;
         }
 
-        public void Cast(Player player)
+        public void Cast(Player player, bool buttonPressed)
         {
             if(player.HasSpell(Info.GetSpellInfo(Tier).Entry.Id, out Spell spell))
             {
@@ -98,6 +98,10 @@ namespace NexusForever.WorldServer.Game.Spell
                     return;
                 }
             }
+
+            // If the player depresses button after the spell had exceeded its threshold, don't try and recast the spell until button is pressed down again.
+            if (!buttonPressed && (CastMethod)Info.Entry.CastMethod == CastMethod.ChargeRelease)
+                return;
 
             player.CastSpell(new SpellParameters
             {

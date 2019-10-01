@@ -12,6 +12,6 @@ namespace NexusForever.WorldServer.Game.Spell
         public Position Position { get; set; }
         public ushort TaxiNode { get; set; }
         public uint ThresholdValue { get; set; }
-        public uint ThresholdMaxValue { get; set; }
+        public bool BypassGlobalCooldown { get; set; }
     }
 }

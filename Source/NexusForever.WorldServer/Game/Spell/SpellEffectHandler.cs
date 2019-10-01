@@ -4,6 +4,7 @@ using System.Numerics;
 using NexusForever.Shared;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Static;
@@ -18,6 +19,8 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.Damage)]
         private void HandleEffectDamage(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
+            log.Info($"Damage called?");
+
             // TODO: calculate damage
             info.AddDamage((DamageType)info.Entry.DamageType, 1337);
         }
@@ -104,6 +107,12 @@ namespace NexusForever.WorldServer.Game.Spell
             player.Map.EnqueueAdd(mount, player.Position);
 
             // FIXME: also cast 52539,Riding License - Riding Skill 1 - SWC - Tier 1,34464 -- upon further investigation, this appeared to only trigger for characters who were created earlier in the game's lifetime.
+            player.CastSpell(52539, new SpellParameters
+            {
+                ParentSpellInfo = parameters.SpellInfo,
+                RootSpellInfo = parameters.RootSpellInfo,
+                UserInitiatedSpellCast = false
+            });
 
             // TODO: There are other Riding Skills which need to be added when the player has them as known effects.
             uint mountSpeedSpell4Id = 0;

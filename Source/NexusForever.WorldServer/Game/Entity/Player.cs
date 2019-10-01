@@ -230,6 +230,7 @@ namespace NexusForever.WorldServer.Game.Entity
             base.BuildBaseProperties();
         }
 
+        private UpdateTimer statCheck = new UpdateTimer(0.5);
         public override void Update(double lastTick)
         {
             if (logoutManager != null)
@@ -246,6 +247,15 @@ namespace NexusForever.WorldServer.Game.Entity
             SpellManager.Update(lastTick);
             CostumeManager.Update(lastTick);
             QuestManager.Update(lastTick);
+
+            statCheck.Update(lastTick);
+            if (statCheck.HasElapsed)
+            {
+                if (Health < MaxHealth)
+                    Health = Math.Clamp(Health + (MaxHealth / 30), 1u, MaxHealth);
+
+                statCheck.Reset();
+            }
 
             saveTimer.Update(lastTick);
             if (saveTimer.HasElapsed)
@@ -324,6 +334,8 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.EnqueueMessageEncrypted(new ServerPlayerEnteredWorld());
 
             IsLoading = false;
+
+            CastSpell(1316, 2, new Spell.SpellParameters());
         }
 
         public override void OnRelocate(Vector3 vector)

@@ -33,11 +33,13 @@ namespace NexusForever.WorldServer.Game.Spell
 
         private static Dictionary<uint, SpellBaseInfo> spellBaseInfoStore = new Dictionary<uint, SpellBaseInfo>();
         private static readonly Dictionary<SpellEffectType, SpellEffectDelegate> spellEffectDelegates =  new Dictionary<SpellEffectType, SpellEffectDelegate>();
+        private static readonly Dictionary<CastMethod, CastMethodDelegate> castMethodDelegates = new Dictionary<CastMethod, CastMethodDelegate>();
 
         public static void Initialise()
         {
             //InitialiseSpellInfo();
             InitialiseSpellEffectHandlers();
+            InitialiseCastMethodHandlers();
         }
 
         private static void InitialiseSpellInfo()
@@ -77,6 +79,30 @@ namespace NexusForever.WorldServer.Game.Spell
             }
         }
 
+        private static void InitialiseCastMethodHandlers()
+        {
+            foreach (MethodInfo method in Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .SelectMany(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)))
+            {
+                List<CastMethodHandlerAttribute> attributes = method.GetCustomAttributes<CastMethodHandlerAttribute>().ToList();
+                if (attributes.Count() == 0)
+                    continue;
+                
+                foreach(CastMethodHandlerAttribute attribute in attributes)
+                {
+                    ParameterExpression spellParameter = Expression.Parameter(typeof(Spell));
+
+                    MethodCallExpression call = Expression.Call(spellParameter, method);
+
+                    Expression<CastMethodDelegate> lambda =
+                        Expression.Lambda<CastMethodDelegate>(call, spellParameter);
+
+                    castMethodDelegates.Add(attribute.CastMethod, lambda.Compile());
+                }
+            }
+        }
+
         /// <summary>
         /// Return <see cref="SpellBaseInfo"/>, if not already cached it will be generated before being returned.
         /// </summary>
@@ -101,6 +127,14 @@ namespace NexusForever.WorldServer.Game.Spell
         public static SpellEffectDelegate GetEffectHandler(SpellEffectType spellEffectType)
         {
             return spellEffectDelegates.TryGetValue(spellEffectType, out SpellEffectDelegate handler) ? handler : null;
+        }
+
+        /// <summary>
+        /// Return <see cref="CastMethodDelegate"/> for supplied <see cref="SpellEffectType"/>.
+        /// </summary>
+        public static CastMethodDelegate GetCastMethodHandler(CastMethod castMethod)
+        {
+            return castMethodDelegates.TryGetValue(castMethod, out CastMethodDelegate handler) ? handler : null;
         }
     }
 }
