@@ -484,6 +484,7 @@ namespace NexusForever.WorldServer.Game.Housing
                 { 299, 21 },    // Spacious Draken House
                 { 86, 17 },     // Spacious Exile Human House
                 { 291, 27 },    // Spacious Granok House
+                { 530, 32 }     // Underground Bunker
             };
 
             return residenceLookup.TryGetValue(plugItemId, out uint residenceId) ? residenceId : 0u;
@@ -510,6 +511,7 @@ namespace NexusForever.WorldServer.Game.Housing
 
         /// <summary>
         /// Return <see cref="Plot"/> that matches the supploed Plot Info ID.
+        /// /// </summary>
         public Plot GetPlot(uint plotInfoId)
         {
             return plots.FirstOrDefault(i => i.PlotEntry.Id == plotInfoId);
