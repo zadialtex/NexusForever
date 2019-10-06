@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using NexusForever.Shared.GameTable;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Database.World.Model;
 using NexusForever.WorldServer.Game.Entity.Movement;
@@ -58,6 +59,9 @@ namespace NexusForever.WorldServer.Game.Entity
         protected readonly Dictionary<Stat, StatValue> stats = new Dictionary<Stat, StatValue>();
 
         private readonly Dictionary<ItemSlot, ItemVisual> itemVisuals = new Dictionary<ItemSlot, ItemVisual>();
+
+        private float assaultRatingToPowerFormula = GameTableManager.GameFormula.GetEntry(1266).Datafloat0;
+        private float supportRatingToPowerFormula = GameTableManager.GameFormula.GetEntry(1266).Datafloat01;
 
         /// <summary>
         /// Create a new <see cref="WorldEntity"/> with supplied <see cref="EntityType"/>.
@@ -166,6 +170,22 @@ namespace NexusForever.WorldServer.Game.Entity
         protected float? GetPropertyValue(Property property)
         {
             return Properties.ContainsKey(property) ? Properties[property].Value : default;
+        }
+
+        /// <summary>
+        /// Returns the calculated Assault Power for this entity
+        /// </summary>
+        public uint GetAssaultPower()
+        {
+            return (uint)Math.Round((float)GetPropertyValue(Property.AssaultRating) * assaultRatingToPowerFormula);
+        }
+
+        /// <summary>
+        /// Returns the calculated Support Power for this entity
+        /// </summary>
+        public uint GetSupportPower()
+        {
+            return (uint)Math.Round((float)GetPropertyValue(Property.SupportRating) * supportRatingToPowerFormula);
         }
 
         /// <summary>
