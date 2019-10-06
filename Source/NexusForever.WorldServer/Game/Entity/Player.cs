@@ -591,6 +591,48 @@ namespace NexusForever.WorldServer.Game.Entity
             QuestManager.SendInitialPackets();
             AchievementManager.SendInitialPackets();
 
+            Session.EnqueueMessageEncrypted(new ServerPublicEventStart
+            {
+                PublicEventId = 648,
+                Unknown0 = true
+            });
+
+            Session.EnqueueMessageEncrypted(new ServerPublicEventObjectives
+            {
+                PublicEventId = 648,
+                PublicEventTeamId = 1,
+                ElapsedTimeMs = 62714,
+                Objectives = new List<ServerPublicEventObjectives.Objective>()
+                {
+                    new ServerPublicEventObjectives.Objective
+                    {
+                        ObjectiveId = 3251,
+                        ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
+                        {
+                            CurrentStatus = 1,
+                            SpellResourceIdx = 3
+                        },
+                        ElapsedTimeMs = 62714,
+                    },
+                    new ServerPublicEventObjectives.Objective
+                    {
+                        ObjectiveId = 3265,
+                        ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
+                        {
+                            CurrentStatus = 1,
+                            Count = 89,
+                            SpellResourceIdx = 3
+                        },
+                        ElapsedTimeMs = 62714
+                    }
+                }
+            });
+            Session.EnqueueMessageEncrypted(new ServerPublicEventReason
+            {
+                PublicEventId = 648,
+                Reason = 30
+            });
+
             Session.EnqueueMessageEncrypted(new ServerPlayerInnate
             {
                 InnateIndex = InnateIndex
