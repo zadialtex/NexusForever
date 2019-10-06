@@ -123,6 +123,10 @@ namespace NexusForever.WorldServer.Database.World.Model
                     .HasColumnName("world")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.WorldSocketId)
+                    .HasColumnName("worldSocketId")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.X)
                     .HasColumnName("x")
                     .HasDefaultValueSql("'0'");
