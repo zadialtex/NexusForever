@@ -977,7 +977,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
 
             modelBuilder.Entity<PropertyBase>(entity =>
             {
-                entity.HasKey(e => new { e.Type, e.Property })
+                entity.HasKey(e => new { e.Type, e.Subtype, e.Property, })
                     .HasName("PRIMARY");
 
                 entity.ToTable("property_base");
@@ -988,6 +988,14 @@ namespace NexusForever.WorldServer.Database.Character.Model
 
                 entity.Property(e => e.Property)
                     .HasColumnName("property")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Subtype)
+                    .HasColumnName("subtype")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModType)
+                    .HasColumnName("modType")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Note)

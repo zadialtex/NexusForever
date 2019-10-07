@@ -699,7 +699,10 @@ namespace NexusForever.WorldServer.Game.Entity
             bag.AddItem(item);
 
             if (player != null && bag.Location == InventoryLocation.Equipped)
+            {
                 VisualUpdate(item);
+                ApplyProperties(item);
+            }
         }
 
         /// <summary>
@@ -718,7 +721,11 @@ namespace NexusForever.WorldServer.Game.Entity
             bag.RemoveItem(item);
 
             if (player != null && bag.Location == InventoryLocation.Equipped)
+            {
                 VisualUpdate(item);
+                RemoveProperties(item);
+            }
+                
         }
 
         /// <summary>
@@ -771,6 +778,22 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             return true;
+        }
+
+        private void ApplyProperties(Item item)
+        {
+            Item2TypeEntry itemTypeEntry = GameTableManager.ItemType.GetEntry(item.Entry.Item2TypeId);
+
+            foreach (KeyValuePair<Property, float> property in item.InnateProperties)
+                player.AddItemProperty(property.Key, (ItemSlot)itemTypeEntry.ItemSlotId, property.Value);
+        }
+
+        private void RemoveProperties(Item item)
+        {
+            Item2TypeEntry itemTypeEntry = GameTableManager.ItemType.GetEntry(item.Entry.Item2TypeId);
+
+            foreach (KeyValuePair<Property, float> property in item.InnateProperties)
+                player.RemoveItemProperty(property.Key, (ItemSlot)itemTypeEntry.ItemSlotId);
         }
 
         private Bag GetBag(InventoryLocation location)
