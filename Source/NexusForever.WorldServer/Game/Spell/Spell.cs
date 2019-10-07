@@ -108,7 +108,7 @@ namespace NexusForever.WorldServer.Game.Spell
                     && player.SpellManager.GetGlobalSpellCooldown() > 0d)
                     return CastResult.SpellGlobalCooldown;
 
-                if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
+                if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
                     return CastResult.PrereqCasterCast;
             }
 
@@ -211,7 +211,7 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (caster is Player player)
                 {
                     // Ensure caster can apply this effect
-                    if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
+                    if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
                         continue;
                 }
                 

@@ -47,12 +47,18 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 SetStat(Stat.Health, Math.Clamp(value, 0u, MaxHealth)); // TODO: Confirm MaxHealth is actually the maximum health would be at.
-                EnqueueToVisible(new ServerUpdateHealth
+                EnqueueToVisible(new ServerEntityHealthUpdate
                 {
                     UnitId = Guid,
-                    Health = Health,
-                    Mask = (UpdateHealthMask)4
-                }, true);
+                    Health = Health
+                });
+                if (this is Player player)
+                    player.Session.EnqueueMessageEncrypted(new ServerPlayerHealthUpdate
+                    {
+                        UnitId = Guid,
+                        Health = Health,
+                        Mask = (UpdateHealthMask)4
+                    });
             }
         }
 
@@ -62,11 +68,27 @@ namespace NexusForever.WorldServer.Game.Entity
             set => SetBaseProperty(Property.BaseHealth, value);
         }
 
+        public uint Shield
+        {
+            get => GetStatInteger(Stat.Shield) ?? 0u;
+            set => SetStat(Stat.Shield, Math.Clamp(value, 0u, MaxShieldCapacity)); // TODO: Handle overshield
+        }
+
+        public uint MaxShieldCapacity
+        {
+            get => (uint)GetPropertyValue(Property.ShieldCapacityMax);
+            set => SetBaseProperty(Property.ShieldCapacityMax, value);
+        }
 
         public uint Level
         {
             get => GetStatInteger(Stat.Level) ?? 1u;
-            set => SetStat(Stat.Level, value);
+            set
+            {
+                SetStat(Stat.Level, value);
+                if (this is Player player)
+                    player.BuildBaseProperties();
+            }
         }
 
         public bool Sheathed
@@ -84,6 +106,11 @@ namespace NexusForever.WorldServer.Game.Entity
         /// Guid of the <see cref="Player"/> currently controlling this <see cref="WorldEntity"/>.
         /// </summary>
         public uint ControllerGuid { get; set; }
+
+        /// <summary>
+        /// Initial stab at a timer to regenerate Health & Shield values.
+        /// </summary>
+        private UpdateTimer statUpdateTimer = new UpdateTimer(0.25); // TODO: Long-term this should be absorbed into individual timers for each Stat regeneration method
 
         protected readonly Dictionary<Stat, StatValue> stats = new Dictionary<Stat, StatValue>();
 
@@ -135,7 +162,15 @@ namespace NexusForever.WorldServer.Game.Entity
         public override void Update(double lastTick)
         {
             MovementManager.Update(lastTick);
-            
+
+            statUpdateTimer.Update(lastTick);
+            if (statUpdateTimer.HasElapsed)
+            {
+                HandleStatUpdate(lastTick);
+
+                statUpdateTimer.Reset();
+            }
+
             var propertyUpdatePacket = BuildPropertyUpdates();
             if (propertyUpdatePacket == null)
                 return;
@@ -216,6 +251,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 else
                     Properties.Add(propertyUpdate, propertyValue);
 
+                OnPropertyUpdate(propertyUpdate, propertyValue.Value);
+
                 propertyUpdatePacket.Properties.Add(propertyValue);
             }
 
@@ -230,6 +267,9 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             float baseValue = GetBasePropertyValue(property);
             float value = baseValue;
+
+            foreach(KeyValuePair<ItemSlot, float> itemStats in GetItemProperties(property))
+                value += itemStats.Value;
 
             foreach (PropertyModifier spellModifier in GetSpellPropertyModifiers(property).OrderBy(e => e.ModifierType))
             {
@@ -264,7 +304,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Used on entering world to set the <see cref="WorldEntity"/> base <see cref="PropertyValue"/>
         /// </summary>
-        protected virtual void BuildBaseProperties()
+        public virtual void BuildBaseProperties()
         {
             foreach (Property property in BaseProperties.Keys)
                 BuildPropertyUpdates();
@@ -281,6 +321,47 @@ namespace NexusForever.WorldServer.Game.Entity
                 BaseProperties[property] = value;
             else
                 BaseProperties.Add(property, value);
+
+            DirtyProperties.Add(property);
+        }
+
+        /// <summary>
+        /// Add a <see cref="Property"/> modifier given a Spell4Id and <see cref="PropertyModifier"/> instance
+        /// </summary>
+        public void AddItemProperty(Property property, ItemSlot itemSlot, float value)
+        {
+            if (ItemProperties.ContainsKey(property))
+            {
+                var itemDict = ItemProperties[property];
+
+                if (itemDict.ContainsKey(itemSlot))
+                    itemDict[itemSlot] = value;
+                else
+                    itemDict.Add(itemSlot, value);
+            }
+            else
+            {
+                ItemProperties.Add(property, new Dictionary<ItemSlot, float>
+        {
+                    { itemSlot, value }
+                });
+            }
+
+            DirtyProperties.Add(property);
+        }
+
+        /// <summary>
+        /// Remove a <see cref="Property"/> modifier by a Spell that is currently affecting this <see cref="WorldEntity"/>
+        /// </summary>
+        public void RemoveItemProperty(Property property, ItemSlot itemSlot)
+        {
+            if (ItemProperties.ContainsKey(property))
+            {
+                var itemDict = ItemProperties[property];
+
+                if (itemDict.ContainsKey(itemSlot))
+                    itemDict.Remove(itemSlot);
+            }
 
             DirtyProperties.Add(property);
         }
@@ -335,6 +416,14 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Return all item property values for this <see cref="WorldEntity"/>'s <see cref="Property"/>
+        /// </summary>
+        private Dictionary<ItemSlot, float> GetItemProperties(Property property)
+        {
+            return ItemProperties.TryGetValue(property, out Dictionary<ItemSlot, float> properties) ? properties : new Dictionary<ItemSlot, float>();
+        }
+
+        /// <summary>
         /// Return all <see cref="PropertyModifier"/> for this <see cref="WorldEntity"/>'s <see cref="Property"/>
         /// </summary>
         private IEnumerable<PropertyModifier> GetSpellPropertyModifiers(Property property)
@@ -348,6 +437,24 @@ namespace NexusForever.WorldServer.Game.Entity
         public float GetPropertyValue(Property property)
         {
             return Properties.ContainsKey(property) ? Properties[property].Value : default;
+        }
+
+        /// <summary>
+        /// Invoked when <see cref="WorldEntity"/> has a <see cref="Property"/> updated.
+        /// </summary>
+        protected virtual void OnPropertyUpdate(Property property, float newValue)
+        {
+            switch (property)
+            {
+                case Property.BaseHealth:
+                    if (newValue < Health)
+                        Health = MaxHealth;
+                    break;
+                case Property.ShieldCapacityMax:
+                    if (newValue < Shield)
+                        Shield = MaxShieldCapacity;
+                    break;
+            }
         }
 
         /// <summary>
@@ -452,6 +559,21 @@ namespace NexusForever.WorldServer.Game.Entity
         protected void SetStat<T>(Stat stat, T value) where T : Enum, IConvertible
         {
             SetStat(stat, value.ToUInt32(null));
+        }
+
+        /// <summary>
+        /// Handles regeneration of Stat Values. Used to provide a hook into the Update method, for future implementation.
+        /// </summary>
+        private void HandleStatUpdate(double lastTick)
+        {
+            // TODO: This should probably get moved to a Calculation Library/Manager at some point. There will be different timers on Stat refreshes, but right now the timer is hardcoded to every 0.25s.
+            // Probably worth considering an Attribute-grouped Class that allows us to run differentt regeneration methods & calculations for each stat.
+
+            if (Health < MaxHealth)
+                Health += (uint)(MaxHealth / 200f);
+
+            if (Shield < MaxShieldCapacity)
+                Shield += (uint)(MaxShieldCapacity * GetPropertyValue(Property.ShieldRegenPct) * statUpdateTimer.Duration);
         }
 
         /// <summary>

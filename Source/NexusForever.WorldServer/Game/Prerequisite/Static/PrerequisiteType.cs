@@ -13,6 +13,7 @@
         Achievement = 7,
         Unknown11   = 11,
         SpellKnown  = 129,
-        Plane       = 232
+        Plane       = 232,
+        Unhealthy   = 269
     }
 }

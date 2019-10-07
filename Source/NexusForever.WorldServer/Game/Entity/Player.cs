@@ -209,9 +209,9 @@ namespace NexusForever.WorldServer.Game.Entity
             SetStat(Stat.Shield, 450u);
         }
 
-        protected override void BuildBaseProperties()
+        public override void BuildBaseProperties()
         {
-            var baseProperties = AssetManager.GetCharacterBaseProperties();
+            var baseProperties = AssetManager.Instance.GetCharacterBaseProperties();
             foreach(PropertyValue propertyValue in baseProperties)
             {
                 float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
@@ -222,7 +222,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 SetBaseProperty(propertyValue.Property, value);
             }
 
-            var classProperties = AssetManager.GetCharacterClassBaseProperties(Class);
+            var classProperties = AssetManager.Instance.GetCharacterClassBaseProperties(Class);
             foreach (PropertyValue propertyValue in classProperties)
             {
                 float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager

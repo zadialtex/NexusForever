@@ -264,7 +264,9 @@ namespace NexusForever.Shared.GameTable
         [GameData("Item2.tbl")]
         public GameTable<Item2Entry> Item { get; private set; }
 
+        [GameData]
         public GameTable<Item2CategoryEntry> Item2Category { get; private set; }
+
         public GameTable<Item2FamilyEntry> Item2Family { get; private set; }
 
         [GameData("Item2Type.tbl")]
