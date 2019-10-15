@@ -23,7 +23,7 @@ namespace NexusForever.WorldServer.Game.Map
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-        public const float DefaultVisionRange = 128f;
+        public const float DefaultVisionRange = 256f;
 
         /// <summary>
         /// Distance between a <see cref="Player"/> and a <see cref="GridEntity"/> before the entity can be seen.
