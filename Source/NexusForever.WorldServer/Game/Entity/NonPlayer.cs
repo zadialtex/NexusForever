@@ -29,7 +29,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 VendorInfo = new VendorInfo(model);
             }
 
-            CalculateProperties();
+            if (stats.Count == 0)
+                CalculateProperties();
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -43,7 +44,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override void OnActivateCast(Player activator, uint interactionId)
         {
-            Creature2Entry entry = GameTableManager.Creature2.GetEntry(CreatureId);
+            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
 
             // TODO: Handle casting activate spells at correct times. Additionally, ensure Prerequisites are met to cast.
             // Creature2Entry can contain up to 4 spells to activate and prerequisite spells to trigger.
@@ -65,9 +66,12 @@ namespace NexusForever.WorldServer.Game.Entity
             Creature2Entry creatureEntry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
 
             // TODO: research this some more
-            /*float[] values = new float[200];
+            float[] values = new float[200];
 
-            CreatureLevelEntry levelEntry = GameTableManager.Instance.CreatureLevel.GetEntry(6);
+            System.Random random = new System.Random();
+            ulong level = (ulong)random.Next((int)creatureEntry.MinLevel, (int)creatureEntry.MaxLevel);
+
+            CreatureLevelEntry levelEntry = GameTableManager.Instance.CreatureLevel.GetEntry(level);
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
                 values[i] = levelEntry.UnitPropertyValue[i];
 
@@ -84,7 +88,10 @@ namespace NexusForever.WorldServer.Game.Entity
                 values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
 
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
-                SetProperty((Property)i, values[i]);*/
+                SetProperty((Property)i, values[i]);
+
+            SetStat(Stat.Health, (uint)(GetPropertyValue(Property.BaseHealth) ?? 1000));
+            SetStat(Stat.Level, (uint)level);
         }
     }
 }
