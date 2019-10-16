@@ -29,6 +29,7 @@ using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Guild;
 using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Account;
+using NexusForever.WorldServer.Game.Event;
 
 namespace NexusForever.WorldServer
 {
@@ -88,6 +89,7 @@ namespace NexusForever.WorldServer
             MessageManager.Instance.Initialise();
             SocialManager.Instance.Initialise();
             CommandManager.Instance.Initialise();
+            PublicEventManager.Initialise();
             NetworkManager<WorldSession>.Instance.Initialise(ConfigurationManager<WorldServerConfiguration>.Instance.Config.Network);
             WorldManager.Instance.Initialise(lastTick =>
             {
@@ -98,7 +100,8 @@ namespace NexusForever.WorldServer
                 GlobalQuestManager.Instance.Update(lastTick);
                 ContactManager.Update(lastTick);
                 GuildManager.Update(lastTick);
-                Console.Title = Title + $":: Clients: {NetworkManager<WorldSession>.GetSessions().Count()} | Maps: {MapManager.GetMapCount()}";
+                PublicEventManager.Update(lastTick);
+                Console.Title = Title + $":: Clients: {NetworkManager<WorldSession>.Instance.GetSessions().Count()} | Maps: {MapManager.Instance.GetMapCount()}";
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())

@@ -8,7 +8,7 @@ namespace NexusForever.Shared.Configuration
     {
         public static IConfiguration Configuration { get; private set; }
 
-        private static string fileLocation { get; set; }
+        private static string fileLocation;
 
         public static void Initialise(string file)
         {

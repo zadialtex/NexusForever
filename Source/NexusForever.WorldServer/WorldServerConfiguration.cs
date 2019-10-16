@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NexusForever.Shared.Configuration;
+using System;
 
 namespace NexusForever.WorldServer
 {
@@ -37,5 +38,7 @@ namespace NexusForever.WorldServer
         public RulesConfig Rules { get; set; } = new RulesConfig();
         public ulong DefaultRole { get; set; } = 1;
         public string MessageOfTheDay { get; set; } = "";
+        public uint ShadesEveEffigyCount { get; set; }
+        public DateTime ShadesEveEffigyBuilt { get; set; }
     }
 }
