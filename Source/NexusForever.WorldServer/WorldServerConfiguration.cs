@@ -1,4 +1,5 @@
 using NexusForever.Shared.Configuration;
+using System;
 
 namespace NexusForever.WorldServer
 {
@@ -15,5 +16,7 @@ namespace NexusForever.WorldServer
         public bool UseCache { get; set; } = false;
         public ushort RealmId { get; set; }
         public uint LengthOfInGameDay { get; set; }
+        public uint ShadesEveEffigyCount { get; set; }
+        public DateTime ShadesEveEffigyBuilt { get; set; }
     }
 }

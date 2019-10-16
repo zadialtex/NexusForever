@@ -27,8 +27,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 VendorInfo = new VendorInfo(model);
             }
 
-            if (stats.Count == 0)
-                CalculateProperties();
+            
+            CalculateProperties();
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -48,29 +48,43 @@ namespace NexusForever.WorldServer.Game.Entity
             float[] values = new float[200];
 
             System.Random random = new System.Random();
-            ulong level = (ulong)random.Next((int)creatureEntry.MinLevel, (int)creatureEntry.MaxLevel);
+            ulong level = 1;
+
+            if (creatureEntry != null)
+                level = (ulong)random.Next((int)creatureEntry.MinLevel, (int)creatureEntry.MaxLevel);
+            else if (GetStatInteger(Stat.Level) > 0)
+                level = (ulong)GetStatInteger(Stat.Level);
 
             CreatureLevelEntry levelEntry = GameTableManager.CreatureLevel.GetEntry(level);
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
                 values[i] = levelEntry.UnitPropertyValue[i];
 
-            Creature2ArcheTypeEntry archeTypeEntry = GameTableManager.Creature2ArcheType.GetEntry(creatureEntry.Creature2ArcheTypeId);
-            for (uint i = 0u; i < archeTypeEntry.UnitPropertyMultiplier.Length; i++)
-                values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
+            if (creatureEntry != null)
+            {
+                Creature2ArcheTypeEntry archeTypeEntry = GameTableManager.Creature2ArcheType.GetEntry(creatureEntry.Creature2ArcheTypeId);
+                if (archeTypeEntry != null)
+                    for (uint i = 0u; i < archeTypeEntry.UnitPropertyMultiplier.Length; i++)
+                        values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
 
-            Creature2DifficultyEntry difficultyEntry = GameTableManager.Creature2Difficulty.GetEntry(creatureEntry.Creature2DifficultyId);
-            for (uint i = 0u; i < difficultyEntry.UnitPropertyMultiplier.Length; i++)
-                values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
+                Creature2DifficultyEntry difficultyEntry = GameTableManager.Creature2Difficulty.GetEntry(creatureEntry.Creature2DifficultyId);
+                if (difficultyEntry != null)
+                    for (uint i = 0u; i < difficultyEntry.UnitPropertyMultiplier.Length; i++)
+                        values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
 
-            Creature2TierEntry tierEntry = GameTableManager.Creature2Tier.GetEntry(creatureEntry.Creature2TierId);
-            for (uint i = 0u; i < tierEntry.UnitPropertyMultiplier.Length; i++)
-                values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
+                Creature2TierEntry tierEntry = GameTableManager.Creature2Tier.GetEntry(creatureEntry.Creature2TierId);
+                if (tierEntry != null)
+                    for (uint i = 0u; i < tierEntry.UnitPropertyMultiplier.Length; i++)
+                        values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
+            }
 
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
-                SetProperty((Property)i, values[i]);
+                SetProperty((Property)i, values[i], values[i]);
 
-            SetStat(Stat.Health, (uint)(GetPropertyValue(Property.BaseHealth) ?? 1000));
-            SetStat(Stat.Level, (uint)level);
+            if (stats.Count == 0)
+            {
+                SetStat(Stat.Health, (uint)(GetPropertyValue(Property.BaseHealth) ?? 1000));
+                SetStat(Stat.Level, (uint)level);
+            }
         }
     }
 }

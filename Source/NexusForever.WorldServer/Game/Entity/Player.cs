@@ -341,6 +341,12 @@ namespace NexusForever.WorldServer.Game.Entity
                 }
 
                 QuestManager.ObjectiveUpdate(QuestObjectiveType.EnterZone, Zone.Id, 1);
+
+                if (Map.Entry.Id == 22)
+                    CastSpell(75799, new Spell.SpellParameters());
+
+                if (Map.Entry.Id == 51)
+                    CastSpell(75744, new Spell.SpellParameters());
             }
 
             ZoneMapManager.OnZoneUpdate();
@@ -446,21 +452,21 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     new ServerPublicEventObjectives.Objective
                     {
-                        ObjectiveId = 3251,
+                        ObjectiveId = (ushort)(Faction1 == Faction.Exile ? 3265 : 3297),
                         ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
                         {
                             CurrentStatus = 1,
+                            Count = Event.PublicEventManager.GetEffigyCount(),
                             SpellResourceIdx = 3
                         },
                         ElapsedTimeMs = 62714,
                     },
                     new ServerPublicEventObjectives.Objective
                     {
-                        ObjectiveId = 3265,
+                        ObjectiveId = (ushort)(Faction1 == Faction.Exile ? 3251 : 4396),
                         ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
                         {
                             CurrentStatus = 1,
-                            Count = 89,
                             SpellResourceIdx = 3
                         },
                         ElapsedTimeMs = 62714
@@ -470,7 +476,7 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.EnqueueMessageEncrypted(new ServerPublicEventReason
             {
                 PublicEventId = 648,
-                Reason = 30
+                Reason = 10
             });
 
             Session.EnqueueMessageEncrypted(new ServerPlayerInnate
