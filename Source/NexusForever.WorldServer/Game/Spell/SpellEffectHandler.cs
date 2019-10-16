@@ -97,17 +97,6 @@ namespace NexusForever.WorldServer.Game.Spell
             player.SetDisplayInfo(displayGroupEntry.Creature2DisplayInfoId);
         }
 
-        [SpellEffectHandler(SpellEffectType.Proxy)]
-        private void HandleEffectProxy(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
-        {
-            target.CastSpell(info.Entry.DataBits00, new SpellParameters
-            {
-                ParentSpellInfo        = parameters.SpellInfo,
-                RootSpellInfo          = parameters.RootSpellInfo,
-                UserInitiatedSpellCast = false
-            });
-        }
-
         [SpellEffectHandler(SpellEffectType.SummonMount)]
         private void HandleEffectSummonMount(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {

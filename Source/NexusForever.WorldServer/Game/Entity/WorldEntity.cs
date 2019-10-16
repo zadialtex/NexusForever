@@ -152,12 +152,15 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             MovementManager.Update(lastTick);
 
-            statUpdateTimer.Update(lastTick);
-            if (statUpdateTimer.HasElapsed)
+            if (this is Player player)
             {
-                HandleStatUpdate(lastTick);
+                statUpdateTimer.Update(lastTick);
+                if (statUpdateTimer.HasElapsed)
+                {
+                    HandleStatUpdate(lastTick);
 
-                statUpdateTimer.Reset();
+                    statUpdateTimer.Reset();
+                }
             }
 
             var propertyUpdatePacket = BuildPropertyUpdates();
