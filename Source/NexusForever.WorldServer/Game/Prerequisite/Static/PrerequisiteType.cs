@@ -10,6 +10,9 @@
         Faction     = 4,
         Reputation  = 5,
         Quest       = 6,
-        Achievement = 7
+        Achievement = 7,
+        Unknown11   = 11,
+        SpellKnown  = 129,
+        Plane       = 232
     }
 }

@@ -101,6 +101,7 @@ namespace NexusForever.WorldServer.Database.Character
                         .Include(c => c.CharacterQuest)
                             .ThenInclude(q => q.CharacterQuestObjective)
                         .Include(c => c.CharacterEntitlement)
+                        .Include(c => c.CharacterAchievement)
                     .ToListAsync();
             }
         }
@@ -225,6 +226,12 @@ namespace NexusForever.WorldServer.Database.Character
                     .Include(g => g.GuildData)
                     .ToList();
             }
+        }
+        
+        public static List<PropertyBase> GetProperties(uint type)
+        {
+            using (var context = new CharacterContext())
+                return context.PropertyBase.Where(p => p.Type == type).ToList();
         }
     }
 }

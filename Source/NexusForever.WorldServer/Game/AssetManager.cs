@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
@@ -6,6 +7,7 @@ using System.Reflection;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Database.Character;
+using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Database.World;
 using NexusForever.WorldServer.Database.World.Model;
 using NexusForever.WorldServer.Game.Entity;
@@ -40,10 +42,15 @@ namespace NexusForever.WorldServer.Game
         private static ulong nextMailId;
 
         private static ImmutableDictionary<uint, ImmutableList<CharacterCustomizationEntry>> characterCustomisations;
+        private static ImmutableList<PropertyValue> characterBaseProperties;
+        private static ImmutableDictionary<Class, ImmutableList<PropertyValue>> characterClassBaseProperties;
 
         private static ImmutableDictionary<ItemSlot, ImmutableList<EquippedItem>> equippedItems;
         private static ImmutableDictionary<uint, ImmutableList<ItemDisplaySourceEntryEntry>> itemDisplaySourcesEntry;
         private static ImmutableDictionary<ushort, Location> bindPointLocations;
+        private static ImmutableDictionary<uint /*item2CategoryId*/, float /*modifier*/> itemArmorModifiers;
+        private static ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>> innatePropertiesLevelScaling;
+        private static ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>> innatePropertiesFlat;
 
         private static ImmutableDictionary</*zoneId*/uint, /*tutorialId*/uint> zoneTutorials;
 
@@ -54,9 +61,13 @@ namespace NexusForever.WorldServer.Game
             nextMailId      = CharacterDatabase.GetNextMailId() + 1ul;
 
             CacheCharacterCustomisations();
+            CacheCharacterBaseProperties();
+            CacheCharacterClassBaseProperties();
             CacheInventoryEquipSlots();
             CacheInventoryBagCapacities();
             CacheItemDisplaySourceEntries();
+            CacheItemArmorModifiers();
+            CacheItemInnateProperties();
             CacheTutorials();
             CacheBindPointPositions();
         }
@@ -81,6 +92,48 @@ namespace NexusForever.WorldServer.Game
             characterCustomisations = entries.ToImmutableDictionary(e => e.Key, e => e.Value.ToImmutableList());
         }
 
+        private static void CacheCharacterBaseProperties()
+        {
+            var entries = ImmutableList.CreateBuilder<PropertyValue>();
+            foreach (PropertyBase propertyModel in CharacterDatabase.GetProperties(0))
+            {
+                var newPropValue = new PropertyValue((Property)propertyModel.Property, propertyModel.Value, propertyModel.Value);
+                entries.Add(newPropValue);
+            }
+
+            characterBaseProperties = entries.ToImmutable();
+        }
+
+        private static void CacheCharacterClassBaseProperties()
+        {
+            ImmutableDictionary<Class, ImmutableList<PropertyValue>>.Builder entries = ImmutableDictionary.CreateBuilder<Class, ImmutableList<PropertyValue>>();
+            var classList = GameTableManager.Class.Entries;
+
+            List<PropertyBase> classPropertyBases = CharacterDatabase.GetProperties(1);
+            foreach (ClassEntry classEntry in classList)
+            {
+                Class @class = (Class)classEntry.Id;
+
+                if (entries.ContainsKey(@class))
+                    continue;
+
+                ImmutableList<PropertyValue>.Builder propertyList = ImmutableList.CreateBuilder<PropertyValue>();
+                foreach (PropertyBase propertyModel in classPropertyBases)
+                {
+                    if (propertyModel.Subtype != (uint)@class)
+                        continue;
+
+                    var newPropValue = new PropertyValue((Property)propertyModel.Property, propertyModel.Value, propertyModel.Value);
+                    propertyList.Add(newPropValue);
+                }
+                ImmutableList<PropertyValue> classProperties = propertyList.ToImmutable();
+
+                entries.Add(@class, classProperties);
+            }
+            
+            characterClassBaseProperties = entries.ToImmutable();
+        }
+
         private static void CacheInventoryEquipSlots()
         {
             var entries = ImmutableDictionary.CreateBuilder<ItemSlot, List<EquippedItem>>();
@@ -95,7 +148,6 @@ namespace NexusForever.WorldServer.Game
                     entries[slot].Add(attribute.Slot);
                 }
             }
-
             equippedItems = entries.ToImmutableDictionary(e => e.Key, e => e.Value.ToImmutableList());
         }
 
@@ -170,6 +222,45 @@ namespace NexusForever.WorldServer.Game
             bindPointLocations = entries.ToImmutable();
         }
 
+        private static void CacheItemArmorModifiers()
+        {
+            var armorMods = ImmutableDictionary.CreateBuilder<uint, float>();
+            foreach (Item2CategoryEntry entry in GameTableManager.Item2Category.Entries.Where(i => i.Item2FamilyId == 1))
+                armorMods.Add(entry.Id, entry.ArmorModifier);
+
+            itemArmorModifiers = armorMods.ToImmutable();
+        }
+
+        private static void CacheItemInnateProperties()
+        {
+            ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propFlat = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
+            ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propScaling = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
+
+            foreach (var slot in CharacterDatabase.GetProperties(2).GroupBy(x => x.Subtype).Select(i => i.First()))
+            {
+                ImmutableDictionary<Property, float>.Builder subtypePropFlat = ImmutableDictionary.CreateBuilder<Property, float>();
+                ImmutableDictionary<Property, float>.Builder subtypePropScaling = ImmutableDictionary.CreateBuilder<Property, float>();
+                foreach (PropertyBase propertyBase in CharacterDatabase.GetProperties(2).Where(i => i.Subtype == slot.Subtype))
+                {
+                    switch (propertyBase.ModType)
+                    {
+                        case 0:
+                            subtypePropFlat.Add((Property)propertyBase.Property, propertyBase.Value);
+                            break;
+                        case 1:
+                            subtypePropScaling.Add((Property)propertyBase.Property, propertyBase.Value);
+                            break;
+                    }
+                }
+
+                propFlat.Add((ItemSlot)slot.Subtype, subtypePropFlat.ToImmutable());
+                propScaling.Add((ItemSlot)slot.Subtype, subtypePropScaling.ToImmutable());
+            }
+
+            innatePropertiesFlat = propFlat.ToImmutable();
+            innatePropertiesLevelScaling = propScaling.ToImmutable();
+        }
+
         /// <summary>
         /// Returns an <see cref="ImmutableList{T}"/> containing all <see cref="CharacterCustomizationEntry"/>'s for the supplied race, sex, label and value.
         /// </summary>
@@ -233,6 +324,21 @@ namespace NexusForever.WorldServer.Game
 
             return customizationEntries;
         }
+        
+        /// Returns an <see cref="ImmutableList[T]"/> containing all base <see cref="PropertyValue"/> for any character
+        /// </summary>
+        public static ImmutableList<PropertyValue> GetCharacterBaseProperties()
+        {
+            return characterBaseProperties;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="ImmutableList[T]"/> containing all base <see cref="PropertyValue"/> for a character class
+        /// </summary>
+        public static ImmutableList<PropertyValue> GetCharacterClassBaseProperties(Class @class)
+        {
+            return characterClassBaseProperties.TryGetValue(@class, out ImmutableList<PropertyValue> propertyValues) ? propertyValues : null;
+        }
 
         /// <summary>
         /// Returns an <see cref="ImmutableList{T}"/> containing all <see cref="EquippedItem"/>'s for supplied <see cref="ItemSlot"/>.
@@ -248,6 +354,54 @@ namespace NexusForever.WorldServer.Game
         public static ImmutableList<ItemDisplaySourceEntryEntry> GetItemDisplaySource(uint itemSource)
         {
             return itemDisplaySourcesEntry.TryGetValue(itemSource, out ImmutableList<ItemDisplaySourceEntryEntry> entries) ? entries : null;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="Dictionary{TKey, TValue}"/> containing <see cref="Property"/> and associated values for given Item.
+        /// </summary>
+        public static Dictionary<Property, float> GetInnateProperties(ItemSlot itemSlot, uint effectiveLevel, uint categoryId, float supportPowerPercentage)
+        {
+            Dictionary<Property, float> innateProperties = new Dictionary<Property, float>();
+
+            var innatePropScaling = innatePropertiesLevelScaling.ContainsKey(itemSlot) ? innatePropertiesLevelScaling[itemSlot] : new Dictionary<Property, float>().ToImmutableDictionary();
+            var innatePropFlat = innatePropertiesFlat.ContainsKey(itemSlot) ? innatePropertiesFlat[itemSlot] : new Dictionary<Property, float>().ToImmutableDictionary();
+
+            // TODO: Shield reboot, max % and tick % are all the same right now. Investigate how these stats are calculated and add to method.
+            foreach (KeyValuePair<Property, float> entry in innatePropFlat)
+                innateProperties.TryAdd(entry.Key, entry.Value);
+
+            foreach (KeyValuePair<Property, float> entry in innatePropScaling)
+            {
+                var value = entry.Value;
+
+                if (entry.Key == Property.AssaultRating)
+                {
+                    if (supportPowerPercentage == 1f)
+                        value = 0f;
+                    else if (supportPowerPercentage == 0.5f)
+                        value *= 0.3333f;
+                }
+
+                if (entry.Key == Property.SupportRating)
+                {
+                    if (supportPowerPercentage == -1f)
+                        value = 0f;
+                    else if (supportPowerPercentage == -0.5f)
+                        value *= 0.3333f;
+                }
+
+                // TODO: Ensure correct values after 50 effective level. There are diminishing returns after 50 effective level to Armor.
+                if (entry.Key == Property.Armor)
+                    if (itemArmorModifiers.TryGetValue(categoryId, out float armorMod))
+                        value *= armorMod;
+
+                if (innateProperties.ContainsKey(entry.Key))
+                    innateProperties[entry.Key] = innateProperties[entry.Key] + (uint)Math.Floor(value * effectiveLevel);
+                else
+                    innateProperties.TryAdd(entry.Key, (uint)Math.Floor(value * effectiveLevel));
+            }
+
+            return innateProperties;
         }
 
         /// <summary>

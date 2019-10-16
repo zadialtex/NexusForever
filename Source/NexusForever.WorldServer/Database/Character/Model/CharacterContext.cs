@@ -19,6 +19,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         }
 
         public virtual DbSet<Character> Character { get; set; }
+        public virtual DbSet<CharacterAchievement> CharacterAchievement { get; set; }
         public virtual DbSet<CharacterActionSetAmp> CharacterActionSetAmp { get; set; }
         public virtual DbSet<CharacterActionSetShortcut> CharacterActionSetShortcut { get; set; }
         public virtual DbSet<CharacterAppearance> CharacterAppearance { get; set; }
@@ -47,6 +48,7 @@ namespace NexusForever.WorldServer.Database.Character.Model
         public virtual DbSet<GuildMember> GuildMember { get; set; }
         public virtual DbSet<GuildData> GuildData { get; set; }
         public virtual DbSet<Item> Item { get; set; }
+        public virtual DbSet<PropertyBase> PropertyBase { get; set; }
         public virtual DbSet<Residence> Residence { get; set; }
         public virtual DbSet<ResidenceDecor> ResidenceDecor { get; set; }
         public virtual DbSet<ResidencePlot> ResidencePlot { get; set; }
@@ -191,6 +193,39 @@ namespace NexusForever.WorldServer.Database.Character.Model
                 entity.Property(e => e.WorldZoneId)
                     .HasColumnName("worldZoneId")
                     .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<CharacterAchievement>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.AchievementId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_achievement");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.AchievementId)
+                    .HasColumnName("achievementId")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Data0)
+                    .HasColumnName("data0")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Data1)
+                    .HasColumnName("data1")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DateCompleted)
+                    .HasColumnName("dateCompleted")
+                    .HasColumnType("datetime");
+
+                entity.HasOne(d => d.IdNavigation)
+                    .WithMany(p => p.CharacterAchievement)
+                    .HasForeignKey(d => d.Id)
+                    .HasConstraintName("FK__character_achievement_id__character_id");
             });
 
             modelBuilder.Entity<CharacterActionSetAmp>(entity =>
@@ -1100,6 +1135,40 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasForeignKey(d => d.OwnerId)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__item_ownerId__character_id");
+            });
+
+            modelBuilder.Entity<PropertyBase>(entity =>
+            {
+                entity.HasKey(e => new { e.Type, e.Subtype, e.Property, })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("property_base");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Property)
+                    .HasColumnName("property")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Subtype)
+                    .HasColumnName("subtype")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModType)
+                    .HasColumnName("modType")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Note)
+                    .IsRequired()
+                    .HasColumnName("note")
+                    .HasColumnType("varchar(100)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
             });
 
             modelBuilder.Entity<Residence>(entity =>

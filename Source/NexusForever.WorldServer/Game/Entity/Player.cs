@@ -18,6 +18,7 @@ using NexusForever.WorldServer.Database.Character;
 using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -165,6 +166,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public MailManager MailManager { get; }
         public ZoneMapManager ZoneMapManager { get; }
         public QuestManager QuestManager { get; }
+        public CharacterAchievementManager AchievementManager { get; }
 
         public VendorInfo SelectedVendorInfo { get; set; } // TODO unset this when too far away from vendor
 
@@ -262,19 +264,9 @@ namespace NexusForever.WorldServer.Game.Entity
             ZoneMapManager          = new ZoneMapManager(this, model);
             QuestManager            = new QuestManager(this, model);
             IgnoreList              = ContactManager.GetIgnoreList(model);
+            AchievementManager      = new CharacterAchievementManager(this, model);
 
             Session.EntitlementManager.OnNewCharacter(model);
-
-            // temp
-            Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
-            Properties.Add(Property.ShieldCapacityMax, new PropertyValue(Property.ShieldCapacityMax, 0f, 450f));
-            Properties.Add(Property.MoveSpeedMultiplier, new PropertyValue(Property.MoveSpeedMultiplier, 1f, 1f));
-            Properties.Add(Property.JumpHeight, new PropertyValue(Property.JumpHeight, 2.5f, 2.5f));
-            Properties.Add(Property.GravityMultiplier, new PropertyValue(Property.GravityMultiplier, 1f, 1f));
-            // sprint
-            Properties.Add(Property.ResourceMax0, new PropertyValue(Property.ResourceMax0, 500f, 500f));
-            // dash
-            Properties.Add(Property.ResourceMax7, new PropertyValue(Property.ResourceMax7, 200f, 200f));
 
             Costume costume = null;
             if (CostumeIndex >= 0)
@@ -305,6 +297,8 @@ namespace NexusForever.WorldServer.Game.Entity
             foreach (CharacterStats statModel in model.CharacterStats)
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
 
+            BuildBaseProperties();
+
             SetStat(Stat.Sheathed, 1u);
 
             // temp
@@ -315,6 +309,30 @@ namespace NexusForever.WorldServer.Game.Entity
             
             CharacterManager.RegisterPlayer(this);
             GuildManager.OnPlayerLogin(Session, this);
+        }
+
+        protected override void BuildBaseProperties()
+        {
+            var baseProperties = AssetManager.GetCharacterBaseProperties();
+            foreach(PropertyValue propertyValue in baseProperties)
+            {
+                float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
+
+                if (propertyValue.Property == Property.BaseHealth || propertyValue.Property == Property.AssaultRating || propertyValue.Property == Property.SupportRating)
+                    value *= Level;
+
+                SetBaseProperty(propertyValue.Property, value);
+            }
+
+            var classProperties = AssetManager.GetCharacterClassBaseProperties(Class);
+            foreach (PropertyValue propertyValue in classProperties)
+            {
+                float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
+
+                SetBaseProperty(propertyValue.Property, value);
+            }
+
+            base.BuildBaseProperties();
         }
 
         public override void Update(double lastTick)
@@ -589,6 +607,8 @@ namespace NexusForever.WorldServer.Game.Entity
             ZoneMapManager.SendInitialPackets();
             Session.AccountCurrencyManager.SendInitialPackets();
             QuestManager.SendInitialPackets();
+            AchievementManager.SendInitialPackets();
+
             Session.EnqueueMessageEncrypted(new ServerPlayerInnate
             {
                 InnateIndex = InnateIndex
@@ -1300,6 +1320,7 @@ namespace NexusForever.WorldServer.Game.Entity
             MailManager.Save(context);
             ZoneMapManager.Save(context);
             QuestManager.Save(context);
+            AchievementManager.Save(context);
 
             Session.EntitlementManager.Save(context);
         }

@@ -13,6 +13,7 @@ using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Command;
 using NexusForever.WorldServer.Command.Contexts;
 using NexusForever.WorldServer.Game;
+using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
@@ -76,6 +77,7 @@ namespace NexusForever.WorldServer
             GlobalStorefrontManager.Initialise();
 
             GuildManager.Initialise();
+            GlobalAchievementManager.Initialise();
 
             // make sure the assigned realm id in the configuration file exists in the database
             RealmId = ConfigurationManager<WorldServerConfiguration>.Config.RealmId;
