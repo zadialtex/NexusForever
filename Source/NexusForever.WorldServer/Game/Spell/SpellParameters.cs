@@ -14,5 +14,7 @@ namespace NexusForever.WorldServer.Game.Spell
         public ushort TaxiNode { get; set; }
         public ClientSideInteraction ClientSideInteraction { get; set; }
         public uint CastTimeOverride { get; set; }
+        public uint ThresholdValue { get; set; }
+        public bool BypassGlobalCooldown { get; set; }
     }
 }

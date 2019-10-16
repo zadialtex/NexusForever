@@ -87,5 +87,27 @@ namespace NexusForever.WorldServer.Game.Spell
 
             saveMask = UnlockedSpellSaveMask.None;
         }
+
+        public void Cast(Player player, bool buttonPressed)
+        {
+            if(player.HasSpell(Info.GetSpellInfo(Tier).Entry.Id, out Spell spell))
+            {
+                if ((spell.CastMethod == CastMethod.RapidTap || spell.CastMethod == CastMethod.ChargeRelease) && !spell.IsFinished)
+                {
+                    spell.Cast();
+                    return;
+                }
+            }
+
+            // If the player depresses button after the spell had exceeded its threshold, don't try and recast the spell until button is pressed down again.
+            if (!buttonPressed && (CastMethod)Info.Entry.CastMethod == CastMethod.ChargeRelease)
+                return;
+
+            player.CastSpell(new SpellParameters
+            {
+                SpellInfo = Info.GetSpellInfo(Tier),
+                UserInitiatedSpellCast = true
+            });
+        }
     }
 }
