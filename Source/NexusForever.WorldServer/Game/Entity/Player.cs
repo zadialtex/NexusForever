@@ -453,6 +453,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
             IsLoading = false;
 
+            CastSpell(80529, new SpellParameters()); // Sprint
+
             if (!loggedIn)
                 OnLogin();
         }
@@ -490,6 +492,12 @@ namespace NexusForever.WorldServer.Game.Entity
                 }
 
                 QuestManager.ObjectiveUpdate(QuestObjectiveType.EnterZone, Zone.Id, 1);
+
+                if (Map.Entry.Id == 22)
+                    CastSpell(75799, new SpellParameters());
+
+                if (Map.Entry.Id == 51)
+                    CastSpell(75744, new SpellParameters());
             }
 
             ZoneMapManager.OnZoneUpdate();
@@ -608,6 +616,48 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.AccountCurrencyManager.SendInitialPackets();
             QuestManager.SendInitialPackets();
             AchievementManager.SendInitialPackets();
+
+            Session.EnqueueMessageEncrypted(new ServerPublicEventStart
+            {
+                PublicEventId = 648,
+                Unknown0 = true
+            });
+
+            Session.EnqueueMessageEncrypted(new ServerPublicEventObjectives
+            {
+                PublicEventId = 648,
+                PublicEventTeamId = 1,
+                ElapsedTimeMs = 62714,
+                Objectives = new List<ServerPublicEventObjectives.Objective>()
+                {
+                    new ServerPublicEventObjectives.Objective
+                    {
+                        ObjectiveId = (ushort)(Faction1 == Faction.Exile ? 3265 : 3297),
+                        ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
+                        {
+                            CurrentStatus = 1,
+                            Count = Event.PublicEventManager.GetEffigyCount(),
+                            SpellResourceIdx = 3
+                        },
+                        ElapsedTimeMs = 62714,
+                    },
+                    new ServerPublicEventObjectives.Objective
+                    {
+                        ObjectiveId = (ushort)(Faction1 == Faction.Exile ? 3251 : 4396),
+                        ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
+                        {
+                            CurrentStatus = 1,
+                            SpellResourceIdx = 3
+                        },
+                        ElapsedTimeMs = 62714
+                    }
+                }
+            });
+            Session.EnqueueMessageEncrypted(new ServerPublicEventReason
+            {
+                PublicEventId = 648,
+                Reason = 10
+            });
 
             Session.EnqueueMessageEncrypted(new ServerPlayerInnate
             {

@@ -156,7 +156,11 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void UpdateVision()
         {
-            Map.Search(Position, Map.VisionRange, new SearchCheckRange(Position, Map.VisionRange), out List<GridEntity> intersectedEntities);
+            Map.Search(Position, Map.VisionRange, new SearchCheckRangePlugOnly(Position, Map.VisionRange), out List<GridEntity> intersectedPlugEntities);
+            Map.Search(Position, Map.VisionRange, new SearchCheckRange(Position, Map.VisionRange), out List<GridEntity> intersectedOtherEntities);
+
+            intersectedPlugEntities.AddRange(intersectedOtherEntities);
+            List<GridEntity> intersectedEntities = intersectedPlugEntities.Distinct().ToList();
 
             // new entities now in vision range
             foreach (GridEntity entity in intersectedEntities.Except(visibleEntities.Values))
@@ -164,6 +168,15 @@ namespace NexusForever.WorldServer.Game.Entity
                 AddVisible(entity);
                 if (entity != this)
                     entity.AddVisible(this);
+
+                if (entity is NonPlayer nonPlayer)
+                    if (nonPlayer.CreatureId == 65980 || nonPlayer.CreatureId == 66263)
+                    {
+                        if (Event.PublicEventManager.GetEffigyCount() >= Event.PublicEventManager.Step1Threshold && Event.PublicEventManager.GetEffigyCount() < Event.PublicEventManager.Step2Threshold)
+                            nonPlayer.CastSpell(75505, new Spell.SpellParameters());
+                        else if (Event.PublicEventManager.GetEffigyCount() >= Event.PublicEventManager.Step2Threshold)
+                            nonPlayer.CastSpell(75506, new Spell.SpellParameters());
+                    }
             }
 
             // old entities now out of vision range
@@ -172,6 +185,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 RemoveVisible(entity);
                 entity.RemoveVisible(this);
             }
+
         }
 
         public abstract void Update(double lastTick);

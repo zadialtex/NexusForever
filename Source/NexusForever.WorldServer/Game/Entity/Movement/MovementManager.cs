@@ -46,6 +46,19 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
                 Position = new Position(rotation)
             });
 
+            AddCommand(new SetPlatformCommand
+            {
+                UnitId = 0
+            });
+            AddCommand(new SetModeCommand
+            {
+                Mode = 0
+            });
+            AddCommand(new SetStateDefaultCommand
+            {
+                Strafe = true
+            });
+
             AddCommand(new SetVelocityDefaultsCommand());
             AddCommand(new SetMoveDefaultsCommand());
             //AddCommand(new SetRotationDefaultsCommand());

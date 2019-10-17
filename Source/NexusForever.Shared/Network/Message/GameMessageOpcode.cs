@@ -42,6 +42,7 @@ namespace NexusForever.Shared.Network.Message
         ServerHousingPrivacy            = 0x010E,
         ServerCharacter                 = 0x010F, // single character
         ServerItemAdd                   = 0x0111,
+        ServerPublicEventObjectives     = 0x0112,
         ServerCharacterList             = 0x0117,
         ClientMailDelete                = 0x011E,
         ClientMailOpen                  = 0x0122,
@@ -53,6 +54,7 @@ namespace NexusForever.Shared.Network.Message
         ServerUnlockMount               = 0x0129,
         ServerPetCustomizationList      = 0x012E,
         ServerPetCustomisation          = 0x012F,
+        ServerPublicEventReason         = 0x0135,
         ClientRapidTransport            = 0x0141,
         ClientCharacterAppearanceChange = 0x0144,
         ServerItemDelete                = 0x0148,

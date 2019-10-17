@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared;
@@ -8,6 +9,8 @@ using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Event;
+using NexusForever.WorldServer.Game.Map.Search;
 using NexusForever.WorldServer.Game.Spell.Event;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -267,6 +270,50 @@ namespace NexusForever.WorldServer.Game.Spell
 
             var vanityPet = new VanityPet(player, info.Entry.DataBits00);
             player.Map.EnqueueAdd(vanityPet, player.Position);
+        }
+
+        [SpellEffectHandler(SpellEffectType.Activate)]
+        private void HandleEffectActivate(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            log.Warn("Activate fired");
+
+            if (!(caster is Player player))
+                throw new ArgumentNullException("player");
+            
+            switch(target.CreatureId)
+            {
+                case 65958:
+                case 66264:
+                    Item effigyItem = player.Inventory.GetItemById(49083);
+                    if (effigyItem == null)
+                        return;
+
+                    if(PublicEventManager.AddEffigy(player, effigyItem.StackCount))
+                    {
+                        player.Inventory.ItemDelete(new Network.Message.Model.Shared.ItemLocation
+                        {
+                            BagIndex = effigyItem.BagIndex,
+                            Location = effigyItem.Location
+                        }, ItemUpdateReason.Quest);
+
+                        target.Map.Search(player.Position, target.Map.VisionRange, new SearchCheckRange(player.Position, player.Map.VisionRange), out List<GridEntity> intersectedEntities);
+                        foreach (GridEntity entity in intersectedEntities)
+                        {
+                            if (entity is NonPlayer nonPlayer)
+                                if (nonPlayer.CreatureId == 65980 || nonPlayer.CreatureId == 66263)
+                                {
+                                    if (PublicEventManager.GetEffigyCount() >= PublicEventManager.Step1Threshold && PublicEventManager.GetEffigyCount() < PublicEventManager.Step2Threshold)
+                                        nonPlayer.CastSpell(75505, new SpellParameters());
+                                    else if (PublicEventManager.GetEffigyCount() >= PublicEventManager.Step2Threshold)
+                                        nonPlayer.CastSpell(75506, new SpellParameters());
+                                }
+                        }
+                    }
+                    break;
+                default:
+                    log.Warn($"Unhandled spell effect SpellEffectType.Activate");
+                    break;
+            }
         }
     }
 }

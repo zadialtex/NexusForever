@@ -68,6 +68,9 @@ namespace NexusForever.WorldServer.Game.Spell
             if (parameters.SpellInfo.BaseInfo.Entry.Spell4SpellTypesIdSpellType == 30) // This also happens with the Mount Unlock items. Investigate further.
                 return;
 
+            if (parameters.SpellInfo.BaseInfo.Entry.Spell4SpellTypesIdSpellType == 82 && parameters.ParentSpellInfo == null)
+                return;
+
             if (status == SpellStatus.Executing && HasThresholdToCast)
                 status = SpellStatus.Waiting;
 
@@ -351,7 +354,7 @@ namespace NexusForever.WorldServer.Game.Spell
             status = SpellStatus.Executing;
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started executing.");
 
-            if (currentPhase == 0 && !HasThresholdToCast && CastMethod != CastMethod.ChargeRelease)
+            if ((currentPhase == 255 || currentPhase == 0) && !HasThresholdToCast && CastMethod != CastMethod.ChargeRelease)
                 SetCooldown();
 
             SelectTargets();
@@ -379,6 +382,8 @@ namespace NexusForever.WorldServer.Game.Spell
             targets.Clear();
 
             targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Caster, caster));
+            if (parameters.ClientSideInteraction != null)
+                targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Unknown02, (UnitEntity)parameters.ClientSideInteraction.ActivateUnit));
             foreach (TelegraphDamageEntry telegraphDamageEntry in parameters.SpellInfo.Telegraphs)
             {
                 var telegraph = new Telegraph(telegraphDamageEntry, caster, caster.Position, caster.Rotation);

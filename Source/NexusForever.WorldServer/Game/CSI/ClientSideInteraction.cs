@@ -13,13 +13,13 @@ namespace NexusForever.WorldServer.Game.CSI
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         public uint ClientUniqueId { get; private set; } = 0;
-        public WorldEntity ActivateUnit { get; private set; } = null;
+        public UnitEntity ActivateUnit { get; private set; } = null;
         public CSIType CsiType { get; private set; } = CSIType.Interaction;
         public ClientSideInteractionEntry Entry { get; private set; }
 
         private Player Owner { get; set; } = null;
 
-        public ClientSideInteraction(Player owner, WorldEntity activateUnit, uint clientUniqueId)
+        public ClientSideInteraction(Player owner, UnitEntity activateUnit, uint clientUniqueId)
         {
             Owner = owner;
             ActivateUnit = activateUnit;

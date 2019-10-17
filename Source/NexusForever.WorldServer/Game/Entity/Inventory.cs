@@ -988,6 +988,15 @@ namespace NexusForever.WorldServer.Game.Entity
             return bags.TryGetValue(location, out Bag container) ? container : null;
         }
 
+        public Item GetItemById(uint itemId)
+        {
+            Bag inventoryBag = GetBag(InventoryLocation.Inventory);
+            if (inventoryBag == null)
+                throw new InvalidPacketValueException();
+
+            return inventoryBag.GetItemById(itemId);
+        }
+
         public IEnumerator<Bag> GetEnumerator()
         {
             return bags.Values.GetEnumerator();

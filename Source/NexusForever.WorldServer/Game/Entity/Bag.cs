@@ -27,6 +27,14 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Returns <see cref="Item"/> with the supplied guid.
         /// </summary>
+        public Item GetItemById(uint itemId)
+        {
+            return items.FirstOrDefault(i => i.Id == itemId);
+        }
+
+        /// <summary>
+        /// Returns <see cref="Item"/> with the supplied guid.
+        /// </summary>
         public Item GetItem(ulong guid)
         {
             return items.SingleOrDefault(i => i.Guid == guid);
