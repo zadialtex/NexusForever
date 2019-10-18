@@ -477,6 +477,26 @@ namespace NexusForever.WorldServer.Game.Entity
                     Unknown1 = 1
                 });
             }
+
+            if (entity is UnitEntity unit)
+            {
+                if (Map is ResidenceMap residenceMap && unit.DecorPropId > 0)
+                {
+                    Session.EnqueueMessageEncrypted(new Server08B3
+                    {
+                        MountGuid = Guid,
+                        Unknown0 = 0,
+                        Unknown1 = true
+                    });
+                    Session.EnqueueMessageEncrypted(new ServerHousingActiveEntitySet
+                    {
+                        RealmId = WorldServer.RealmId,
+                        ResidenceId = residenceMap.Id,
+                        DecorId = unit.DecorPropId,
+                        ActiveUnitId = unit.Guid
+                    });
+                }
+            }
         }
 
         public override void RemoveVisible(GridEntity entity)

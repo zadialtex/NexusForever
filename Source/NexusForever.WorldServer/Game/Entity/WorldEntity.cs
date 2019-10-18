@@ -33,6 +33,9 @@ namespace NexusForever.WorldServer.Game.Entity
         public float LeashRange { get; protected set; } = 15f;
         public MovementManager MovementManager { get; private set; }
 
+        public ulong DecorPropId { get; protected set; }
+        public ushort DecorPlugId { get; protected set; }
+
         public uint Level
         {
             get => GetStatInteger(Stat.Level) ?? 1u;
