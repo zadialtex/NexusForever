@@ -627,7 +627,7 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 PublicEventId = 648,
                 PublicEventTeamId = 1,
-                ElapsedTimeMs = 62714,
+                ElapsedTimeMs = Event.PublicEventManager.ElapsedTime,
                 Objectives = new List<ServerPublicEventObjectives.Objective>()
                 {
                     new ServerPublicEventObjectives.Objective
@@ -639,7 +639,7 @@ namespace NexusForever.WorldServer.Game.Entity
                             Count = Event.PublicEventManager.GetEffigyCount(),
                             SpellResourceIdx = 3
                         },
-                        ElapsedTimeMs = 62714,
+                        ElapsedTimeMs = Event.PublicEventManager.ElapsedTime,
                     },
                     new ServerPublicEventObjectives.Objective
                     {
@@ -649,7 +649,7 @@ namespace NexusForever.WorldServer.Game.Entity
                             CurrentStatus = 1,
                             SpellResourceIdx = 3
                         },
-                        ElapsedTimeMs = 62714
+                        ElapsedTimeMs = Event.PublicEventManager.ElapsedTime
                     }
                 }
             });

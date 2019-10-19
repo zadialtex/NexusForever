@@ -14,10 +14,12 @@ namespace NexusForever.WorldServer.Game.Event
 
         public static uint Step1Threshold { get; private set; } = 25;
         public static uint Step2Threshold { get; private set; } = 50;
+        public static uint ElapsedTime => (uint)(DateTime.UtcNow.Subtract(StartDate).TotalMilliseconds);
 
         private static uint EffigyCount;
         private static uint EffigyResetTimeInSecond = 10800;
         private static DateTime BuildTime;
+        private static DateTime StartDate = new DateTime(2019, 10, 17);
         private static bool dirtyCount = false;
         private static UpdateTimer UpdateTimer = new UpdateTimer(60);
 
