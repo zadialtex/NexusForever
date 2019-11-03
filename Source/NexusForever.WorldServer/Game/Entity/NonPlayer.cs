@@ -29,8 +29,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 VendorInfo = new VendorInfo(model);
             }
 
-            
-            CalculateProperties();
+            if (model.EntityStats.Count == 0)
+                CalculateProperties();
         }
 
         protected override IEntityModel BuildEntityModel()

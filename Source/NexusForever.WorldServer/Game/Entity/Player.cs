@@ -487,10 +487,16 @@ namespace NexusForever.WorldServer.Game.Entity
                 QuestManager.ObjectiveUpdate(QuestObjectiveType.EnterZone, Zone.Id, 1);
 
                 if (Map.Entry.Id == 22)
-                    CastSpell(75799, new Spell.SpellParameters());
+                    CastSpell(75799, new SpellParameters
+                    {
+                        UserInitiatedSpellCast = false
+                    });
 
                 if (Map.Entry.Id == 51)
-                    CastSpell(75744, new Spell.SpellParameters());
+                    CastSpell(75744, new SpellParameters
+                    {
+                        UserInitiatedSpellCast = false
+                    });
             }
 
             ZoneMapManager.OnZoneUpdate();
