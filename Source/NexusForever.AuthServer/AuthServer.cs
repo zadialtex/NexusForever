@@ -41,6 +41,7 @@ namespace NexusForever.AuthServer
             WorldManager.Initialise(lastTick =>
             {
                 NetworkManager<AuthSession>.Update(lastTick);
+                ServerManager.Update(lastTick);
             });
 
             log.Info("Ready!");
