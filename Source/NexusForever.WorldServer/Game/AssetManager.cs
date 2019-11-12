@@ -308,7 +308,8 @@ namespace NexusForever.WorldServer.Game
                 if (entry != null)
                     customizationEntries.Add(entry);
             }
-            else
+            
+            if (customizationEntries.Count == 0)
             {
                 // Return the matching value when the primary KvP matches the table's primary KvP, and no secondary KvP is present.
                 CharacterCustomizationEntry entry = entries.FirstOrDefault(e => e.CharacterCustomizationLabelId00 == primaryLabel && e.Value00 == primaryValue);
