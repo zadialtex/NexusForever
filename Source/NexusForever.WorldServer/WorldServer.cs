@@ -44,6 +44,14 @@ namespace NexusForever.WorldServer
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         public static ushort RealmId { get; private set; }
+        public static TimeSpan Uptime
+        {
+            get
+            {
+                return DateTime.UtcNow.Subtract(bootTime);
+            }
+        }
+        private static DateTime bootTime;
 
         private static void Main()
         {
@@ -103,6 +111,8 @@ namespace NexusForever.WorldServer
                 PublicEventManager.Update(lastTick);
                 Console.Title = Title + $":: Clients: {NetworkManager<WorldSession>.Instance.GetSessions().Count()} | Maps: {MapManager.Instance.GetMapCount()}";
             });
+
+            bootTime = DateTime.UtcNow;
 
             using (WorldServerEmbeddedWebServer.Initialise())
             {
