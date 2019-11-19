@@ -267,6 +267,8 @@ namespace NexusForever.Shared.GameTable
         public GameTable<HousingWarplotPlugInfoEntry> HousingWarplotPlugInfo { get; private set; }
         public GameTable<InputActionEntry> InputAction { get; private set; }
         public GameTable<InputActionCategoryEntry> InputActionCategory { get; private set; }
+
+        [GameData]
         public GameTable<InstancePortalEntry> InstancePortal { get; private set; }
 
         [GameData("Item2.tbl")]

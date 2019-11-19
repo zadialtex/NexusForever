@@ -46,14 +46,12 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
                 Position = new Position(rotation)
             });
 
-            AddCommand(new SetPlatformCommand
-            {
-                UnitId = 0
-            });
-            AddCommand(new SetModeCommand
-            {
-                Mode = 0
-            });
+            if (owner is Simple || owner is InstancePortal)
+                AddCommand(new SetModeCommand
+                {
+                    Mode = 2
+                });
+
             AddCommand(new SetStateDefaultCommand
             {
                 Strafe = true
@@ -136,6 +134,15 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
             AddCommand(new SetRotationCommand
             {
                 Position = new Position(rotation)
+            }, true);
+        }
+
+        public void SetMode(uint mode)
+        {
+            StopSpline();
+            AddCommand(new SetModeCommand
+            {
+                Mode = mode
             }, true);
         }
 

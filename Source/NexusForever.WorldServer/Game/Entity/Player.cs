@@ -618,44 +618,34 @@ namespace NexusForever.WorldServer.Game.Entity
 
             Session.EnqueueMessageEncrypted(new ServerPublicEventStart
             {
-                PublicEventId = 648,
+                PublicEventId = 671,
                 Unknown0 = true
             });
 
             Session.EnqueueMessageEncrypted(new ServerPublicEventObjectives
             {
-                PublicEventId = 648,
+                PublicEventId = 671,
                 PublicEventTeamId = 1,
-                ElapsedTimeMs = Event.PublicEventManager.ElapsedTime,
+                ElapsedTimeMs = 0,
                 Objectives = new List<ServerPublicEventObjectives.Objective>()
                 {
                     new ServerPublicEventObjectives.Objective
                     {
-                        ObjectiveId = (ushort)(Faction1 == Faction.Exile ? 3265 : 3297),
+                        ObjectiveId = (ushort)(Faction1 == Faction.Exile ? 5205 : 4355),
                         ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
                         {
                             CurrentStatus = 1,
-                            Count = Event.PublicEventManager.GetEffigyCount(),
+                            Count = 0,
                             SpellResourceIdx = 3
                         },
-                        ElapsedTimeMs = Event.PublicEventManager.ElapsedTime,
-                    },
-                    new ServerPublicEventObjectives.Objective
-                    {
-                        ObjectiveId = (ushort)(Faction1 == Faction.Exile ? 3251 : 4396),
-                        ObjectiveStatus = new ServerPublicEventObjectives.Objective.Status
-                        {
-                            CurrentStatus = 1,
-                            SpellResourceIdx = 3
-                        },
-                        ElapsedTimeMs = Event.PublicEventManager.ElapsedTime
+                        ElapsedTimeMs = 0,
                     }
                 }
             });
             Session.EnqueueMessageEncrypted(new ServerPublicEventReason
             {
-                PublicEventId = 648,
-                Reason = 10
+                PublicEventId = 671,
+                Reason = 0
             });
 
             Session.EnqueueMessageEncrypted(new ServerPlayerInnate
