@@ -1,5 +1,6 @@
 ﻿using NexusForever.WorldServer.Game.CSI;
 using NexusForever.WorldServer.Game.Entity;
+using System;
 
 namespace NexusForever.WorldServer.Game.Spell
 {
@@ -16,5 +17,6 @@ namespace NexusForever.WorldServer.Game.Spell
         public uint CastTimeOverride { get; set; }
         public uint ThresholdValue { get; set; }
         public bool BypassGlobalCooldown { get; set; }
+        public Action OnExecuteComplete { get; set; }
     }
 }

@@ -68,6 +68,9 @@ namespace NexusForever.WorldServer.Game.Spell
             if (parameters.SpellInfo.BaseInfo.Entry.Spell4SpellTypesIdSpellType == 30) // This also happens with the Mount Unlock items. Investigate further.
                 return;
 
+            if ((parameters.SpellInfo.BaseInfo.Entry.Spell4SpellTypesIdSpellType == 82 || parameters.SpellInfo.BaseInfo.Entry.Spell4SpellTypesIdSpellType == 83) && parameters.ParentSpellInfo == null)
+                return;
+
             if (status == SpellStatus.Executing && HasThresholdToCast)
                 status = SpellStatus.Waiting;
 
@@ -362,6 +365,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
             if (parameters.ThresholdValue > 0 && parameters.ParentSpellInfo.Thresholds.Count > 1)
                 SendThresholdUpdate();
+
+            if (parameters.OnExecuteComplete != null)
+                parameters.OnExecuteComplete.Invoke();
         }
 
         private void SetCooldown()
