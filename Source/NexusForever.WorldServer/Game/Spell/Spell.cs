@@ -164,8 +164,6 @@ namespace NexusForever.WorldServer.Game.Spell
             
             status = SpellStatus.Casting;
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started casting.");
-
-            InitialiseCastMethod();
         }
 
         private CastResult CheckCast()
