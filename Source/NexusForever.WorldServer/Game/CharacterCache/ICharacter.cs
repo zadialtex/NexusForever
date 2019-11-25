@@ -1,6 +1,4 @@
 ﻿using NexusForever.WorldServer.Game.Entity.Static;
-using System;
-using CharacterModel = NexusForever.WorldServer.Database.Character.Model.Character;
 
 namespace NexusForever.WorldServer.Game.CharacterCache
 {
@@ -13,7 +11,8 @@ namespace NexusForever.WorldServer.Game.CharacterCache
         Class Class { get; }
         Path Path { get; }
         uint Level { get; }
-        Faction Faction { get; }
+        Faction Faction1 { get; }
+        Faction Faction2 { get; }
 
         float GetOnlineStatus();
     }

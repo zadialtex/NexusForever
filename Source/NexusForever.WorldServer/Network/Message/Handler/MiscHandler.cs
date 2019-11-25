@@ -1,11 +1,9 @@
 using System;
-using NexusForever.Shared.Game.Events;
 using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
-using NexusForever.WorldServer.Database.Character;
-using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Game.Contact.Static;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 
@@ -28,46 +26,43 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientPlayerInfoRequest)]
         public static void HandlePlayerInfoRequest(WorldSession session, ClientPlayerInfoRequest request)
         {
-            session.EnqueueEvent(new TaskGenericEvent<Character>(CharacterDatabase.GetCharacterById(request.Identity.CharacterId),
-                character =>
-            {
-                if (character == null)
-                    throw new InvalidPacketValueException();
+            ICharacter character = CharacterManager.Instance.GetCharacterInfo(request.Identity.CharacterId);
+            if (character == null)
+                throw new InvalidPacketValueException();
 
-                if (request.Type == ContactType.Ignore) // Ignored user data request
-                    session.EnqueueMessageEncrypted(new ServerPlayerInfoBasicResponse
+            if (request.Type == ContactType.Ignore) // Ignored user data request
+                session.EnqueueMessageEncrypted(new ServerPlayerInfoBasicResponse
+                {
+                    ResultCode = 0,
+                    Identity = new TargetPlayerIdentity
+                    {
+                        RealmId = WorldServer.RealmId,
+                        CharacterId = character.CharacterId
+                    },
+                    Name = character.Name,
+                    Faction = (Faction)character.Faction1,
+                });
+            else
+                session.EnqueueMessageEncrypted(new ServerPlayerInfoFullResponse
+                {
+                    BaseData = new ServerPlayerInfoBasicResponse
                     {
                         ResultCode = 0,
                         Identity = new TargetPlayerIdentity
                         {
                             RealmId = WorldServer.RealmId,
-                            CharacterId = character.Id
+                            CharacterId = character.CharacterId
                         },
                         Name = character.Name,
-                        Faction = (Faction)character.FactionId,
-                    });
-                else
-                    session.EnqueueMessageEncrypted(new ServerPlayerInfoFullResponse
-                    {
-                        BaseData = new ServerPlayerInfoBasicResponse
-                        {
-                            ResultCode = 0,
-                            Identity = new TargetPlayerIdentity
-                            {
-                                RealmId = WorldServer.RealmId,
-                                CharacterId = character.Id
-                            },
-                            Name = character.Name,
-                            Faction = (Faction)character.FactionId
-                        },
-                        IsClassPathSet = true,
-                        Path = (Path)character.ActivePath,
-                        Class = (Class)character.Class,
-                        Level = character.Level,
-                        IsLastLoggedOnInDaysSet = true,
-                        LastLoggedInDays = NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.CharacterId == character.Id) != null ? 0 : -30f // TODO: Get Last Online from DB & Calculate Time Offline (Hard coded for 30 days currently)
-                    });
-            }));
+                        Faction = character.Faction1
+                    },
+                    IsClassPathSet = true,
+                    Path = character.Path,
+                    Class = character.Class,
+                    Level = character.Level,
+                    IsLastLoggedOnInDaysSet = true,
+                    LastLoggedInDays = character.GetOnlineStatus()
+                });
             
         }
 

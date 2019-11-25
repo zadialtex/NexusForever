@@ -78,9 +78,9 @@ namespace NexusForever.WorldServer
             GlobalSpellManager.Instance.Initialise();
             GlobalQuestManager.Instance.Initialise();
             ServerManager.Instance.Initialise();
-            CharacterManager.Initialise();
             RoleManager.Initialise();
 
+            CharacterManager.Instance.Initialise();
             ResidenceManager.Instance.Initialise();
             GlobalStorefrontManager.Instance.Initialise();
 

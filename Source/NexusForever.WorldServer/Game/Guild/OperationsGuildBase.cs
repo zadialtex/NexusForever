@@ -121,13 +121,13 @@ namespace NexusForever.WorldServer.Game.Guild
         private static void GuildOperationMemberInvite(WorldSession session, ClientGuildOperation operation, GuildBase guildBase)
         {
             var memberRank = guildBase.GetMember(session.Player.CharacterId).Rank;
-            var targetCharacter = CharacterManager.GetCharacterInfo(operation.TextValue);
+            var targetCharacter = CharacterManager.Instance.GetCharacterInfo(operation.TextValue);
 
             GuildResult result = GuildResult.Success;
 
             if ((memberRank.GuildPermission & GuildRankPermission.Invite) == 0)
                 result = GuildResult.RankLacksSufficientPermissions;
-            else if (!CharacterManager.IsCharacter(operation.TextValue))
+            else if (!CharacterManager.Instance.IsCharacter(operation.TextValue))
                 result = GuildResult.UnknownCharacter;
             else if (guildBase.GetMemberCount() >= maxGuildSize[guildBase.Type])
                 result = GuildResult.CannotInviteGuildFull;
@@ -194,7 +194,7 @@ namespace NexusForever.WorldServer.Game.Guild
                         CharacterId = targetMember.CharacterId
                     },
                 });
-                guildBase.AnnounceGuildResult(GuildResult.KickedMember, referenceText: CharacterManager.GetCharacterInfo(targetMember.CharacterId).Name);
+                guildBase.AnnounceGuildResult(GuildResult.KickedMember, referenceText: CharacterManager.Instance.GetCharacterInfo(targetMember.CharacterId).Name);
             }
             else
                 SendGuildResult(session, result, guildBase, referenceText: operation.TextValue);

@@ -270,13 +270,13 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="whisper"></param>
         public void HandleWhisperChat(WorldSession session, ClientChatWhisper whisper)
         {
-            if(!CharacterManager.IsCharacter(whisper.PlayerName))
+            if(!CharacterManager.Instance.IsCharacter(whisper.PlayerName))
             {
                 SendMessage(session, $"Player \"{whisper.PlayerName}\" not found.", "", ChatChannel.System);
                 return;
             }
 
-            ICharacter characterInfo = CharacterManager.GetCharacterInfo(whisper.PlayerName);
+            ICharacter characterInfo = CharacterManager.Instance.GetCharacterInfo(whisper.PlayerName);
             if (characterInfo is Player player)
             {
                 var targetSession = player.Session;

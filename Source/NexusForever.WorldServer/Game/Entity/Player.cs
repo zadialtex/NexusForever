@@ -154,6 +154,11 @@ namespace NexusForever.WorldServer.Game.Entity
         public WorldSession Session { get; }
         public bool IsLoading { get; private set; } = true;
 
+        /// <summary>
+        /// Returns a <see cref="float"/> representing decimal value, in days, since Player was last online. Used by <see cref="ICharacter"/>.
+        /// </summary>
+        public float GetOnlineStatus() => 0f;
+
         public Inventory Inventory { get; }
         public CurrencyManager CurrencyManager { get; }
         public PathManager PathManager { get; }
@@ -210,7 +215,6 @@ namespace NexusForever.WorldServer.Game.Entity
         }
         private GuildHolomark guildHolomarkMask;
 
-        public float GetOnlineStatus() => 0f;
         private bool loggedIn = false;
         
         /// <summary>
@@ -310,7 +314,7 @@ namespace NexusForever.WorldServer.Game.Entity
             SetStat(Stat.Resource0, 500f);
             SetStat(Stat.Shield, 450u);
             
-            CharacterManager.RegisterPlayer(this);
+            CharacterManager.Instance.RegisterPlayer(this);
             GuildManager.OnPlayerLogin(Session, this);
         }
 
@@ -801,9 +805,9 @@ namespace NexusForever.WorldServer.Game.Entity
         public void CleanUp()
         {
             // CharacterManager must deregister player first so other events see the user as offline and with relevant data being final
-            CharacterManager.DeregisterPlayer(this);
-
+            CharacterManager.Instance.DeregisterPlayer(this);
             GuildManager.OnPlayerLogout(Session, this);
+            
             CleanupManager.Track(Session.Account);
 
             try

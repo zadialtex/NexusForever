@@ -132,6 +132,11 @@ namespace NexusForever.WorldServer.Database.Character.Model
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
 
+                entity.Property(e => e.LastOnline)
+                    .HasColumnName("lastOnline")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
+
                 entity.Property(e => e.Level)
                     .HasColumnName("level")
                     .HasDefaultValueSql("'0'");

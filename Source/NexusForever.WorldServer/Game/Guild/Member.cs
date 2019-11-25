@@ -145,7 +145,7 @@ namespace NexusForever.WorldServer.Game.Guild
         /// </summary>
         public GuildMember BuildGuildMemberPacket()
         {
-            ICharacter characterInfo = CharacterManager.GetCharacterInfo(CharacterId);
+            ICharacter characterInfo = CharacterManager.Instance.GetCharacterInfo(CharacterId);
             return new GuildMember
             {
                 Realm = WorldServer.RealmId,

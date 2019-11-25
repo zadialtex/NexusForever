@@ -341,7 +341,7 @@ namespace NexusForever.WorldServer.Game.Guild
         /// </summary>
         public Member GetMember(string characterName)
         {
-            return members.Values.FirstOrDefault(i => CharacterManager.GetCharacterInfo(i.CharacterId).Name == characterName);
+            return members.Values.FirstOrDefault(i => CharacterManager.Instance.GetCharacterInfo(i.CharacterId).Name == characterName);
         }
 
         /// <summary>

@@ -457,8 +457,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             {
                 session.CanProcessPackets = true;
 
-                // TODO: De-register from any character cache
-                CharacterManager.RemovePlayer(characterToDelete.Id);
+                CharacterManager.Instance.DeleteCharacter(characterToDelete.Id);
 
                 session.EnqueueMessageEncrypted(new ServerCharacterDeleteResult
                 {

@@ -643,6 +643,7 @@ namespace NexusForever.Shared.GameTable
         [GameData]
         public GameTable<WorldLocation2Entry> WorldLocation2 { get; private set; }
 
+        [GameData]
         public GameTable<WorldSkyEntry> WorldSky { get; private set; }
 
         [GameData]
