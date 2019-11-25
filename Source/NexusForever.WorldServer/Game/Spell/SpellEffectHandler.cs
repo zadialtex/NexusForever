@@ -60,8 +60,9 @@ namespace NexusForever.WorldServer.Game.Spell
             {
                 ParentSpellInfo = parameters.SpellInfo,
                 RootSpellInfo = parameters.RootSpellInfo,
+                PrimaryTargetId = target.Guid,
                 UserInitiatedSpellCast = parameters.UserInitiatedSpellCast,
-                BypassGlobalCooldown = true
+                IsProxy = true
             };
 
             events.EnqueueEvent(new SpellEvent(info.Entry.DelayTime / 1000d, () =>
@@ -72,11 +73,11 @@ namespace NexusForever.WorldServer.Game.Spell
                     for (int i = 1; i == info.Entry.DurationTime / tickTime; i++)
                         events.EnqueueEvent(new SpellEvent(tickTime * i / 1000d, () =>
                         {
-                            target.CastSpell(info.Entry.DataBits01, proxyParameters);
+                            caster.CastSpell(info.Entry.DataBits01, proxyParameters);
                         }));
                 }
                 else
-                    target.CastSpell(info.Entry.DataBits00, proxyParameters);
+                    caster.CastSpell(info.Entry.DataBits00, proxyParameters);
             }));
         }
 

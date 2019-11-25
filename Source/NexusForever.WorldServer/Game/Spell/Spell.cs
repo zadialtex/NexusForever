@@ -19,9 +19,9 @@ namespace NexusForever.WorldServer.Game.Spell
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         public uint CastingId { get; }
-        public bool IsCasting => status == SpellStatus.Casting || thresholdSpells.Count > 0;
-        public bool IsFinished => status == SpellStatus.Finished;
         public bool IsClientSideInteraction => parameters.ClientSideInteraction != null;
+        public bool IsCasting => status == SpellStatus.Casting || ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing));
+        public bool IsFinished => status == SpellStatus.Finished;
         public bool IsFailed => status == SpellStatus.Failed;
         public bool IsWaiting => status == SpellStatus.Waiting;
         public uint Spell4Id => parameters.SpellInfo.Entry.Id;
@@ -141,7 +141,7 @@ namespace NexusForever.WorldServer.Game.Spell
             }
 
             if (caster is Player player)
-                if (parameters.SpellInfo.GlobalCooldown != null && !parameters.BypassGlobalCooldown) // Using UserInitiatedSpellCast to prevent proxies affecting the GCD
+                if (parameters.SpellInfo.GlobalCooldown != null && !parameters.IsProxy) // Using UserInitiatedSpellCast to prevent proxies affecting the GCD
                     player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
 
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started initating.");  
@@ -164,6 +164,8 @@ namespace NexusForever.WorldServer.Game.Spell
             
             status = SpellStatus.Casting;
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started casting.");
+
+            InitialiseCastMethod();
         }
 
         private CastResult CheckCast()
@@ -178,6 +180,10 @@ namespace NexusForever.WorldServer.Game.Spell
             if (caster is Player player)
             {
                 if (IsCasting)
+                    return CastResult.SpellAlreadyCasting;
+
+                // TODO: Some spells can be cast during other spell casts. Reflect that in this check
+                if (caster.IsCasting() && !parameters.IsProxy)
                     return CastResult.SpellAlreadyCasting;
 
                 if (player.SpellManager.GetSpellCooldown(parameters.SpellInfo.Entry.Id) > 0d)
@@ -242,8 +248,6 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             if (parameters.SpellInfo.Thresholds.Count == 0)
                 return null;
-
-            log.Trace($"ThresholdsEntry requested at index {thresholdValue} but doesn't for Spell4ID {Spell4Id}!");
 
             Spell4ThresholdsEntry thresholdsEntry = parameters.SpellInfo.Thresholds.FirstOrDefault(i => i.OrderIndex == thresholdValue);
             if (thresholdsEntry == null)
@@ -322,7 +326,7 @@ namespace NexusForever.WorldServer.Game.Spell
         /// </summary>
         public void CancelCast(CastResult result)
         {
-            if (status != SpellStatus.Casting && !HasThresholdToCast)
+            if (!IsCasting && !HasThresholdToCast)
                 throw new InvalidOperationException();
 
             if (HasThresholdToCast && thresholdSpells.Count > 0)
@@ -353,7 +357,7 @@ namespace NexusForever.WorldServer.Game.Spell
             status = SpellStatus.Executing;
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started executing.");
 
-            if (currentPhase == 0 && !HasThresholdToCast && CastMethod != CastMethod.ChargeRelease)
+            if ((currentPhase == 0 || currentPhase == 255) && !HasThresholdToCast && CastMethod != CastMethod.ChargeRelease)
                 SetCooldown();
 
             SelectTargets();
@@ -386,7 +390,16 @@ namespace NexusForever.WorldServer.Game.Spell
             targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Caster, caster));
             foreach (TelegraphDamageEntry telegraphDamageEntry in parameters.SpellInfo.Telegraphs)
             {
-                var telegraph = new Telegraph(telegraphDamageEntry, caster, caster.Position, caster.Rotation);
+                Telegraph telegraph = null;
+                if (parameters.PrimaryTargetId > 0)
+                {
+                    UnitEntity primaryTargetEntity = caster.GetVisible<UnitEntity>(parameters.PrimaryTargetId);
+                    if (primaryTargetEntity != null)
+                        telegraph = new Telegraph(telegraphDamageEntry, caster, primaryTargetEntity.Position, primaryTargetEntity.Rotation);
+                }
+                else
+                    telegraph = new Telegraph(telegraphDamageEntry, caster, caster.Position, caster.Rotation);
+
                 foreach (UnitEntity entity in telegraph.GetTargets())
                     targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Telegraph, entity));
             }
@@ -396,13 +409,20 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             foreach (Spell4EffectsEntry spell4EffectsEntry in parameters.SpellInfo.Effects)
             {
-                if (caster is Player player)
+                // if (caster is Player player)
+                // {
+                //     // Ensure caster can apply this effect
+                //     if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
+                //         continue;
+                // }
+                
+                if (CastMethod == CastMethod.Multiphase && currentPhase < 255)
                 {
-                    // Ensure caster can apply this effect
-                    if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
+                    int phaseMask = 1 << currentPhase;
+                    if (spell4EffectsEntry.PhaseFlags != 1 && (phaseMask & spell4EffectsEntry.PhaseFlags) == 0)
                         continue;
                 }
-                
+
                 // select targets for effect
                 List<SpellTargetInfo> effectTargets = targets
                     .Where(t => (t.Flags & (SpellEffectTargetFlags)spell4EffectsEntry.TargetFlags) != 0)
@@ -502,7 +522,7 @@ namespace NexusForever.WorldServer.Game.Spell
             {
                 CastingId            = CastingId,
                 CasterId             = caster.Guid,
-                PrimaryTargetId      = caster.Guid,
+                PrimaryTargetId      = parameters.PrimaryTargetId > 0 ? parameters.PrimaryTargetId : caster.Guid,
                 Spell4Id             = parameters.SpellInfo.Entry.Id,
                 RootSpell4Id         = parameters.RootSpellInfo?.Entry.Id ?? 0,
                 ParentSpell4Id       = parameters.ParentSpellInfo?.Entry.Id ?? 0,
@@ -513,10 +533,11 @@ namespace NexusForever.WorldServer.Game.Spell
                 TelegraphPositionData = new List<TelegraphPosition>()
             };
 
-            List<UnitEntity> unitsCasting = new List<UnitEntity>
-            {
-                caster
-            };
+            List<UnitEntity> unitsCasting = new List<UnitEntity>();
+            if (parameters.PrimaryTargetId > 0)
+                unitsCasting.Add(caster.GetVisible<UnitEntity>(parameters.PrimaryTargetId));
+            else
+                unitsCasting.Add(caster);
 
             foreach (UnitEntity unit in unitsCasting)
                 spellStart.InitialPositionData.Add(new InitialPosition
@@ -530,7 +551,7 @@ namespace NexusForever.WorldServer.Game.Spell
             foreach (UnitEntity unit in unitsCasting)
                 foreach (TelegraphDamageEntry telegraph in parameters.SpellInfo.Telegraphs)
                     spellStart.TelegraphPositionData.Add(new TelegraphPosition
-            {
+                    {
                         TelegraphId = (ushort)telegraph.Id,
                         AttachedUnitId = unit.Guid,
                         TargetFlags = (byte)telegraph.TargetTypeFlags,
