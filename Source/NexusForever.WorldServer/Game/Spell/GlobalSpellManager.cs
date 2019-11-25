@@ -84,7 +84,7 @@ namespace NexusForever.WorldServer.Game.Spell
             }
         }
 
-        private static void InitialiseCastMethodHandlers()
+        private void InitialiseCastMethodHandlers()
         {
             foreach (MethodInfo method in Assembly.GetExecutingAssembly()
                 .GetTypes()
@@ -137,7 +137,7 @@ namespace NexusForever.WorldServer.Game.Spell
         /// <summary>
         /// Return <see cref="CastMethodDelegate"/> for supplied <see cref="SpellEffectType"/>.
         /// </summary>
-        public static CastMethodDelegate GetCastMethodHandler(CastMethod castMethod)
+        public CastMethodDelegate GetCastMethodHandler(CastMethod castMethod)
         {
             return castMethodDelegates.TryGetValue(castMethod, out CastMethodDelegate handler) ? handler : null;
         }

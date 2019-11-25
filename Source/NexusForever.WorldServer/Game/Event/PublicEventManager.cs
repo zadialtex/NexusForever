@@ -25,8 +25,8 @@ namespace NexusForever.WorldServer.Game.Event
 
         public static void Initialise()
         {
-            EffigyCount = ConfigurationManager<WorldServerConfiguration>.Config.ShadesEveEffigyCount;
-            BuildTime = ConfigurationManager<WorldServerConfiguration>.Config?.ShadesEveEffigyBuilt ?? DateTime.UtcNow;
+            EffigyCount = ConfigurationManager<WorldServerConfiguration>.Instance.Config.ShadesEveEffigyCount;
+            BuildTime = ConfigurationManager<WorldServerConfiguration>.Instance.Config?.ShadesEveEffigyBuilt ?? DateTime.UtcNow;
 
             log.Info($"Effigy Count: {EffigyCount} | {BuildTime}");
         }
@@ -44,9 +44,9 @@ namespace NexusForever.WorldServer.Game.Event
 
                 if (dirtyCount)
                 {
-                    ConfigurationManager<WorldServerConfiguration>.Config.ShadesEveEffigyBuilt = BuildTime;
-                    ConfigurationManager<WorldServerConfiguration>.Config.ShadesEveEffigyCount = EffigyCount;
-                    ConfigurationManager<WorldServerConfiguration>.Save();
+                    ConfigurationManager<WorldServerConfiguration>.Instance.Config.ShadesEveEffigyBuilt = BuildTime;
+                    ConfigurationManager<WorldServerConfiguration>.Instance.Config.ShadesEveEffigyCount = EffigyCount;
+                    ConfigurationManager<WorldServerConfiguration>.Instance.Save();
 
                     dirtyCount = false;
                 }

@@ -8,6 +8,7 @@ using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Housing.Static;
+using NexusForever.WorldServer.Game.Map;
 using ResidenceModel = NexusForever.WorldServer.Database.Character.Model.Residence;
 
 namespace NexusForever.WorldServer.Game.Housing
@@ -230,7 +231,7 @@ namespace NexusForever.WorldServer.Game.Housing
             gardenSharing       = model.GardenSharing;
 
             if (model.ResidenceInfoId > 0)
-                ResidenceInfoEntry  = GameTableManager.HousingResidenceInfo.GetEntry(model.ResidenceInfoId);
+                ResidenceInfoEntry  = GameTableManager.Instance.HousingResidenceInfo.GetEntry(model.ResidenceInfoId);
 
             foreach (ResidenceDecor decorModel in model.ResidenceDecor)
             {
@@ -440,7 +441,7 @@ namespace NexusForever.WorldServer.Game.Housing
         /// <summary>
         /// Set this <see cref="Residence"/> house plug to the supplied <see cref="HousingPlugItemEntry"/>. Returns <see cref="true"/> if successful
         /// </summary>
-        public bool SetHouse(HousingPlugItemEntry plugItemEntry)
+        public bool SetHouse(HousingPlugItemEntry plugItemEntry, ResidenceMap map)
         {
             if (plugItemEntry == null)
                 throw new ArgumentNullException();
@@ -448,7 +449,7 @@ namespace NexusForever.WorldServer.Game.Housing
             uint residenceId = GetResidenceEntryForPlug(plugItemEntry.Id);
             if (residenceId > 0)
             {
-                HousingResidenceInfoEntry residenceInfoEntry = GameTableManager.HousingResidenceInfo.GetEntry(residenceId);
+                HousingResidenceInfoEntry residenceInfoEntry = GameTableManager.Instance.HousingResidenceInfo.GetEntry(residenceId);
                 if (residenceInfoEntry != null)
                 {
                     ResidenceInfoEntry = residenceInfoEntry;
@@ -465,12 +466,7 @@ namespace NexusForever.WorldServer.Game.Housing
             return false;
         }
 
-        /// <summary>
-        /// Returns a <see cref="HousingResidenceInfoEntry"/> ID if the plug ID is known.
-        /// </summary>
-        private uint GetResidenceEntryForPlug(uint plugItemId)
-        {
-            Dictionary<uint, uint> residenceLookup = new Dictionary<uint, uint>
+        private readonly Dictionary<uint, uint> residenceLookup = new Dictionary<uint, uint>
             {
                 { 83, 14 },     // Cozy Aurin House
                 { 295, 19 },    // Cozy Chua House
@@ -484,8 +480,15 @@ namespace NexusForever.WorldServer.Game.Housing
                 { 299, 21 },    // Spacious Draken House
                 { 86, 17 },     // Spacious Exile Human House
                 { 291, 27 },    // Spacious Granok House
+            { 530, 32 },    // Underground Bunker
+            { 534, 34 },    // Blackhole House
+            { 543, 35 }     // Osun House
             };
-
+        /// <summary>
+        /// Returns a <see cref="HousingResidenceInfoEntry"/> ID if the plug ID is known.
+        /// </summary>
+        private uint GetResidenceEntryForPlug(uint plugItemId)
+        {
             return residenceLookup.TryGetValue(plugItemId, out uint residenceId) ? residenceId : 0u;
         }
 

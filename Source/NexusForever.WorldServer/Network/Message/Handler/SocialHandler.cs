@@ -71,7 +71,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         {
             List<ServerWhoResponse.WhoPlayer> players = new List<ServerWhoResponse.WhoPlayer>();
 
-            List<WorldSession> allSessions = NetworkManager<WorldSession>.GetSessions().ToList();
+            List<WorldSession> allSessions = NetworkManager<WorldSession>.Instance.GetSessions().ToList();
             foreach (WorldSession whoSession in allSessions)
             {
                 if (whoSession.Player == null)
@@ -105,7 +105,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientChatWhisper)]
         public static void HandleWhisper(WorldSession session, ClientChatWhisper whisper)
         {
-            SocialManager.HandleWhisperChat(session, whisper);
+            SocialManager.Instance.HandleWhisperChat(session, whisper);
         }
     }
 }

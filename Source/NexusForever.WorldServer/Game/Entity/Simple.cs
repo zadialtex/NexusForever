@@ -45,7 +45,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override void OnActivateCast(Player activator, uint interactionId)
         {
-            Creature2Entry entry = GameTableManager.Creature2.GetEntry(CreatureId);
+            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
 
             // TODO: Handle casting activate spells at correct times. Additionally, ensure Prerequisites are met to cast.
             // Creature2Entry can contain up to 4 spells to activate and prerequisite spells to trigger.

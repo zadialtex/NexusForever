@@ -42,10 +42,10 @@ namespace NexusForever.WorldServer.Game.Storefront
 
         private static void LoadConfig()
         {
-            ForcedProtobucksPrice = ConfigurationManager<WorldServerConfiguration>.Config.Store.ForcedProtobucksPrice;
-            ForcedOmnibitsPrice = ConfigurationManager<WorldServerConfiguration>.Config.Store.ForcedOmnibitsPrice;
-            CurrencyProtobucksEnabled = ConfigurationManager<WorldServerConfiguration>.Config.Store.CurrencyProtobucksEnabled;
-            CurrencyOmnibitsEnabled = ConfigurationManager<WorldServerConfiguration>.Config.Store.CurrencyOmnibitsEnabled;
+            ForcedProtobucksPrice = ConfigurationManager<WorldServerConfiguration>.Instance.Config.Store.ForcedProtobucksPrice;
+            ForcedOmnibitsPrice = ConfigurationManager<WorldServerConfiguration>.Instance.Config.Store.ForcedOmnibitsPrice;
+            CurrencyProtobucksEnabled = ConfigurationManager<WorldServerConfiguration>.Instance.Config.Store.CurrencyProtobucksEnabled;
+            CurrencyOmnibitsEnabled = ConfigurationManager<WorldServerConfiguration>.Instance.Config.Store.CurrencyOmnibitsEnabled;
         }
 
         private static void BuildNetworkPackets()

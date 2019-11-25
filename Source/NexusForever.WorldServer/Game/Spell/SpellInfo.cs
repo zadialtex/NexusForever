@@ -52,12 +52,12 @@ namespace NexusForever.WorldServer.Game.Spell
                 .OrderBy(e => e.OrderIndex)
                 .ToList();
 
-            Thresholds = GameTableManager.Spell4Thresholds.Entries
+            Thresholds = GameTableManager.Instance.Spell4Thresholds.Entries
                 .Where(e => e.Spell4IdParent == spell4Entry.Id)
                 .OrderBy(e => e.OrderIndex)
                 .ToList();
 
-            Phases = GameTableManager.SpellPhase.Entries
+            Phases = GameTableManager.Instance.SpellPhase.Entries
                 .Where(e => e.Spell4IdOwner == spell4Entry.Id)
                 .OrderBy(e => e.OrderIndex)
                 .ToList();

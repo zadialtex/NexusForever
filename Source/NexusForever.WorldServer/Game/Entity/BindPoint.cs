@@ -17,7 +17,6 @@ namespace NexusForever.WorldServer.Game.Entity
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-        public uint CreatureId { get; private set; }
         public Creature2Entry Entry { get; private set; } = null;
         public BindPointEntry BindPointEntry { get; private set; } = null;
 
@@ -29,10 +28,9 @@ namespace NexusForever.WorldServer.Game.Entity
         public override void Initialise(EntityModel model)
         {
             base.Initialise(model);
-            CreatureId          = model.Creature;
-            Entry               = GameTableManager.Creature2.GetEntry(CreatureId);
+            Entry               = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
             if (Entry.BindPointId != 0u)
-                BindPointEntry      = GameTableManager.BindPoint.GetEntry(Entry.BindPointId);
+                BindPointEntry      = GameTableManager.Instance.BindPoint.GetEntry(Entry.BindPointId);
         }
 
         protected override IEntityModel BuildEntityModel()

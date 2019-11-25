@@ -25,7 +25,7 @@ namespace NexusForever.WorldServer.Game.Account
         public static void Initialise()
         {
             LoadRoles();
-            DefaultRole = ConfigurationManager<WorldServerConfiguration>.Config.DefaultRole;
+            DefaultRole = ConfigurationManager<WorldServerConfiguration>.Instance.Config.DefaultRole;
 
             log.Info($"Initialised {Roles.Count} roles");
         }

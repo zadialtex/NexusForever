@@ -349,7 +349,7 @@ namespace NexusForever.WorldServer.Game.Map
                 {
                     if (update.ColourShiftId != 0u)
                     {
-                        ColorShiftEntry colourEntry = GameTableManager.ColorShift.GetEntry(update.ColourShiftId);
+                        ColorShiftEntry colourEntry = GameTableManager.Instance.ColorShift.GetEntry(update.ColourShiftId);
                         if (colourEntry == null)
                             throw new InvalidPacketValueException();
                     }
@@ -458,7 +458,7 @@ namespace NexusForever.WorldServer.Game.Map
             if (update.PlotIndex == int.MaxValue)
                 return true;
 
-            WorldSocketEntry worldSocketEntry = GameTableManager.WorldSocket.GetEntry(residence.GetPlot((byte)update.PlotIndex).PlotEntry.WorldSocketId);
+            WorldSocketEntry worldSocketEntry = GameTableManager.Instance.WorldSocket.GetEntry(residence.GetPlot((byte)update.PlotIndex).PlotEntry.WorldSocketId);
 
             // TODO: Calculate position based on individual maps on Community & Warplot residences
             Vector3 worldPosition = new Vector3(1472f + update.Position.X, update.Position.Y, 1440f + update.Position.Z);
@@ -579,7 +579,7 @@ namespace NexusForever.WorldServer.Game.Map
             //       Telling the client that the Plots were updated looks to be the only trigger for the building animation.
 
             // Update the Plot and queue necessary plug updates
-            if (residence.SetHouse(plugItemEntry))
+            if (residence.SetHouse(plugItemEntry, this))
             {
                 HandleHouseChange(player, plot, housingPlugUpdate);
             }
@@ -646,7 +646,7 @@ namespace NexusForever.WorldServer.Game.Map
             if (plot == null)
                 throw new HousingException();
 
-            HousingPlugItemEntry plugItemEntry = GameTableManager.HousingPlugItem.GetEntry(housingPlugUpdate.PlugItem);
+            HousingPlugItemEntry plugItemEntry = GameTableManager.Instance.HousingPlugItem.GetEntry(housingPlugUpdate.PlugItem);
             if (plugItemEntry == null)
                 throw new InvalidPacketValueException();
 

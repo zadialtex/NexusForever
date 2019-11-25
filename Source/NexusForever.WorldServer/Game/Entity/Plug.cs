@@ -41,7 +41,7 @@ namespace NexusForever.WorldServer.Game.Entity
             return new PlugModel
             {
                 SocketId  = (ushort)(PlotEntry?.WorldSocketId ?? WorldSocketId),
-                PlugId    = (ushort)(PlugEntry?.WorldIdPlug00 ?? PlugId),
+                PlugId    = (ushort)(PlugEntry?.WorldIdPlug02 ?? PlugId),
                 PlugFlags = 63
             };
         }

@@ -29,12 +29,12 @@ namespace NexusForever.WorldServer.Command.Handler
                 return;
             }
 
-            ConfigurationManager<WorldServerConfiguration>.Config.MessageOfTheDay = string.Join(" ", parameters);
-            ConfigurationManager<WorldServerConfiguration>.Save();
+            ConfigurationManager<WorldServerConfiguration>.Instance.Config.MessageOfTheDay = string.Join(" ", parameters);
+            ConfigurationManager<WorldServerConfiguration>.Instance.Save();
 
-            string motd = ConfigurationManager<WorldServerConfiguration>.Config.MessageOfTheDay;
-            foreach (WorldSession session in NetworkManager<WorldSession>.GetSessions())
-                SocialManager.SendMessage(session, "MOTD: " + motd, channel: ChatChannel.Realm);
+            string motd = ConfigurationManager<WorldServerConfiguration>.Instance.Config.MessageOfTheDay;
+            foreach (WorldSession session in NetworkManager<WorldSession>.Instance.GetSessions())
+                SocialManager.Instance.SendMessage(session, "MOTD: " + motd, channel: ChatChannel.Realm);
 
             await context.SendMessageAsync($"MOTD Updated!");
         }
@@ -43,7 +43,7 @@ namespace NexusForever.WorldServer.Command.Handler
         [SubCommandHandler("o", "Displays the users online")]
         public async Task HandleOnlineCheck(CommandContext context, string subCommand, string[] parameters)
         {
-            List<WorldSession> allSessions = NetworkManager<WorldSession>.GetSessions().ToList();
+            List<WorldSession> allSessions = NetworkManager<WorldSession>.Instance.GetSessions().ToList();
 
             int index = 0;
             foreach (WorldSession session in allSessions)

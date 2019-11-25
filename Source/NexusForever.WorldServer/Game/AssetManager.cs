@@ -224,16 +224,16 @@ namespace NexusForever.WorldServer.Game
             bindPointLocations = entries.ToImmutable();
         }
 
-        private static void CacheItemArmorModifiers()
+        private void CacheItemArmorModifiers()
         {
             var armorMods = ImmutableDictionary.CreateBuilder<uint, float>();
-            foreach (Item2CategoryEntry entry in GameTableManager.Item2Category.Entries.Where(i => i.Item2FamilyId == 1))
+            foreach (Item2CategoryEntry entry in GameTableManager.Instance.Item2Category.Entries.Where(i => i.Item2FamilyId == 1))
                 armorMods.Add(entry.Id, entry.ArmorModifier);
 
             itemArmorModifiers = armorMods.ToImmutable();
         }
 
-        private static void CacheItemInnateProperties()
+        private void CacheItemInnateProperties()
         {
             ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propFlat = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
             ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propScaling = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
@@ -277,8 +277,6 @@ namespace NexusForever.WorldServer.Game
         /// </summary>
         public IEnumerable<CharacterCustomizationEntry> GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
         {
-            log.Info($"Race: {(Race)race}, Sex: {(Sex)sex}, {primaryLabel}, {primaryValue}");
-
             ImmutableList<CharacterCustomizationEntry> entries = GetPrimaryCharacterCustomisation(race, sex, primaryLabel, primaryValue);
             if (entries == null)
                 return Enumerable.Empty<CharacterCustomizationEntry>();
@@ -362,7 +360,7 @@ namespace NexusForever.WorldServer.Game
         /// <summary>
         /// Returns a <see cref="Dictionary{TKey, TValue}"/> containing <see cref="Property"/> and associated values for given Item.
         /// </summary>
-        public static Dictionary<Property, float> GetInnateProperties(ItemSlot itemSlot, uint effectiveLevel, uint categoryId, float supportPowerPercentage)
+        public Dictionary<Property, float> GetInnateProperties(ItemSlot itemSlot, uint effectiveLevel, uint categoryId, float supportPowerPercentage)
         {
             Dictionary<Property, float> innateProperties = new Dictionary<Property, float>();
 

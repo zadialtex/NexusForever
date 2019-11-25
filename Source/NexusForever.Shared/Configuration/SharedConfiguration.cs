@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 namespace NexusForever.Shared.Configuration
 {
@@ -23,6 +25,12 @@ namespace NexusForever.Shared.Configuration
                 .AddCommandLine(Environment.GetCommandLineArgs().Skip(1).ToArray());
 
             Configuration = builder.Build();
+        }
+
+        public static void Save<T>(object config)
+        {
+            if (fileLocation.Length > 0)
+                File.WriteAllText(fileLocation, JsonConvert.SerializeObject(config, Formatting.Indented));
         }
     }
 }

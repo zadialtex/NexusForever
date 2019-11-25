@@ -59,7 +59,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 throw new ArgumentOutOfRangeException();
 
             if (parameters.ClientSideInteraction != null)
-                parameters.ClientSideInteraction.SetClientSideInteractionEntry(GameTableManager.ClientSideInteraction.GetEntry(spellBaseInfo.Entry.ClientSideInteractionId));
+                parameters.ClientSideInteraction.SetClientSideInteractionEntry(GameTableManager.Instance.ClientSideInteraction.GetEntry(spellBaseInfo.Entry.ClientSideInteractionId));
 
             SpellInfo spellInfo = spellBaseInfo.GetSpellInfo(tier);
             if (spellInfo == null)

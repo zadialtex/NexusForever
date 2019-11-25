@@ -197,7 +197,7 @@ namespace NexusForever.WorldServer.Game.Social
         [ChatChannelHandler(ChatChannel.Society)]
         [ChatChannelHandler(ChatChannel.WarParty)]
         [ChatChannelHandler(ChatChannel.Community)]
-        private static void HandleGuildChat(WorldSession session, ClientChat chat)
+        private void HandleGuildChat(WorldSession session, ClientChat chat)
         {
             ChatResult result = 0;
             if (chat.ChatId == 0 || !session.Player.GuildMemberships.Contains(chat.ChatId))
@@ -231,7 +231,7 @@ namespace NexusForever.WorldServer.Game.Social
 
         [ChatChannelHandler(ChatChannel.GuildOfficer)]
         [ChatChannelHandler(ChatChannel.WarPartyOfficer)]
-        private static void HandleGuildOfficerChat(WorldSession session, ClientChat chat)
+        private void HandleGuildOfficerChat(WorldSession session, ClientChat chat)
         {
             ChatResult result = 0;
             if (chat.ChatId == 0 || !session.Player.GuildMemberships.Contains(chat.ChatId))

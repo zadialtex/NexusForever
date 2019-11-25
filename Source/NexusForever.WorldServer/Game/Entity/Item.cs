@@ -180,7 +180,7 @@ namespace NexusForever.WorldServer.Game.Entity
             if ((InventoryLocation)model.Location != InventoryLocation.Ability)
             {
                 Entry = GameTableManager.Instance.Item.GetEntry(model.ItemId);
-                InnateProperties = AssetManager.GetInnateProperties((ItemSlot)GameTableManager.Instance.ItemType.GetEntry(Entry.Item2TypeId).ItemSlotId, Entry.PowerLevel, Entry.Item2CategoryId, Entry.SupportPowerPercentage);
+                InnateProperties = AssetManager.Instance.GetInnateProperties((ItemSlot)GameTableManager.Instance.ItemType.GetEntry(Entry.Item2TypeId).ItemSlotId, Entry.PowerLevel, Entry.Item2CategoryId, Entry.SupportPowerPercentage);
             }   
             else
                 SpellEntry  = GameTableManager.Instance.Spell4Base.GetEntry(model.ItemId);
@@ -202,7 +202,7 @@ namespace NexusForever.WorldServer.Game.Entity
             durability  = 1.0f;
 
             Entry       = entry;
-            InnateProperties = AssetManager.GetInnateProperties((ItemSlot)GameTableManager.Instance.ItemType.GetEntry(Entry.Item2TypeId).ItemSlotId, Entry.PowerLevel, Entry.Item2CategoryId, Entry.SupportPowerPercentage);
+            InnateProperties = AssetManager.Instance.GetInnateProperties((ItemSlot)GameTableManager.Instance.ItemType.GetEntry(Entry.Item2TypeId).ItemSlotId, Entry.PowerLevel, Entry.Item2CategoryId, Entry.SupportPowerPercentage);
 
             saveMask    = ItemSaveMask.Create;
         }

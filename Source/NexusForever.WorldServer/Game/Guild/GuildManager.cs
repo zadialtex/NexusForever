@@ -729,9 +729,9 @@ namespace NexusForever.WorldServer.Game.Guild
             bool isNear = (player.GuildHolomarkMask & GuildHolomark.Near) != 0;
             Dictionary<ItemSlot, ushort> guildStandardVisuals = new Dictionary<ItemSlot, ushort>
             {
-                { ItemSlot.GuildStandardScanLines, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.ScanLines.GuildStandardPartId).ItemDisplayIdStandard },
-                { ItemSlot.GuildStandardBackgroundIcon, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.BackgroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
-                { ItemSlot.GuildStandardForegroundIcon, (ushort)GameTableManager.GuildStandardPart.GetEntry(guild.GuildStandard.ForegroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
+                { ItemSlot.GuildStandardScanLines, (ushort)GameTableManager.Instance.GuildStandardPart.GetEntry(guild.GuildStandard.ScanLines.GuildStandardPartId).ItemDisplayIdStandard },
+                { ItemSlot.GuildStandardBackgroundIcon, (ushort)GameTableManager.Instance.GuildStandardPart.GetEntry(guild.GuildStandard.BackgroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
+                { ItemSlot.GuildStandardForegroundIcon, (ushort)GameTableManager.Instance.GuildStandardPart.GetEntry(guild.GuildStandard.ForegroundIcon.GuildStandardPartId).ItemDisplayIdStandard },
                 { ItemSlot.GuildStandardChest, 5411 },
                 { ItemSlot.GuildStandardBack, isNear ? (ushort)7163 : (ushort)5580 },
                 { ItemSlot.GuildStandardShoulderL, isNear ? (ushort)7164 : (ushort)5581 },

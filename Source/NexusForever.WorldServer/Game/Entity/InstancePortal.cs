@@ -32,14 +32,14 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             base.Initialise(model);
 
-            CreatureEntry = GameTableManager.Creature2.GetEntry(CreatureId);
+            CreatureEntry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
             if (CreatureEntry == null)
                 throw new ArgumentNullException("creature2Entry");
 
             if (CreatureEntry.InstancePortalId == 0)
                 throw new ArgumentOutOfRangeException("entry.InstancePortalId");
 
-            InstancePortalEntry = GameTableManager.InstancePortal.GetEntry(CreatureEntry.InstancePortalId);
+            InstancePortalEntry = GameTableManager.Instance.InstancePortal.GetEntry(CreatureEntry.InstancePortalId);
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -74,7 +74,7 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             if (InstancePortalEntry.Id == 181) // To SuperMall
             {
-                WorldLocation2Entry entry = GameTableManager.WorldLocation2.GetEntry(47085);
+                WorldLocation2Entry entry = GameTableManager.Instance.WorldLocation2.GetEntry(47085);
                 if (entry == null)
                     throw new ArgumentNullException("location2Entry");
 

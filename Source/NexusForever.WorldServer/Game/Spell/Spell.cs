@@ -156,12 +156,14 @@ namespace NexusForever.WorldServer.Game.Spell
                 else if (parameters.ClientSideInteraction.Entry.Duration > 0)
                     events.EnqueueEvent(new SpellEvent(parameters.ClientSideInteraction.Entry.Duration / 1000d, FailClientInteraction));
             }
+            else
+            {
+                SendSpellStart();
+                InitialiseCastMethod();
+            }
             
             status = SpellStatus.Casting;
-            SendSpellStart();
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started casting.");
-
-            InitialiseCastMethod();
         }
 
         private CastResult CheckCast()
@@ -274,11 +276,11 @@ namespace NexusForever.WorldServer.Game.Spell
 
         private void InitialiseCastMethod()
         {
-            CastMethodDelegate handler = GlobalSpellManager.GetCastMethodHandler(CastMethod);
+            CastMethodDelegate handler = GlobalSpellManager.Instance.GetCastMethodHandler(CastMethod);
             if (handler == null)
             {
                 log.Warn($"Unhandled cast method {CastMethod}. Using {CastMethod.Normal} instead.");
-                GlobalSpellManager.GetCastMethodHandler(CastMethod.Normal).Invoke(this);
+                GlobalSpellManager.Instance.GetCastMethodHandler(CastMethod.Normal).Invoke(this);
             }
             else
                 handler.Invoke(this);

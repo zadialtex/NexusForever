@@ -47,7 +47,7 @@ namespace NexusForever.WorldServer.Game.Entity
             get => GetStatInteger(Stat.Health) ?? 0u;
             set
             {
-                SetStat(Stat.Health, Math.Clamp(value, 0u, MaxHealth)); // TODO: Confirm MaxHealth is actually the maximum health would be at.
+                SetStat(Stat.Health, Math.Clamp(value, 0u, MaxHealth > 0 ? MaxHealth : 1000u)); // TODO: Confirm MaxHealth is actually the maximum health would be at.
                 EnqueueToVisible(new ServerUpdateHealth
                 {
                     UnitId = Guid,

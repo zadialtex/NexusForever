@@ -36,11 +36,13 @@ using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
+using NLog;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
     public class Player : UnitEntity, ISaveAuth, ISaveCharacter, ICharacter
     {
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         // TODO: move this to the config file
         private const double SaveDuration = 60d;
@@ -174,6 +176,9 @@ namespace NexusForever.WorldServer.Game.Entity
         private LogoutManager logoutManager;
         private PendingTeleport pendingTeleport;
 
+        public List<ulong> IgnoreList { get; set; }
+        public bool IsIgnoring(ulong value) => IgnoreList.Contains(value);
+
         public ulong GuildId = 0;
         public List<ulong> GuildMemberships = new List<ulong>();
         public GuildInvite PendingGuildInvite;
@@ -261,6 +266,7 @@ namespace NexusForever.WorldServer.Game.Entity
             MailManager             = new MailManager(this, model);
             ZoneMapManager          = new ZoneMapManager(this, model);
             QuestManager            = new QuestManager(this, model);
+            IgnoreList              = ContactManager.GetIgnoreList(model);
             AchievementManager      = new CharacterAchievementManager(this, model);
 
             Session.EntitlementManager.OnNewCharacter(model);
@@ -310,7 +316,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         protected override void BuildBaseProperties()
         {
-            var baseProperties = AssetManager.GetCharacterBaseProperties();
+            var baseProperties = AssetManager.Instance.GetCharacterBaseProperties();
             foreach(PropertyValue propertyValue in baseProperties)
             {
                 float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
@@ -321,7 +327,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 SetBaseProperty(propertyValue.Property, value);
             }
 
-            var classProperties = AssetManager.GetCharacterClassBaseProperties(Class);
+            var classProperties = AssetManager.Instance.GetCharacterClassBaseProperties(Class);
             foreach (PropertyValue propertyValue in classProperties)
             {
                 float value = propertyValue.Value; // Intentionally copying value so that the PropertyValue does not get modified inside AssetManager
@@ -452,6 +458,11 @@ namespace NexusForever.WorldServer.Game.Entity
 
             if (!loggedIn)
                 OnLogin();
+
+            CastSpell(80529, new SpellParameters
+            {
+                UserInitiatedSpellCast = false
+            });
         }
 
         public override void OnRelocate(Vector3 vector)
@@ -814,9 +825,9 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             loggedIn = true;
 
-            var motd = ConfigurationManager<WorldServerConfiguration>.Config.MessageOfTheDay;
+            var motd = ConfigurationManager<WorldServerConfiguration>.Instance.Config.MessageOfTheDay;
             if (motd.Length > 0)
-                SocialManager.SendMessage(Session, "MOTD: " + motd, channel: ChatChannel.Realm);
+                SocialManager.Instance.SendMessage(Session, "MOTD: " + motd, channel: ChatChannel.Realm);
         }
 
         /// <summary>
@@ -1129,7 +1140,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 else
                     characterCustomisations.TryAdd(label, new Customisation(CharacterId, label, value));
 
-                foreach(CharacterCustomizationEntry entry in AssetManager.GetCharacterCustomisation(customisations, (uint)newRace, (uint)newSex, label, value))
+                foreach(CharacterCustomizationEntry entry in AssetManager.Instance.GetCharacterCustomisation(customisations, (uint)newRace, (uint)newSex, label, value))
                 {
                     if (characterAppearances.TryGetValue((ItemSlot)entry.ItemSlotId, out Appearance appearance))
                         appearance.DisplayId = (ushort)entry.ItemDisplayId;

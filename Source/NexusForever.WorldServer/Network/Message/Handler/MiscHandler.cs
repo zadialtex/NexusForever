@@ -65,7 +65,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         Class = (Class)character.Class,
                         Level = character.Level,
                         IsLastLoggedOnInDaysSet = true,
-                        LastLoggedInDays = NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == character.Id) != null ? 0 : -30f // TODO: Get Last Online from DB & Calculate Time Offline (Hard coded for 30 days currently)
+                        LastLoggedInDays = NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.CharacterId == character.Id) != null ? 0 : -30f // TODO: Get Last Online from DB & Calculate Time Offline (Hard coded for 30 days currently)
                     });
             }));
             

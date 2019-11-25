@@ -1,5 +1,6 @@
 ﻿using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
+using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Guild;
 using NexusForever.WorldServer.Game.Guild.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -44,7 +45,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 GuildManager.JoinGuild(session, session.Player.PendingGuildInvite);
             else
             {
-                var targetSession = NetworkManager<WorldSession>.GetSession(i => i.Player?.CharacterId == session.Player.PendingGuildInvite.InviteeId);
+                var targetSession = NetworkManager<WorldSession>.Instance.GetSession(i => i.Player?.CharacterId == session.Player.PendingGuildInvite.InviteeId);
                 if (targetSession != null)
                     targetSession.EnqueueMessageEncrypted(new ServerGuildResult
                     {

@@ -129,7 +129,7 @@ namespace NexusForever.WorldServer.Game.Contact
                 }
 
                 // Process Pending Request if user is online
-                WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == recipientId);
+                WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.CharacterId == recipientId);
                 if (targetSession != null)
                     SendPendingRequests(targetSession);
             }
@@ -187,7 +187,7 @@ namespace NexusForever.WorldServer.Game.Contact
             }
 
             // Process Contact Request if user is online
-            WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == contactRequest.OwnerId);
+            WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.CharacterId == contactRequest.OwnerId);
             if (targetSession != null)
             {
                 SendNewContact(targetSession, GetContactData(contactRequest));
@@ -242,7 +242,7 @@ namespace NexusForever.WorldServer.Game.Contact
 
             foreach (Contact contact in playerContacts)
             {
-                WorldSession contactSession = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == contact.OwnerId);
+                WorldSession contactSession = Shared.Network.NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.CharacterId == contact.OwnerId);
                 if (contactSession != null)
                     contactSession.EnqueueMessageEncrypted(new ServerContactsUpdateStatus
                     {
@@ -274,7 +274,7 @@ namespace NexusForever.WorldServer.Game.Contact
         /// <param name="contactRequest">Contact request to remove</param>
         public static void TryRemoveRequestFromOnlineUser(Contact contactRequest)
         {
-            WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == contactRequest.ContactId);
+            WorldSession targetSession = Shared.Network.NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.CharacterId == contactRequest.ContactId);
             if (targetSession != null)
                 SendContactRequestRemove(targetSession, contactRequest.Id);
         }
@@ -472,7 +472,7 @@ namespace NexusForever.WorldServer.Game.Contact
                 SendContactsUpdateType(session, contact);
             else
             {
-                session = Shared.Network.NetworkManager<WorldSession>.GetSession(s => s.Player?.CharacterId == contact.OwnerId);
+                session = Shared.Network.NetworkManager<WorldSession>.Instance.GetSession(s => s.Player?.CharacterId == contact.OwnerId);
                 if(session != null)
                     SendContactsUpdateType(session, contact);
             }

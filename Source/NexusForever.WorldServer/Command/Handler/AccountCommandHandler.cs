@@ -35,7 +35,7 @@ namespace NexusForever.WorldServer.Command.Handler
             for (int i = 2; i < parameters.Length; i++)
                 extraRoles.Add(ulong.Parse(parameters[i]));
 
-            AuthDatabase.CreateAccount(parameters[0], parameters[1], defaultRole: ConfigurationManager<WorldServerConfiguration>.Config.DefaultRole, extraRoles.ToArray());
+            AuthDatabase.CreateAccount(parameters[0], parameters[1], defaultRole: ConfigurationManager<WorldServerConfiguration>.Instance.Config.DefaultRole, extraRoles.ToArray());
             await context.SendMessageAsync($"Account {parameters[0]} created successfully")
                 .ConfigureAwait(false);
         }

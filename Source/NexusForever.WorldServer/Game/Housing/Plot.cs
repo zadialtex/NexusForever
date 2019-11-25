@@ -135,7 +135,7 @@ namespace NexusForever.WorldServer.Game.Housing
             saveMask = PlotSaveMask.None;
         }
 
-        public void SetPlug(uint plugItemId, HousingPlugFacing plugFacing = HousingPlugFacing.Default)
+        public void SetPlug(uint plugItemId, HousingPlugFacing plugFacing = HousingPlugFacing.East)
         {
             // TODO
             PlugEntry  = GameTableManager.Instance.HousingPlugItem.GetEntry(plugItemId);

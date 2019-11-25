@@ -31,6 +31,12 @@ namespace NexusForever.WorldServer.Game.Entity
 
             if (model.EntityStats.Count == 0)
                 CalculateProperties();
+
+            //if (MaxHealth == 0)
+            //    MaxHealth = 1000u;
+
+            if(Health == 0u)
+                Health = 1000u;
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -99,13 +105,9 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
-                SetProperty((Property)i, values[i], values[i]);
+                SetBaseProperty((Property)i, values[i]);
 
-            if (stats.Count == 0)
-            {
-                SetStat(Stat.Health, (uint)(GetPropertyValue(Property.BaseHealth) ?? 1000));
-                SetStat(Stat.Level, (uint)level);
-            }
+            Level = (uint)level;
         }
     }
 }
