@@ -409,12 +409,12 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             foreach (Spell4EffectsEntry spell4EffectsEntry in parameters.SpellInfo.Effects)
             {
-                // if (caster is Player player)
-                // {
-                //     // Ensure caster can apply this effect
-                //     if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
-                //         continue;
-                // }
+                if (caster is Player player)
+                {
+                    // Ensure caster can apply this effect
+                    if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
+                        continue;
+                }
                 
                 if (CastMethod == CastMethod.Multiphase && currentPhase < 255)
                 {

@@ -18,7 +18,7 @@ namespace NexusForever.WorldServer.Game
 {
     public sealed class AssetManager : Singleton<AssetManager>
     {
-        public static ImmutableDictionary<InventoryLocation, uint> InventoryLocationCapacities { get; private set; }
+        public ImmutableDictionary<InventoryLocation, uint> InventoryLocationCapacities { get; private set; }
 
         /// <summary>
         /// Id to be assigned to the next created character.
@@ -40,12 +40,12 @@ namespace NexusForever.WorldServer.Game
         private ulong nextMailId;
 
         private ImmutableDictionary<uint, ImmutableList<CharacterCustomizationEntry>> characterCustomisations;
+        private ImmutableList<PropertyValue> characterBaseProperties;
+        private ImmutableDictionary<Class, ImmutableList<PropertyValue>> characterClassBaseProperties;
 
         private ImmutableDictionary<ItemSlot, ImmutableList<EquippedItem>> equippedItems;
         private ImmutableDictionary<uint, ImmutableList<ItemDisplaySourceEntryEntry>> itemDisplaySourcesEntry;
         private ImmutableDictionary<ushort, Location> bindPointLocations;
-        private ImmutableList<PropertyValue> characterBaseProperties;
-        private ImmutableDictionary<Class, ImmutableList<PropertyValue>> characterClassBaseProperties;
         private ImmutableDictionary<uint /*item2CategoryId*/, float /*modifier*/> itemArmorModifiers;
         private ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>> innatePropertiesLevelScaling;
         private ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>> innatePropertiesFlat;
@@ -222,6 +222,45 @@ namespace NexusForever.WorldServer.Game
             }
 
             bindPointLocations = entries.ToImmutable();
+        }
+
+        private void CacheItemArmorModifiers()
+        {
+            var armorMods = ImmutableDictionary.CreateBuilder<uint, float>();
+            foreach (Item2CategoryEntry entry in GameTableManager.Instance.Item2Category.Entries.Where(i => i.Item2FamilyId == 1))
+                armorMods.Add(entry.Id, entry.ArmorModifier);
+
+            itemArmorModifiers = armorMods.ToImmutable();
+        }
+
+        private void CacheItemInnateProperties()
+        {
+            ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propFlat = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
+            ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propScaling = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
+
+            foreach (var slot in CharacterDatabase.GetProperties(2).GroupBy(x => x.Subtype).Select(i => i.First()))
+            {
+                ImmutableDictionary<Property, float>.Builder subtypePropFlat = ImmutableDictionary.CreateBuilder<Property, float>();
+                ImmutableDictionary<Property, float>.Builder subtypePropScaling = ImmutableDictionary.CreateBuilder<Property, float>();
+                foreach (PropertyBase propertyBase in CharacterDatabase.GetProperties(2).Where(i => i.Subtype == slot.Subtype))
+                {
+                    switch (propertyBase.ModType)
+                    {
+                        case 0:
+                            subtypePropFlat.Add((Property)propertyBase.Property, propertyBase.Value);
+                            break;
+                        case 1:
+                            subtypePropScaling.Add((Property)propertyBase.Property, propertyBase.Value);
+                            break;
+                    }
+                }
+
+                propFlat.Add((ItemSlot)slot.Subtype, subtypePropFlat.ToImmutable());
+                propScaling.Add((ItemSlot)slot.Subtype, subtypePropScaling.ToImmutable());
+            }
+
+            innatePropertiesFlat = propFlat.ToImmutable();
+            innatePropertiesLevelScaling = propScaling.ToImmutable();
         }
 
         private void CacheItemArmorModifiers()

@@ -72,7 +72,6 @@ namespace NexusForever.WorldServer.Game.Prerequisite
         private static bool PrerequesiteCheckUnhealthy(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
         {
             // TODO: Investigate further. Unknown what the value and objectId refers to at this time.
-
             // Error message is "Cannot recall while in Unhealthy Time" when trying to use Rapid Transport & other recall spells
             switch (comparison)
             {

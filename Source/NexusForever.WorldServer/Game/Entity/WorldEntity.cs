@@ -48,12 +48,18 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 SetStat(Stat.Health, Math.Clamp(value, 0u, MaxHealth > 0 ? MaxHealth : 1000u)); // TODO: Confirm MaxHealth is actually the maximum health would be at.
-                EnqueueToVisible(new ServerUpdateHealth
+                EnqueueToVisible(new ServerEntityHealthUpdate
                 {
                     UnitId = Guid,
-                    Health = Health,
-                    Mask = (UpdateHealthMask)4
-                }, true);
+                    Health = Health
+                });
+                if (this is Player player)
+                    player.Session.EnqueueMessageEncrypted(new ServerPlayerHealthUpdate
+                    {
+                        UnitId = Guid,
+                        Health = Health,
+                        Mask = (UpdateHealthMask)4
+                    });
             }
         }
 
@@ -78,7 +84,12 @@ namespace NexusForever.WorldServer.Game.Entity
         public uint Level
         {
             get => GetStatInteger(Stat.Level) ?? 1u;
-            set => SetStat(Stat.Level, value);
+            set
+            {
+                SetStat(Stat.Level, value);
+                if (this is Player player)
+                    player.BuildBaseProperties();
+            }
         }
 
         public bool Sheathed
@@ -354,7 +365,7 @@ namespace NexusForever.WorldServer.Game.Entity
             else
             {
                 ItemProperties.Add(property, new Dictionary<ItemSlot, float>
-        {
+                {
                     { itemSlot, value }
                 });
             }
@@ -395,7 +406,7 @@ namespace NexusForever.WorldServer.Game.Entity
             else
             {
                 SpellProperties.Add(property, new Dictionary<uint, PropertyModifier>
-        {
+                {
                     { spell4Id, modifier }
                 });
             }
