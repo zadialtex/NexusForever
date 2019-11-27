@@ -20,7 +20,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
         public uint CastingId { get; }
         public bool IsClientSideInteraction => parameters.ClientSideInteraction != null;
-        public bool IsCasting => status == SpellStatus.Casting || ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing));
+        public bool IsCasting => !parameters.UserInitiatedSpellCast && status == SpellStatus.Casting || ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing));
         public bool IsFinished => status == SpellStatus.Finished;
         public bool IsFailed => status == SpellStatus.Failed;
         public bool IsWaiting => status == SpellStatus.Waiting;
