@@ -383,11 +383,12 @@ namespace NexusForever.WorldServer.Game.Map
                     PlayerName = player.Name,
                     Result = result
                 });
+            }
 
-                EnqueueToAll(new ServerHousingResidenceDecor
-                {
-                    Operation = 0,
-                    DecorData = new List<ServerHousingResidenceDecor.Decor>
+            EnqueueToAll(new ServerHousingResidenceDecor
+            {
+                Operation = 0,
+                DecorData = new List<ServerHousingResidenceDecor.Decor>
                     {
                         new ServerHousingResidenceDecor.Decor
                         {
@@ -404,8 +405,7 @@ namespace NexusForever.WorldServer.Game.Map
                             ColourShift   = decor.ColourShiftId
                         }
                     }
-                });
-            }
+            });
         }
 
         private void DecorDelete(ClientHousingDecorUpdate.DecorUpdate update)
